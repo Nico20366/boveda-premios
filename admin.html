@@ -92,11 +92,15 @@
             <button onclick="createCoupon()" class="w-full dynamic-btn py-2.5 rounded-xl text-xs uppercase tracking-wider">Crear Cupón 💾</button>
         </div>
 
-        <!-- Lista de Cupones -->
+        <!-- Lista de Cupones con Botones de Limpieza -->
         <div class="slot-marquee rounded-2xl p-4 space-y-3">
-            <div class="flex justify-between items-center gap-2">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
                 <h3 id="list-title" class="cinzel text-xs font-black dynamic-text">📋 CUPONES</h3>
-                <input type="text" id="search-code" placeholder="🔍 Buscar..." oninput="filterCoupons()" class="bg-black/80 border border-zinc-700 rounded-xl px-2.5 py-1 text-xs text-white font-bold focus:outline-none w-32">
+                <div class="flex items-center gap-1.5 w-full sm:w-auto justify-end">
+                    <input type="text" id="search-code" placeholder="🔍 Buscar..." oninput="filterCoupons()" class="bg-black/80 border border-zinc-700 rounded-xl px-2.5 py-1 text-xs text-white font-bold focus:outline-none w-28">
+                    <button onclick="clearUsedCoupons()" title="Borrar usados o vencidos" class="bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-600/50 px-2 py-1 rounded-xl text-[10px] font-bold">🗑️ Limpiar</button>
+                    <button onclick="clearAllCoupons()" title="Borrar todos los cupones" class="bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-600/50 px-2 py-1 rounded-xl text-[10px] font-bold">💥 Todo</button>
+                </div>
             </div>
             <div id="coupons-list" class="space-y-1.5 text-xs font-bold max-h-48 overflow-y-auto"></div>
         </div>
@@ -251,6 +255,71 @@
             });
         }
 
+        // Función para eliminar un cupón individual con el botón de tacho
+        function deleteCoupon(code) {
+            if(!confirm(`¿Estás seguro de eliminar el cupón [${code}]?`)) return;
+            db.ref('cupones/' + code).remove(() => {
+                alert(`Cupón [${code}] eliminado.`);
+            });
+        }
+
+        // Función para limpiar cupones usados o vencidos de la nube
+        function clearUsedCoupons() {
+            if(!confirm("⚠️ ¿Deseas eliminar todos los cupones que ya fueron usados o están vencidos?")) return;
+            let now = new Date().getTime();
+            
+            db.ref('cupones').once('value', (snap) => {
+                let data = snap.val() || {};
+                let updates = {};
+                let count = 0;
+
+                for(let code in data) {
+                    let item = data[code];
+                    let isExpired = item.expiresAt && now > item.expiresAt;
+                    let isCreatorValid = (currentRole === 'super' || item.createdBy === currentUser);
+
+                    if (isCreatorValid && (item.used || isExpired)) {
+                        updates[code] = null; // null en Firebase borra el nodo
+                        count++;
+                    }
+                }
+
+                if (count === 0) {
+                    alert("No hay cupones usados o vencidos para limpiar.");
+                    return;
+                }
+
+                db.ref('cupones').update(updates, () => {
+                    alert(`¡Se eliminaron ${count} cupones usados/vencidos con éxito!`);
+                });
+            });
+        }
+
+        // Función para borrar absolutamente todos los cupones
+        function clearAllCoupons() {
+            if(!confirm("⚠️⚠️ ¿Estás SEGURO de borrar ABSOLUTAMENTE TODOS los cupones de la base de datos?")) return;
+            
+            if (currentRole === 'super') {
+                db.ref('cupones').remove(() => {
+                    alert("¡Todos los cupones del sistema han sido borrados!");
+                });
+            } else {
+                // Si es admin normal, solo borra los suyos
+                db.ref('cupones').once('value', (snap) => {
+                    let data = snap.val() || {};
+                    let updates = {};
+                    for(let code in data) {
+                        if(data[code].createdBy === currentUser) {
+                            updates[code] = null;
+                        }
+                    }
+                    db.ref('cupones').update(updates, () => {
+                        alert("¡Tus cupones han sido borrados!");
+                    });
+                });
+            }
+        }
+
         function loadCoupons() {
             db.ref('cupones').on('value', (snap) => {
                 let raw = snap.val() || {};
@@ -277,16 +346,21 @@
         function renderCoupons(data) {
             let list = document.getElementById('coupons-list');
             list.innerHTML = "";
-            if(Object.keys(data).length === 0) { list.innerHTML = "<p class='text-zinc-500 text-center'>No hay cupones.</p>"; return; }
+            if(Object.keys(data).length === 0) { list.innerHTML = "<p class='text-zinc-500 text-center py-2'>No hay cupones.</p>"; return; }
             let now = new Date().getTime();
             for(let code in data) {
                 let item = data[code];
                 let expired = item.expiresAt && now > item.expiresAt;
                 let st = item.used ? `<span class="text-red-400">USADO</span>` : (expired ? `<span class="text-amber-400">VENCIDO</span>` : `<span class="text-emerald-400">ACTIVO</span>`);
+                
                 list.innerHTML += `
-                    <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800 flex justify-between items-center">
-                        <div><strong class="text-amber-400">${code}</strong>: ${item.customPrize}</div>
-                        <div class="flex items-center gap-2">${st} <button onclick="navigator.clipboard.writeText('${code}'); alert('Copiado')" class="bg-zinc-800 text-amber-300 px-2 py-0.5 rounded text-[10px]">📋</button></div>
+                    <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800 flex justify-between items-center gap-2">
+                        <div class="truncate"><strong class="text-amber-400">${code}</strong>: ${item.customPrize}</div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            ${st} 
+                            <button onclick="navigator.clipboard.writeText('${code}'); alert('Copiado: ${code}')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-300 px-2 py-1 rounded text-[10px]">📋</button>
+                            <button onclick="deleteCoupon('${code}')" class="bg-red-950 hover:bg-red-900 text-red-300 px-2 py-1 rounded text-[10px]" title="Eliminar cupón">🗑️</button>
+                        </div>
                     </div>`;
             }
         }
