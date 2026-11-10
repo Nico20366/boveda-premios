@@ -57,33 +57,37 @@
         <!-- PESTAÑA 1: CUPONES -->
         <div id="tab-content-coupons" class="space-y-4">
             <div class="slot-marquee rounded-2xl p-4 space-y-3">
-                <h3 class="cinzel text-xs font-black dynamic-text">🎁 NUEVO CUPÓN</h3>
+                <h3 class="cinzel text-xs font-black dynamic-text">🎁 NUEVO CUPÓN CON STOCK Y PROBABILIDAD</h3>
                 <div class="space-y-2">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <input type="text" id="new-code" placeholder="Código (Ej: VIP1)" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold uppercase focus:outline-none focus:border-amber-500">
+                        <input type="text" id="new-code" placeholder="Código (Ej: RULETA1)" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold uppercase focus:outline-none focus:border-amber-500">
                         <input type="text" id="new-prize" placeholder="Premio (Ej: 20% OFF)" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
                     </div>
                     
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
                         <div>
-                            <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Tipo de Juego:</label>
+                            <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Juego:</label>
                             <select id="new-game-type" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
                                 <option value="chests">📦 Cofres</option>
                                 <option value="roulette">🎡 Ruleta</option>
                             </select>
                         </div>
                         <div>
-                            <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Probabilidad (%):</label>
+                            <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Probabilidad:</label>
                             <select id="new-probability" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
-                                <option value="100">100% (Gana Seguro)</option>
+                                <option value="100">100% (Seguro)</option>
                                 <option value="75">75% (Alta)</option>
-                                <option value="50">50% (50 / 50)</option>
+                                <option value="50">50% (50/50)</option>
                                 <option value="25">25% (Difícil)</option>
                                 <option value="10">10% (Jackpot)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Vencimiento:</label>
+                            <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Stock Máx:</label>
+                            <input type="number" id="new-stock" value="1" min="1" max="999" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Vence:</label>
                             <input type="datetime-local" id="new-expires-exact" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
                         </div>
                     </div>
@@ -113,16 +117,14 @@
                     <h3 class="cinzel text-xs font-black dynamic-text">👥 ADMINISTRADORES</h3>
                     <span id="admins-count-badge" class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-bold">0</span>
                 </div>
-                <p class="text-[11px] text-zinc-400 font-medium">Estado de conexión en tiempo real y permisos:</p>
                 <div id="admins-management-list" class="space-y-2 text-xs font-bold max-h-64 overflow-y-auto pt-1">
                     <p class="text-zinc-500 text-center py-2">Conectando a Firebase...</p>
                 </div>
             </div>
         </div>
 
-        <!-- PESTAÑA 3: AJUSTES (CONFIGURACIÓN INDEPENDIENTE POR ADMIN) -->
+        <!-- PESTAÑA 3: AJUSTES -->
         <div id="tab-content-config" class="space-y-4 hidden">
-            <!-- Cambiar Clave -->
             <div class="slot-marquee rounded-2xl p-4 space-y-3">
                 <h3 class="cinzel text-xs font-black text-amber-400">🔑 CAMBIAR MI CONTRASEÑA</h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -132,27 +134,21 @@
                 <button onclick="changeMyPassword()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-amber-500/30 py-2 rounded-xl text-xs font-bold uppercase">Actualizar Clave</button>
             </div>
 
-            <!-- Ajustes Específicos de Mis Juegos (Cofres / Ruleta) -->
             <div class="slot-marquee rounded-2xl p-4 space-y-3">
                 <h3 class="cinzel text-xs font-black dynamic-text">⚙️ MIS AJUSTES DE JUEGOS</h3>
-                <p class="text-[11px] text-zinc-400 font-medium">Personaliza cómo operan tus juegos en la bóveda:</p>
-                
                 <div class="space-y-3 pt-2">
                     <div class="bg-black/60 p-3 rounded-xl border border-zinc-800">
-                        <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider block mb-1">📦 Configuración de Cofres:</label>
-                        <input type="text" id="cfg-chest-msg" placeholder="Mensaje al ganar en cofre" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold mb-2 focus:outline-none">
+                        <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider block mb-1">📦 Cofres:</label>
+                        <input type="text" id="cfg-chest-msg" placeholder="Mensaje al ganar en cofre" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
                     </div>
-
                     <div class="bg-black/60 p-3 rounded-xl border border-zinc-800">
-                        <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider block mb-1">🎡 Configuración de Ruleta:</label>
-                        <input type="text" id="cfg-roulette-title" placeholder="Título de la ruleta (Ej: Ruleta VIP)" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold mb-2 focus:outline-none">
+                        <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider block mb-1">🎡 Ruleta:</label>
+                        <input type="text" id="cfg-roulette-title" placeholder="Título de la ruleta" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
                     </div>
                 </div>
-
                 <button onclick="saveMyGameConfig()" class="w-full dynamic-btn py-2 rounded-xl text-xs uppercase">Guardar Mis Ajustes</button>
             </div>
 
-            <!-- Super Admin: Textos de la Web -->
             <div id="super-text-section" class="slot-marquee rounded-2xl p-4 space-y-3">
                 <h3 class="cinzel text-xs font-black dynamic-text">✏️ TÍTULOS GENERALES DE LA WEB</h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -251,6 +247,7 @@
             let prize = document.getElementById('new-prize').value.trim();
             let gameType = document.getElementById('new-game-type').value;
             let probability = parseInt(document.getElementById('new-probability').value);
+            let stockMax = parseInt(document.getElementById('new-stock').value) || 1;
             let expireInput = document.getElementById('new-expires-exact').value;
 
             if(!code || !prize || !expireInput) { alert("Completa todos los campos."); return; }
@@ -258,7 +255,8 @@
             let expiresAt = new Date(expireInput).getTime();
 
             db.ref('cupones/' + code).set({
-                used: false, 
+                usedCount: 0,
+                stockMax: stockMax,
                 createdBy: currentUser, 
                 customPrize: prize, 
                 gameType: gameType,
@@ -266,7 +264,7 @@
                 createdAt: new Date().toLocaleDateString(), 
                 expiresAt: expiresAt
             }, () => {
-                alert(`¡Cupón [${code}] creado con éxito!`);
+                alert(`¡Cupón [${code}] con Stock (${stockMax}) creado con éxito!`);
                 document.getElementById('new-code').value = ""; 
                 document.getElementById('new-prize').value = "";
                 setDefaultExpiration();
@@ -296,7 +294,11 @@
             for(let code in data) {
                 let item = data[code];
                 let expired = item.expiresAt && now > item.expiresAt;
-                let st = item.used ? `<span class="text-red-400">USADO</span>` : (expired ? `<span class="text-amber-400">VENCIDO</span>` : `<span class="text-emerald-400">ACTIVO</span>`);
+                let usedCount = item.usedCount || 0;
+                let stockMax = item.stockMax || 1;
+                let isSoldOut = usedCount >= stockMax;
+
+                let st = isSoldOut ? `<span class="text-red-400">AGOTADO</span>` : (expired ? `<span class="text-amber-400">VENCIDO</span>` : `<span class="text-emerald-400">DISPONIBLE (${usedCount}/${stockMax})</span>`);
                 
                 let gameIcon = item.gameType === 'roulette' ? '🎡 Ruleta' : '📦 Cofres';
                 let expireFormatted = item.expiresAt ? new Date(item.expiresAt).toLocaleString([], { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + " hs" : "Sin límite";
@@ -306,13 +308,13 @@
                     <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800 flex justify-between items-center gap-2">
                         <div class="truncate">
                             <strong class="text-amber-400">${code}</strong>: ${item.customPrize} 
-                            <div class="text-[9px] text-zinc-400 font-semibold">${gameIcon}${probText} (Creado por: ${item.createdBy || 'Desconocido'})</div>
+                            <div class="text-[9px] text-zinc-400 font-semibold">${gameIcon}${probText}</div>
                             <div class="text-[9px] text-zinc-500">🕒 Vence: ${expireFormatted}</div>
                         </div>
                         <div class="flex items-center gap-1.5 shrink-0">
                             ${st} 
                             <button onclick="navigator.clipboard.writeText('${code}'); alert('Copiado')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-300 px-2 py-1 rounded text-[10px]">📋</button>
-                            <button onclick="deleteCoupon('${code}')" class="bg-red-950 hover:bg-red-900 text-red-300 border border-red-600/40 px-2 py-1 rounded text-[10px]">🗑️</button>
+                            <button onclick="deleteCoupon('${code}')" class="bg-red-950 hover:bg-red-900 text-red-300 px-2 py-1 rounded text-[10px]">🗑️</button>
                         </div>
                     </div>`;
             }
@@ -322,7 +324,9 @@
             let total = 0, used = 0, avail = 0, now = new Date().getTime();
             for(let c in data) {
                 total++;
-                if(data[c].used || (data[c].expiresAt && now > data[c].expiresAt)) used++; else avail++;
+                let item = data[c];
+                let isSoldOut = (item.usedCount || 0) >= (item.stockMax || 1);
+                if(isSoldOut || (item.expiresAt && now > item.expiresAt)) used++; else avail++;
             }
             document.getElementById('stat-total').innerText = total;
             document.getElementById('stat-available').innerText = avail;
@@ -335,7 +339,7 @@
         }
 
         function clearUsedCoupons() {
-            if(!confirm("¿Eliminar cupones usados o vencidos?")) return;
+            if(!confirm("¿Eliminar cupones agotados o vencidos?")) return;
             let now = new Date().getTime();
             db.ref('cupones').once('value', (snap) => {
                 let data = snap.val() || {};
@@ -343,8 +347,9 @@
                 for(let code in data) {
                     let item = data[code];
                     let isExpired = item.expiresAt && now > item.expiresAt;
+                    let isSoldOut = (item.usedCount || 0) >= (item.stockMax || 1);
                     let isCreatorValid = (currentRole === 'super' || item.createdBy === currentUser);
-                    if (isCreatorValid && (item.used || isExpired)) {
+                    if (isCreatorValid && (isSoldOut || isExpired)) {
                         updates[code] = null;
                     }
                 }
@@ -390,7 +395,6 @@
         function saveMyGameConfig() {
             let chestMsg = document.getElementById('cfg-chest-msg').value.trim();
             let rouletteTitle = document.getElementById('cfg-roulette-title').value.trim();
-
             db.ref(`admins/${currentUser}/configuracion_juegos`).set({
                 chestMsg: chestMsg || "¡Premio Sorpresa en Cofre!",
                 rouletteTitle: rouletteTitle || "Ruleta de la Suerte"
