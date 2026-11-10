@@ -5,95 +5,189 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="page-title">BÓVEDA DE LA SUERTE</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Plus+Jakarta+Sans:wght@600;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020204; color: #ffffff; overflow-x: hidden; position: relative; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #07070a; color: #f4f4f5; overflow-x: hidden; position: relative; }
         .cinzel { font-family: 'Cinzel', serif; }
-        :root { --neon-main: #eab308; --neon-glow: rgba(234, 179, 8, 0.3); --neon-shadow: rgba(234, 179, 8, 0.7); }
-        .casino-bg { background-color: #050508; background-image: radial-gradient(circle at 50% 20%, var(--neon-glow) 0%, transparent 60%), radial-gradient(circle at 50% 90%, rgba(0,0,0,0.95) 0%, transparent 60%); }
-        .slot-marquee { border: 4px solid var(--neon-main); box-shadow: 0 0 35px var(--neon-shadow), inset 0 0 20px rgba(0,0,0,0.8); background: linear-gradient(180deg, #141419 0%, #08080b 100%); position: relative; z-index: 10; }
-        .dynamic-text { text-shadow: 0 0 15px var(--neon-main); color: var(--neon-main) !important; }
-        .dynamic-btn { background: linear-gradient(135deg, var(--neon-main) 0%, #ca8a04 100%); color: #000 !important; font-weight: 900; box-shadow: 0 0 25px var(--neon-shadow); }
-        .chest { transition: all 0.3s ease; cursor: pointer; background: linear-gradient(145deg, #1f1f28, #0e0e12); border: 3px solid var(--neon-main); box-shadow: 0 10px 30px rgba(0,0,0,0.9); }
-        .chest:hover { transform: scale(1.05); box-shadow: 0 0 40px var(--neon-main); }
-        .chest.active-roulette { transform: scale(1.12); border-color: #ffffff !important; background: linear-gradient(145deg, #4b5563, #1f2937); box-shadow: 0 0 50px #ffffff; }
-        .chest.opened { transform: scale(1.08); border-color: #22c55e !important; background: linear-gradient(145deg, #14532d, #064e3b); box-shadow: 0 0 60px #22c55e; }
-        .particle { position: absolute; pointer-events: none; animation: fall linear forwards; z-index: 1; }
-        @keyframes fall { 0% { transform: translateY(-20px) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
+        
+        :root {
+            --neon-main: #f59e0b; 
+            --neon-glow: rgba(245, 158, 11, 0.15);
+            --neon-shadow: rgba(245, 158, 11, 0.4);
+        }
+
+        .casino-bg {
+            background-color: #050508;
+            background-image: 
+                radial-gradient(circle at 50% 10%, var(--neon-glow) 0%, transparent 50%),
+                radial-gradient(circle at 50% 90%, rgba(0,0,0,0.95) 0%, transparent 60%);
+        }
+
+        .slot-marquee {
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.9), 0 0 20px rgba(245, 158, 11, 0.08);
+            background: linear-gradient(145deg, #0d0d12 0%, #060609 100%);
+            position: relative;
+            z-index: 10;
+        }
+
+        .dynamic-text { 
+            color: var(--neon-main) !important;
+        }
+        
+        .dynamic-btn {
+            background: linear-gradient(135deg, var(--neon-main) 0%, #d97706 100%);
+            color: #000 !important;
+            font-weight: 800;
+            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3);
+            transition: all 0.2s ease;
+        }
+        .dynamic-btn:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.4);
+        }
+
+        .chest { 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            cursor: pointer; 
+            background: linear-gradient(145deg, #121218, #09090c);
+            border: 1.5px solid rgba(245, 158, 11, 0.25);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.8);
+        }
+        .chest:hover { 
+            transform: translateY(-3px) scale(1.02); 
+            border-color: var(--neon-main);
+            box-shadow: 0 12px 30px rgba(245, 158, 11, 0.2); 
+        }
+        .chest.active-roulette {
+            transform: scale(1.08);
+            border-color: #ffffff !important;
+            background: linear-gradient(145deg, #27272a, #18181b);
+            box-shadow: 0 0 35px rgba(255, 255, 255, 0.4);
+        }
+
+        .chest.suspense {
+            transform: scale(1.15) rotate(-2deg);
+            border-color: #ffffff !important;
+            background: linear-gradient(145deg, #d97706, #b45309);
+            box-shadow: 0 0 50px rgba(255, 255, 255, 0.5), 0 0 20px rgba(245, 158, 11, 0.5) inset;
+            animation: chest-flash 0.15s infinite alternate;
+            z-index: 100;
+            opacity: 1 !important;
+        }
+
+        .dimmed {
+            opacity: 0.2;
+            transition: opacity 0.3s ease;
+        }
+
+        .chest.opened { 
+            transform: scale(1.05); 
+            border-color: #10b981 !important;
+            background: linear-gradient(145deg, #064e3b, #022c22);
+            box-shadow: 0 0 40px rgba(16, 185, 129, 0.4);
+            opacity: 1 !important;
+        }
+
+        @keyframes chest-flash {
+            0% { transform: scale(1.15) rotate(-2deg); filter: brightness(1); }
+            100% { transform: scale(1.15) rotate(2deg); filter: brightness(1.2); }
+        }
+
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            animation: fall linear forwards;
+            z-index: 1;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between casino-bg">
+    
     <div id="particles-container" class="absolute inset-0 overflow-hidden pointer-events-none"></div>
 
-    <header class="w-full py-5 px-6 border-b border-zinc-800 flex justify-between items-center bg-black/95 z-10 shadow-2xl">
+    <!-- Header Minimalista -->
+    <header class="w-full py-4 px-6 border-b border-zinc-800/60 flex justify-between items-center bg-[#07070a]/90 backdrop-blur-md z-10">
         <div class="flex items-center space-x-3">
-            <span class="text-4xl">🎰</span>
+            <span id="secret-trigger" class="text-2xl cursor-pointer select-none" title="Panel">🎰</span>
             <div>
-                <h1 id="header-title" class="cinzel text-xl sm:text-2xl font-black dynamic-text tracking-wider">BÓVEDA DE LA SUERTE</h1>
-                <p id="header-subtitle" class="text-[11px] uppercase tracking-widest text-zinc-300 font-bold">ZONA DE PREMIOS</p>
+                <h1 id="header-title" class="cinzel text-base sm:text-lg font-black tracking-wider text-white">BÓVEDA DE LA SUERTE</h1>
+                <p id="header-subtitle" class="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">ZONA DE PREMIOS</p>
             </div>
         </div>
+        
         <div class="flex items-center gap-2">
-            <button onclick="toggleBackgroundMusic()" class="text-xs bg-zinc-900 hover:bg-zinc-800 text-amber-400 border border-amber-500/40 px-3 py-1.5 rounded-lg font-bold cinzel flex items-center gap-1.5 shadow-lg">
-                🎵 <span id="music-status-text">MÚSICA: OFF</span>
+            <button id="music-toggle-btn" onclick="toggleBackgroundMusic()" class="text-[11px] bg-zinc-900/80 hover:bg-zinc-800 text-amber-400 border border-amber-500/30 px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-all">
+                🎵 <span id="music-status-text">OFF</span>
             </button>
-            <a href="login.html" class="text-xs bg-zinc-900 hover:bg-zinc-800 text-amber-400 border border-amber-500/40 px-3.5 py-2 rounded-lg font-bold cinzel shadow-lg">
+            <a href="login.html" class="text-[11px] bg-zinc-900/80 hover:bg-zinc-800 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-lg font-bold cinzel shadow">
                 🔐 LOGIN
             </a>
         </div>
     </header>
 
-    <main class="flex-grow flex flex-col items-center justify-center px-4 py-8 max-w-xl mx-auto w-full text-center z-10">
-        <!-- Paso 1 -->
-        <div id="step-token" class="w-full slot-marquee rounded-3xl p-8 sm:p-10 backdrop-blur-2xl shadow-2xl">
-            <div class="text-6xl mb-4 animate-bounce">🔑</div>
-            <h2 class="cinzel text-3xl sm:text-4xl font-black dynamic-text mb-3">INGRESE SU CÓDIGO</h2>
-            <p class="text-zinc-200 text-sm sm:text-base mb-6 font-bold leading-relaxed">Escribe tu código para abrir el cofre:</p>
+    <main class="flex-grow flex flex-col items-center justify-center px-4 py-6 max-w-md mx-auto w-full text-center z-10">
+        
+        <!-- PASO 1: Ingreso de Código -->
+        <div id="step-token" class="w-full slot-marquee rounded-3xl p-6 sm:p-8 backdrop-blur-xl">
+            <div class="text-4xl mb-3">🔑</div>
+            <h2 class="cinzel text-xl sm:text-2xl font-black text-white mb-2">INGRESE SU CÓDIGO</h2>
+            <p class="text-zinc-400 text-xs sm:text-sm mb-5 font-medium leading-relaxed">Escriba su código para abrir el cofre:</p>
+            
             <input type="text" id="token-input" placeholder="EJ: VIP77" 
-                class="w-full bg-black border-4 border-amber-500 rounded-2xl px-5 py-5 text-center text-3xl font-black text-amber-400 uppercase mb-6 focus:outline-none tracking-widest shadow-inner">
+                class="w-full bg-black/80 border-2 border-zinc-700 focus:border-amber-500 rounded-xl px-4 py-3.5 text-center text-xl font-black text-amber-400 uppercase mb-5 focus:outline-none tracking-widest shadow-inner transition-colors">
+            
             <button onclick="verifyToken()" 
-                class="w-full dynamic-btn py-5 rounded-2xl cinzel tracking-widest uppercase text-base sm:text-lg font-black active:scale-[0.98] transition-all">
+                class="w-full dynamic-btn py-3.5 rounded-xl cinzel tracking-widest uppercase text-sm font-black">
                 ABRIR BÓVEDA 🎰
             </button>
-            <p id="error-msg" class="text-red-400 text-sm mt-4 font-black hidden"></p>
-
-            <div id="recent-winners-box" class="mt-8 pt-6 border-t border-zinc-800 text-left hidden">
-                <p class="text-[11px] cinzel font-bold text-zinc-400 mb-2 uppercase tracking-widest">🏆 Últimos Premios Entregados:</p>
-                <div id="winners-list" class="space-y-1.5 text-xs font-bold text-zinc-300"></div>
+            <p id="error-msg" class="text-red-400 text-xs mt-3 font-bold hidden"></p>
+            
+            <div id="recent-winners-box" class="mt-6 pt-4 border-t border-zinc-800/80 text-left hidden">
+                <p class="text-[10px] cinzel font-bold text-zinc-400 mb-2 uppercase tracking-wider">🏆 Últimos Premios:</p>
+                <div id="winners-list" class="space-y-1 text-xs font-medium text-zinc-300"></div>
             </div>
         </div>
 
-        <!-- Paso 2 -->
-        <div id="step-game" class="w-full hidden slot-marquee rounded-3xl p-8 backdrop-blur-2xl">
-            <h2 class="cinzel text-2xl sm:text-3xl font-black dynamic-text mb-3">¡ELIJA UN COFRE!</h2>
-            <p class="text-zinc-200 text-sm sm:text-base mb-4 animate-pulse font-bold">Toque uno de los cofres para descubrir su premio:</p>
-            <div class="bg-amber-950/90 border-2 border-amber-500 rounded-xl p-3 mb-6">
-                <p class="text-[11px] text-amber-200 font-bold">⚠️ No recargue la página mientras abre su cofre.</p>
+        <!-- PASO 2: Selección de Cofres -->
+        <div id="step-game" class="w-full hidden slot-marquee rounded-3xl p-6 sm:p-8 backdrop-blur-xl">
+            <h2 id="game-title" class="cinzel text-xl sm:text-2xl font-black text-white mb-2 transition-all">¡ELIJA UN COFRE!</h2>
+            <p id="game-subtitle" class="text-zinc-400 text-xs sm:text-sm mb-4 font-medium transition-all">Toque uno de los cofres para descubrir su premio:</p>
+            
+            <div id="game-warning" class="bg-amber-950/40 border border-amber-500/40 rounded-xl p-3 mb-5 transition-all">
+                <p class="text-[11px] text-amber-200/90 font-medium leading-relaxed">
+                    ⚠️ <strong>Aviso:</strong> El código se canjea al tocar el cofre. <strong>No recargue</strong> la página durante el proceso.
+                </p>
             </div>
-            <div class="grid grid-cols-3 gap-4 mb-4">
-                <div class="flex flex-col items-center"><div onclick="openChest(1)" id="chest-1" class="chest rounded-2xl p-5 flex items-center justify-center aspect-square w-full text-5xl">📦</div><span class="text-xs font-black dynamic-text mt-3">COFRE 1</span></div>
-                <div class="flex flex-col items-center"><div onclick="openChest(2)" id="chest-2" class="chest rounded-2xl p-5 flex items-center justify-center aspect-square w-full text-5xl">📦</div><span class="text-xs font-black dynamic-text mt-3">COFRE 2</span></div>
-                <div class="flex flex-col items-center"><div onclick="openChest(3)" id="chest-3" class="chest rounded-2xl p-5 flex items-center justify-center aspect-square w-full text-5xl">📦</div><span class="text-xs font-black dynamic-text mt-3">COFRE 3</span></div>
-            </div>
+
+            <div id="chests-container" class="grid grid-cols-3 gap-3 mb-2"></div>
         </div>
 
-        <!-- Paso 3 -->
-        <div id="step-result" class="w-full hidden slot-marquee rounded-3xl p-8 backdrop-blur-2xl">
-            <div class="text-7xl mb-4 animate-bounce" id="result-emoji">💎</div>
-            <h3 class="cinzel text-sm text-zinc-300 mb-2 font-black tracking-widest">RESULTADO OFICIAL</h3>
-            <p id="result-text" class="cinzel text-2xl sm:text-3xl font-black dynamic-text mb-6 leading-snug"></p>
-            <div class="bg-black/95 border-2 border-zinc-700 rounded-2xl p-4 shadow-inner mb-6">
-                <p class="text-xs sm:text-sm text-zinc-200 font-bold leading-relaxed">📸 Tome una captura de pantalla de este resultado para presentar en caja.</p>
+        <!-- PASO 3: Resultado -->
+        <div id="step-result" class="w-full hidden slot-marquee rounded-3xl p-6 sm:p-8 backdrop-blur-xl">
+            <div class="text-6xl mb-3 animate-bounce" id="result-emoji">💎</div>
+            <h3 class="cinzel text-xs text-zinc-400 mb-1 font-bold tracking-widest">RESULTADO OFICIAL</h3>
+            <p id="result-text" class="cinzel text-xl sm:text-2xl font-black dynamic-text mb-5 leading-snug"></p>
+            
+            <div class="bg-black/60 border border-zinc-800 rounded-xl p-3.5 mb-5 shadow-inner">
+                <p id="result-desc" class="text-xs text-zinc-300 font-medium leading-relaxed">📸 Tome una captura de pantalla de este resultado para presentar en caja.</p>
             </div>
-            <button onclick="location.reload()" class="w-full dynamic-btn py-4 rounded-2xl cinzel tracking-wider uppercase text-sm font-black">
-                ⬅️ TERMINAR Y VOLVER AL INICIO
+
+            <button onclick="resetToHome()" class="w-full dynamic-btn py-3.5 rounded-xl cinzel tracking-wider uppercase text-xs font-black">
+                ⬅️ CANJEAR OTRO CÓDIGO
             </button>
         </div>
     </main>
 
-    <footer class="w-full py-4 text-center text-xs text-zinc-400 border-t border-zinc-800 bg-black/95 z-10 font-bold tracking-widest">
+    <!-- Footer -->
+    <footer class="w-full py-3 text-center text-[10px] text-zinc-500 border-t border-zinc-800/50 bg-[#07070a] z-10 font-bold tracking-wider">
         BÓVEDA DE LA SUERTE © 2026
     </footer>
 
@@ -111,6 +205,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // Cargar textos dinámicos en tiempo real desde Firebase
         db.ref('configuracion').on('value', (snap) => {
             let data = snap.val();
             if(data) {
@@ -124,36 +219,114 @@
             }
         });
 
-        let currentCodeKey = "";
-        let currentTokenData = null;
-        let gameLocked = false;
+        window.addEventListener('beforeunload', function (e) {
+            let stepGame = document.getElementById('step-game');
+            let stepResult = document.getElementById('step-result');
+            if ((stepGame && !stepGame.classList.contains('hidden')) || (stepResult && !stepResult.classList.contains('hidden'))) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
         let audioCtx = null;
         let bgMusicActive = false;
         let musicInterval = null;
 
-        window.addEventListener('beforeunload', (e) => {
-            if (!document.getElementById('step-game').classList.contains('hidden') && gameLocked) {
-                e.preventDefault(); e.returnValue = '';
-            }
-        });
-
         function toggleBackgroundMusic() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
+
             bgMusicActive = !bgMusicActive;
-            document.getElementById('music-status-text').innerText = bgMusicActive ? "MÚSICA: ON" : "MÚSICA: OFF";
+            let statusText = document.getElementById('music-status-text');
+
             if (bgMusicActive) {
-                musicInterval = setInterval(() => {
-                    if (!bgMusicActive) return;
-                    let osc = audioCtx.createOscillator();
-                    let gain = audioCtx.createGain();
-                    osc.connect(gain); gain.connect(audioCtx.destination);
-                    osc.frequency.setValueAtTime(330, audioCtx.currentTime);
-                    gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.5);
-                    osc.start(); osc.stop(audioCtx.currentTime + 0.5);
-                }, 800);
-            } else if (musicInterval) { clearInterval(musicInterval); }
+                statusText.innerText = "ON";
+                startBackgroundMusicLoop();
+            } else {
+                statusText.innerText = "OFF";
+                stopBackgroundMusicLoop();
+            }
+            playSound('click');
+        }
+
+        function startBackgroundMusicLoop() {
+            if (musicInterval) clearInterval(musicInterval);
+            const casinoMelody = [220, 261.63, 329.63, 392.00, 329.63, 261.63];
+            let noteIndex = 0;
+
+            musicInterval = setInterval(() => {
+                if (!bgMusicActive || !audioCtx) return;
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(casinoMelody[noteIndex], audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.8);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.8);
+                noteIndex = (noteIndex + 1) % casinoMelody.length;
+            }, 600);
+        }
+
+        function stopBackgroundMusicLoop() {
+            if (musicInterval) { clearInterval(musicInterval); musicInterval = null; }
+        }
+
+        function createParticles() {
+            const container = document.getElementById('particles-container');
+            const symbols = ['✨', '🪙', '⭐'];
+            setInterval(() => {
+                if(!container) return;
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+                p.style.left = Math.random() * window.innerWidth + 'px';
+                p.style.top = '-20px';
+                p.style.fontSize = (Math.random() * 10 + 12) + 'px';
+                p.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                p.style.opacity = '0.6';
+                container.appendChild(p);
+                setTimeout(() => { p.remove(); }, 5000);
+            }, 500);
+        }
+        createParticles();
+
+        function renderChests(qty) {
+            let container = document.getElementById('chests-container');
+            if(!container) return;
+            container.innerHTML = "";
+            
+            if (qty === 4) container.className = "grid grid-cols-2 gap-3 mb-2";
+            else if (qty === 6) container.className = "grid grid-cols-3 gap-2.5 mb-2";
+            else container.className = "grid grid-cols-3 gap-3 mb-2";
+
+            for (let i = 1; i <= qty; i++) {
+                let div = document.createElement('div');
+                div.className = "flex flex-col items-center";
+                div.innerHTML = `
+                    <div onclick="openChest(${i}, ${qty})" id="chest-${i}" class="chest rounded-2xl p-4 sm:p-5 flex items-center justify-center aspect-square w-full text-4xl sm:text-5xl shadow-lg">📦</div>
+                    <span id="chest-label-${i}" class="text-[10px] font-black text-zinc-400 mt-2 tracking-wider transition-all">COFRE ${i}</span>
+                `;
+                container.appendChild(div);
+            }
+        }
+        renderChests(3); // Por defecto 3 cofres
+
+        function playVictoryFanfare() {
+            if (!audioCtx) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            let now = audioCtx.currentTime;
+            [523.25, 659.25, 783.99, 1046.50].forEach((freq, index) => {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.type = 'square';
+                let startTime = now + (index * 0.12);
+                osc.frequency.setValueAtTime(freq, startTime);
+                gain.gain.setValueAtTime(0.1, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
+                osc.start(startTime); osc.stop(startTime + 0.3);
+            });
         }
 
         function playSound(type) {
@@ -163,40 +336,83 @@
             let gain = audioCtx.createGain();
             osc.connect(gain); gain.connect(audioCtx.destination);
             let now = audioCtx.currentTime;
-            if (type === 'roulette') {
-                osc.frequency.setValueAtTime(400, now);
-                gain.gain.setValueAtTime(0.05, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-                osc.start(now); osc.stop(now + 0.1);
-            } else if (type === 'victory') {
-                [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
-                    let o = audioCtx.createOscillator(); let g = audioCtx.createGain();
-                    o.connect(g); g.connect(audioCtx.destination);
-                    let t = now + (idx * 0.1);
-                    o.frequency.setValueAtTime(freq, t);
-                    g.gain.setValueAtTime(0.1, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
-                    o.start(t); o.stop(t + 0.3);
-                });
+
+            if (type === 'click') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(600, now);
+                gain.gain.setValueAtTime(0.03, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                osc.start(now); osc.stop(now + 0.05);
+            } else if (type === 'roulette') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(450, now);
+                gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                osc.start(now); osc.stop(now + 0.08);
+            } else if (type === 'suspense') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(120, now);
+                osc.frequency.linearRampToValueAtTime(280, now + 2.0);
+                gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
+                osc.start(now); osc.stop(now + 2.0);
+            } else if (type === 'loss') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now);
+                osc.frequency.setValueAtTime(130, now + 0.2);
+                gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
             }
         }
 
-        function triggerConfetti() {
+        let currentCodeKey = "";
+        let currentTokenData = null;
+        let gameLocked = false;
+
+        document.getElementById('secret-trigger').addEventListener('click', function() {
+            playSound('click');
+            window.location.href = "login.html";
+        });
+
+        function recordWinner(code, prizeText) {
+            let winners = JSON.parse(localStorage.getItem('vip_recent_winners') || "[]");
+            winners.unshift({ code: code, prize: prizeText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+            if (winners.length > 3) winners = winners.slice(0, 3);
+            localStorage.setItem('vip_recent_winners', JSON.stringify(winners));
+            renderRecentWinners();
+        }
+
+        function renderRecentWinners() {
+            let winners = JSON.parse(localStorage.getItem('vip_recent_winners') || "[]");
+            let box = document.getElementById('recent-winners-box');
+            let list = document.getElementById('winners-list');
+            if(!box || !list) return;
+
+            if (winners.length === 0) { box.classList.add('hidden'); return; }
+
+            box.classList.remove('hidden');
+            list.innerHTML = "";
+            winners.forEach(w => {
+                let item = document.createElement('div');
+                item.className = "flex justify-between items-center bg-black/40 px-2.5 py-1 rounded border border-zinc-800/60";
+                item.innerHTML = `<span class="text-amber-400 font-bold">🔑 ${w.code}</span> <span class="text-zinc-300 truncate max-w-[130px]">${w.prize}</span> <span class="text-[9px] text-zinc-500">${w.time}</span>`;
+                list.appendChild(item);
+            });
+        }
+        renderRecentWinners();
+
+        function triggerConfettiExplosion() {
             const container = document.getElementById('particles-container');
+            if(!container) return;
             const symbols = ['🪙', '👑', '✨', '💎', '🎉'];
             for(let i=0; i<25; i++) {
                 let p = document.createElement('div');
                 p.className = 'particle';
                 p.innerText = symbols[Math.floor(Math.random() * symbols.length)];
-                p.style.left = (window.innerWidth / 2 + (Math.random() * 300 - 150)) + 'px';
+                p.style.left = (window.innerWidth / 2 + (Math.random() * 200 - 100)) + 'px';
                 p.style.top = '40vh';
-                p.style.fontSize = (Math.random() * 20 + 15) + 'px';
-                p.style.animationDuration = (Math.random() * 1.5 + 1) + 's';
+                p.style.fontSize = (Math.random() * 15 + 15) + 'px';
+                p.style.animationDuration = (Math.random() * 1 + 1) + 's';
                 container.appendChild(p);
-                setTimeout(() => { p.remove(); }, 2500);
+                setTimeout(() => { p.remove(); }, 2000);
             }
         }
 
         function verifyToken() {
+            playSound('click');
             let code = document.getElementById('token-input').value.trim().toUpperCase();
             let err = document.getElementById('error-msg');
             if (!code) { err.innerText = "Escriba su código."; err.classList.remove('hidden'); return; }
@@ -220,14 +436,15 @@
                 err.classList.add('hidden');
                 document.getElementById('step-token').classList.add('hidden');
                 document.getElementById('step-game').classList.remove('hidden');
+                gameLocked = false;
             });
         }
 
-        function openChest(num) {
+        function openChest(num, totalQty) {
             if (gameLocked) return;
             gameLocked = true;
+            if (navigator.vibrate) navigator.vibrate(50);
 
-            // Asegurar que siempre tome el premio, sin importar cómo se haya creado el cupón
             let prizeText = (currentTokenData && currentTokenData.customPrize) ? currentTokenData.customPrize : "¡PREMIO SORPRESA GANADOR! 💸";
             let isWin = !prizeText.toUpperCase().includes("NO") && !prizeText.toUpperCase().includes("SUERTE");
             let now = new Date().toLocaleString();
@@ -238,53 +455,127 @@
                 prizeWon: prizeText
             });
 
-            let winners = JSON.parse(localStorage.getItem('vip_recent_winners') || "[]");
-            winners.unshift({ code: currentCodeKey, prize: prizeText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
-            if (winners.length > 3) winners = winners.slice(0, 3);
-            localStorage.setItem('vip_recent_winners', JSON.stringify(winners));
+            if (isWin) recordWinner(currentCodeKey, prizeText);
 
             let steps = 6;
             let currentStep = 0;
             let interval = setInterval(() => {
                 playSound('roulette');
-                let rand = Math.floor(Math.random() * 3) + 1;
-                for(let i=1; i<=3; i++) document.getElementById(`chest-${i}`).classList.remove('active-roulette');
-                document.getElementById(`chest-${rand}`).classList.add('active-roulette');
+                let randomChest = Math.floor(Math.random() * totalQty) + 1;
+                for(let i=1; i<=totalQty; i++) {
+                    let el = document.getElementById(`chest-${i}`);
+                    if(el) el.classList.remove('active-roulette');
+                }
+                let activeEl = document.getElementById(`chest-${randomChest}`);
+                if(activeEl) activeEl.classList.add('active-roulette');
+                
                 currentStep++;
                 if(currentStep >= steps) {
                     clearInterval(interval);
-                    for(let i=1; i<=3; i++) document.getElementById(`chest-${i}`).classList.remove('active-roulette');
+                    
+                    for(let i=1; i<=totalQty; i++) {
+                        let el = document.getElementById(`chest-${i}`);
+                        if(el) el.classList.remove('active-roulette');
+                    }
 
-                    let selected = document.getElementById(`chest-${num}`);
-                    selected.classList.add('opened');
-                    selected.innerText = isWin ? '👑' : '💀';
+                    const selectedChest = document.getElementById(`chest-${num}`);
+                    const gameTitle = document.getElementById('game-title');
+                    const gameSubtitle = document.getElementById('game-subtitle');
+                    const gameWarning = document.getElementById('game-warning');
 
-                    if (isWin) { playSound('victory'); triggerConfetti(); }
+                    if(gameTitle) gameTitle.classList.add('dimmed');
+                    if(gameSubtitle) gameSubtitle.classList.add('dimmed');
+                    if(gameWarning) gameWarning.classList.add('dimmed');
+
+                    for(let i=1; i<=totalQty; i++) {
+                        let el = document.getElementById(`chest-${i}`);
+                        let lbl = document.getElementById(`chest-label-${i}`);
+                        if(el && i !== num) {
+                            el.classList.add('dimmed');
+                            if(lbl) lbl.classList.add('dimmed');
+                        }
+                    }
+
+                    if(selectedChest) selectedChest.classList.add('suspense');
+                    playSound('suspense');
 
                     setTimeout(() => {
-                        document.getElementById('step-game').classList.add('hidden');
-                        document.getElementById('result-emoji').innerText = isWin ? '💎' : '❌';
-                        document.getElementById('result-text').innerText = prizeText;
-                        document.getElementById('step-result').classList.remove('hidden');
-                    }, 1200);
+                        if(gameTitle) gameTitle.classList.remove('dimmed');
+                        if(gameSubtitle) gameSubtitle.classList.remove('dimmed');
+                        if(gameWarning) gameWarning.classList.remove('dimmed');
+
+                        for(let i=1; i<=totalQty; i++) {
+                            let el = document.getElementById(`chest-${i}`);
+                            let lbl = document.getElementById(`chest-label-${i}`);
+                            if(el) {
+                                el.classList.remove('dimmed');
+                                el.style.opacity = '0.25';
+                                el.classList.remove('suspense', 'opened');
+                                el.innerText = '📦';
+                                if(lbl) lbl.classList.remove('dimmed');
+                            }
+                        }
+
+                        if(selectedChest) {
+                            selectedChest.style.opacity = '1';
+                            selectedChest.classList.add('opened');
+                            selectedChest.innerText = isWin ? '👑' : '💀';
+                        }
+
+                        if (isWin) {
+                            playVictoryFanfare();
+                            triggerConfettiExplosion();
+                        } else {
+                            playSound('loss');
+                        }
+
+                        setTimeout(() => {
+                            document.getElementById('step-game').classList.add('hidden');
+                            document.getElementById('result-emoji').innerText = isWin ? '💎' : '❌';
+                            document.getElementById('result-text').innerText = prizeText;
+
+                            if (isWin) {
+                                document.getElementById('result-desc').innerText = "🎉 ¡Felicitaciones! Tome una captura de pantalla de este resultado para presentar en caja.";
+                            } else {
+                                document.getElementById('result-desc').innerText = "📸 Lástima, no hubo suerte.";
+                            }
+
+                            document.getElementById('step-result').classList.remove('hidden');
+                        }, 1000);
+
+                    }, 1800);
                 }
-            }, 200);
+            }, 180);
         }
 
-        window.onload = function() {
-            let winners = JSON.parse(localStorage.getItem('vip_recent_winners') || "[]");
-            if (winners.length > 0) {
-                let box = document.getElementById('recent-winners-box');
-                let list = document.getElementById('winners-list');
-                box.classList.remove('hidden');
-                list.innerHTML = "";
-                winners.forEach(w => {
-                    list.innerHTML += `<div class="flex justify-between items-center bg-zinc-900/80 px-3 py-1.5 rounded-lg border border-zinc-800">
-                        <span class="text-amber-400">🔑 ${w.code}</span> <span class="text-zinc-300 truncate max-w-[150px]">${w.prize}</span> <span class="text-[10px] text-zinc-500">${w.time}</span>
-                    </div>`;
-                });
+        function resetToHome() {
+            playSound('click');
+            let gameTitle = document.getElementById('game-title');
+            let gameSubtitle = document.getElementById('game-subtitle');
+            let gameWarning = document.getElementById('game-warning');
+            if(gameTitle) gameTitle.classList.remove('dimmed');
+            if(gameSubtitle) gameSubtitle.classList.remove('dimmed');
+            if(gameWarning) gameWarning.classList.remove('dimmed');
+
+            for(let i=1; i<=3; i++) {
+                let chest = document.getElementById(`chest-${i}`);
+                let lbl = document.getElementById(`chest-label-${i}`);
+                if(chest) {
+                    chest.style.opacity = '1';
+                    chest.classList.remove('opened', 'active-roulette', 'suspense', 'dimmed');
+                    chest.innerText = '📦';
+                    if(lbl) lbl.classList.remove('dimmed');
+                }
             }
-        };
+            
+            document.getElementById('token-input').value = "";
+            document.getElementById('error-msg').classList.add('hidden');
+            document.getElementById('step-result').classList.add('hidden');
+            document.getElementById('step-token').classList.remove('hidden');
+            currentCodeKey = "";
+            currentTokenData = null;
+            renderRecentWinners();
+        }
     </script>
 </body>
 </html>
