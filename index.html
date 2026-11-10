@@ -113,10 +113,10 @@
     
     <div id="particles-container" class="absolute inset-0 overflow-hidden pointer-events-none"></div>
 
-    <!-- Header Minimalista -->
+    <!-- Header Minimalista y Limpio -->
     <header class="w-full py-4 px-6 border-b border-zinc-800/60 flex justify-between items-center bg-[#07070a]/90 backdrop-blur-md z-10">
         <div class="flex items-center space-x-3">
-            <span id="secret-trigger" class="text-2xl cursor-pointer select-none" title="Panel">🎰</span>
+            <span class="text-2xl select-none">🎰</span>
             <div>
                 <h1 id="header-title" class="cinzel text-base sm:text-lg font-black tracking-wider text-white">BÓVEDA DE LA SUERTE</h1>
                 <p id="header-subtitle" class="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">ZONA DE PREMIOS</p>
@@ -124,9 +124,6 @@
         </div>
         
         <div class="flex items-center gap-2">
-            <button id="music-toggle-btn" onclick="toggleBackgroundMusic()" class="text-[11px] bg-zinc-900/80 hover:bg-zinc-800 text-amber-400 border border-amber-500/30 px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-all">
-                🎵 <span id="music-status-text">OFF</span>
-            </button>
             <a href="login.html" class="text-[11px] bg-zinc-900/80 hover:bg-zinc-800 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-lg font-bold cinzel shadow">
                 🔐 LOGIN
             </a>
@@ -205,7 +202,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Cargar textos dinámicos en tiempo real desde Firebase
         db.ref('configuracion').on('value', (snap) => {
             let data = snap.val();
             if(data) {
@@ -229,47 +225,51 @@
         });
 
         let audioCtx = null;
-        let bgMusicActive = false;
-        let musicInterval = null;
 
-        function toggleBackgroundMusic() {
+        function playSound(type) {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            let now = audioCtx.currentTime;
 
-            bgMusicActive = !bgMusicActive;
-            let statusText = document.getElementById('music-status-text');
-
-            if (bgMusicActive) {
-                statusText.innerText = "ON";
-                startBackgroundMusicLoop();
-            } else {
-                statusText.innerText = "OFF";
-                stopBackgroundMusicLoop();
+            if (type === 'click') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(600, now);
+                gain.gain.setValueAtTime(0.03, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                osc.start(now); osc.stop(now + 0.05);
+            } else if (type === 'roulette') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(450, now);
+                gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                osc.start(now); osc.stop(now + 0.08);
+            } else if (type === 'suspense') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(120, now);
+                osc.frequency.linearRampToValueAtTime(280, now + 2.0);
+                gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
+                osc.start(now); osc.stop(now + 2.0);
+            } else if (type === 'loss') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now);
+                osc.frequency.setValueAtTime(130, now + 0.2);
+                gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
             }
-            playSound('click');
         }
 
-        function startBackgroundMusicLoop() {
-            if (musicInterval) clearInterval(musicInterval);
-            const casinoMelody = [220, 261.63, 329.63, 392.00, 329.63, 261.63];
-            let noteIndex = 0;
-
-            musicInterval = setInterval(() => {
-                if (!bgMusicActive || !audioCtx) return;
+        function playVictoryFanfare() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            let now = audioCtx.currentTime;
+            [523.25, 659.25, 783.99, 1046.50].forEach((freq, index) => {
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
                 osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(casinoMelody[noteIndex], audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.8);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.8);
-                noteIndex = (noteIndex + 1) % casinoMelody.length;
-            }, 600);
-        }
-
-        function stopBackgroundMusicLoop() {
-            if (musicInterval) { clearInterval(musicInterval); musicInterval = null; }
+                osc.type = 'square';
+                let startTime = now + (index * 0.12);
+                osc.frequency.setValueAtTime(freq, startTime);
+                gain.gain.setValueAtTime(0.1, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
+                osc.start(startTime); osc.stop(startTime + 0.3);
+            });
         }
 
         function createParticles() {
@@ -310,62 +310,11 @@
                 container.appendChild(div);
             }
         }
-        renderChests(3); // Por defecto 3 cofres
-
-        function playVictoryFanfare() {
-            if (!audioCtx) return;
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            let now = audioCtx.currentTime;
-            [523.25, 659.25, 783.99, 1046.50].forEach((freq, index) => {
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.type = 'square';
-                let startTime = now + (index * 0.12);
-                osc.frequency.setValueAtTime(freq, startTime);
-                gain.gain.setValueAtTime(0.1, startTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
-                osc.start(startTime); osc.stop(startTime + 0.3);
-            });
-        }
-
-        function playSound(type) {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            let osc = audioCtx.createOscillator();
-            let gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            let now = audioCtx.currentTime;
-
-            if (type === 'click') {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(600, now);
-                gain.gain.setValueAtTime(0.03, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-                osc.start(now); osc.stop(now + 0.05);
-            } else if (type === 'roulette') {
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(450, now);
-                gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-                osc.start(now); osc.stop(now + 0.08);
-            } else if (type === 'suspense') {
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(120, now);
-                osc.frequency.linearRampToValueAtTime(280, now + 2.0);
-                gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
-                osc.start(now); osc.stop(now + 2.0);
-            } else if (type === 'loss') {
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now);
-                osc.frequency.setValueAtTime(130, now + 0.2);
-                gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-                osc.start(now); osc.stop(now + 0.3);
-            }
-        }
+        renderChests(3);
 
         let currentCodeKey = "";
         let currentTokenData = null;
         let gameLocked = false;
-
-        document.getElementById('secret-trigger').addEventListener('click', function() {
-            playSound('click');
-            window.location.href = "login.html";
-        });
 
         function recordWinner(code, prizeText) {
             let winners = JSON.parse(localStorage.getItem('vip_recent_winners') || "[]");
