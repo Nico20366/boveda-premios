@@ -46,7 +46,7 @@
             </div>
         </div>
 
-        <!-- 🔒 SEGURIDAD: CAMBIAR CONTRASEÑA (Para cualquier Admin o SuperAdmin) -->
+        <!-- 🔒 SEGURIDAD: CAMBIAR MI PROPIA CONTRASEÑA -->
         <div class="slot-marquee rounded-3xl p-6 space-y-4 border-amber-500/50">
             <div class="border-b border-zinc-800 pb-3 flex justify-between items-center">
                 <h3 class="cinzel text-sm font-black text-amber-400">🔒 SEGURIDAD: CAMBIAR MI CONTRASEÑA</h3>
@@ -92,8 +92,9 @@
         <div id="super-admin-section" class="slot-marquee rounded-3xl p-6 hidden space-y-4">
             <div class="border-b border-zinc-800 pb-3 flex justify-between items-center">
                 <h3 class="cinzel text-sm font-black dynamic-text">👑 CONTROL TOTAL DE ADMINISTRADORES</h3>
-                <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-lg font-bold">Modo Maestro</span>
+                <span id="admins-count-badge" class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-lg font-bold">Total: 0</span>
             </div>
+            <p class="text-xs text-zinc-400 font-bold">Aquí puedes ver el listado de admins, aprobar solicitudes, cambiarles la contraseña si la olvidaron, suspenderlos o eliminarlos:</p>
             <div id="admins-management-list" class="space-y-2 text-xs font-bold"></div>
         </div>
 
@@ -172,7 +173,6 @@
             }
 
             if (currentRole === 'super') {
-                // Validación para el SuperAdmin (password por defecto "123456" o almacenada en Firebase)
                 db.ref('admins/superadmin/password').once('value', (snap) => {
                     let realPass = snap.val() || "123456";
                     if (currentPassInput !== realPass) {
@@ -186,7 +186,6 @@
                     });
                 });
             } else {
-                // Validación para administrador normal
                 db.ref('admins/' + currentUser).once('value', (snap) => {
                     let data = snap.val();
                     if (!data || data.password !== currentPassInput) {
@@ -200,6 +199,22 @@
                     });
                 });
             }
+        }
+
+        // 🔑 FUNCIÓN PARA QUE EL SUPER ADMIN CAMBIE LA CLAVE DE OTRO ADMIN
+        function resetAdminPassword(adminName) {
+            let newPass = prompt(`🔑 Ingrese la nueva contraseña para el administrador [${adminName}]:`);
+            if (newPass === null) return; // Si canceló
+            newPass = newPass.trim();
+
+            if (!newPass) {
+                alert("❌ La contraseña no puede estar vacía.");
+                return;
+            }
+
+            db.ref('admins/' + adminName).update({ password: newPass }, () => {
+                alert(`¡Contraseña actualizada con éxito para el administrador [${adminName}]!`);
+            });
         }
 
         function loadCurrentTexts() {
@@ -229,20 +244,30 @@
                 let list = document.getElementById('admins-management-list');
                 list.innerHTML = "";
                 let data = snap.val();
-                if(!data) { list.innerHTML = "<p class='text-zinc-500'>No hay administradores registrados.</p>"; return; }
+                if(!data) { 
+                    list.innerHTML = "<p class='text-zinc-500'>No hay administradores registrados.</p>"; 
+                    document.getElementById('admins-count-badge').innerText = "Total: 0";
+                    return; 
+                }
 
+                let count = 0;
                 for(let name in data) {
                     if(name === "superadmin") continue;
+                    count++;
                     let isApproved = data[name].approved;
                     let statusBadge = isApproved 
                         ? `<span class="text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">ACTIVO</span>` 
                         : `<span class="text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800">PENDIENTE</span>`;
                     
-                    let actionButtons = isApproved
-                        ? `<button onclick="toggleAdminApproval('${name}', false)" class="bg-amber-950 hover:bg-amber-900 text-amber-300 border border-amber-600 px-3 py-1.5 rounded-lg font-bold">Suspender</button>`
-                        : `<button onclick="toggleAdminApproval('${name}', true)" class="bg-emerald-500 hover:bg-emerald-400 text-black px-3 py-1.5 rounded-lg font-black">Aprobar ✓</button>`;
-                    
-                    actionButtons += `<button onclick="deleteAdmin('${name}')" class="bg-red-950 hover:bg-red-900 text-red-300 border border-red-600 px-3 py-1.5 rounded-lg font-bold">Eliminar 🗑️</button>`;
+                    let actionButtons = `<button onclick="resetAdminPassword('${name}')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-300 border border-amber-500/40 px-2.5 py-1.5 rounded-lg font-bold">🔑 Clave</button>`;
+
+                    if (isApproved) {
+                        actionButtons += `<button onclick="toggleAdminApproval('${name}', false)" class="bg-amber-950 hover:bg-amber-900 text-amber-300 border border-amber-600 px-2.5 py-1.5 rounded-lg font-bold">Suspender</button>`;
+                    } else {
+                        actionButtons += `<button onclick="toggleAdminApproval('${name}', true)" class="bg-emerald-500 hover:bg-emerald-400 text-black px-2.5 py-1.5 rounded-lg font-black">Aprobar ✓</button>`;
+                    }
+
+                    actionButtons += `<button onclick="deleteAdmin('${name}')" class="bg-red-950 hover:bg-red-900 text-red-300 border border-red-600 px-2.5 py-1.5 rounded-lg font-bold">Eliminar 🗑️</button>`;
 
                     list.innerHTML += `
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-zinc-900 p-3.5 rounded-xl border border-zinc-800 gap-2">
@@ -250,12 +275,14 @@
                                 <span class="text-white font-black text-sm">👤 ${name}</span>
                                 <div class="mt-1">${statusBadge}</div>
                             </div>
-                            <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                            <div class="flex items-center gap-1.5 w-full sm:w-auto justify-end flex-wrap">
                                 ${actionButtons}
                             </div>
                         </div>
                     `;
                 }
+
+                document.getElementById('admins-count-badge').innerText = `Total: ${count} Administradores`;
             });
         }
 
