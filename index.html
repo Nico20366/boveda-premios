@@ -111,7 +111,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Cargar textos dinámicos desde Firebase en tiempo real
         db.ref('configuracion').on('value', (snap) => {
             let data = snap.val();
             if(data) {
@@ -207,6 +206,15 @@
                 if (!data) { err.innerText = "❌ Código incorrecto o inexistente."; err.classList.remove('hidden'); return; }
                 if (data.used) { err.innerText = "⚠️ Este código ya fue utilizado."; err.classList.remove('hidden'); return; }
 
+                if (data.expiresAt) {
+                    let nowTimestamp = new Date().getTime();
+                    if (nowTimestamp > data.expiresAt) {
+                        err.innerText = "⌛ Este código ha expirado y ya no es válido.";
+                        err.classList.remove('hidden');
+                        return;
+                    }
+                }
+
                 currentTokenData = data;
                 currentCodeKey = code;
                 err.classList.add('hidden');
@@ -219,8 +227,9 @@
             if (gameLocked) return;
             gameLocked = true;
 
-            let prizeText = currentTokenData.customPrize || "¡PREMIO SORPRESA GANADOR! 💸";
-            let isWin = !prizeText.includes("NO") && !prizeText.includes("SUERTE");
+            // Asegurar que siempre tome el premio, sin importar cómo se haya creado el cupón
+            let prizeText = (currentTokenData && currentTokenData.customPrize) ? currentTokenData.customPrize : "¡PREMIO SORPRESA GANADOR! 💸";
+            let isWin = !prizeText.toUpperCase().includes("NO") && !prizeText.toUpperCase().includes("SUERTE");
             let now = new Date().toLocaleString();
 
             db.ref('cupones/' + currentCodeKey).update({
@@ -256,7 +265,6 @@
                         document.getElementById('step-game').classList.add('hidden');
                         document.getElementById('result-emoji').innerText = isWin ? '💎' : '❌';
                         document.getElementById('result-text').innerText = prizeText;
-                        document.getElementById('result-desc').innerText = isWin ? "🎉 ¡Felicitaciones! Tome una captura de pantalla de este premio para reclamar en caja." : "📸 Lástima, no hubo suerte.";
                         document.getElementById('step-result').classList.remove('hidden');
                     }, 1200);
                 }
