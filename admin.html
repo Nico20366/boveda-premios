@@ -42,7 +42,7 @@
                 <p id="stat-available" class="text-base font-black text-emerald-400">0</p>
             </div>
             <div class="slot-marquee rounded-xl p-3 text-center">
-                <p class="text-[9px] text-red-400 font-bold uppercase">Usados</p>
+                <p class="text-[9px] text-red-400 font-bold uppercase">Usados/Agotados</p>
                 <p id="stat-used" class="text-base font-black text-red-400">0</p>
             </div>
         </div>
@@ -57,37 +57,49 @@
         <!-- PESTAÑA 1: CUPONES -->
         <div id="tab-content-coupons" class="space-y-4">
             <div class="slot-marquee rounded-2xl p-4 space-y-3">
-                <h3 class="cinzel text-xs font-black dynamic-text">🎁 NUEVO CUPÓN CON STOCK Y PROBABILIDAD</h3>
+                <h3 class="cinzel text-xs font-black dynamic-text">🎁 NUEVO CUPÓN CON PREMIOS PERSONALIZADOS</h3>
                 <div class="space-y-2">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <input type="text" id="new-code" placeholder="Código (Ej: RULETA1)" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold uppercase focus:outline-none focus:border-amber-500">
-                        <input type="text" id="new-prize" placeholder="Premio (Ej: 20% OFF)" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
+                        <input type="text" id="new-code" placeholder="Código (Ej: RULETAVIP)" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold uppercase focus:outline-none focus:border-amber-500">
+                        <select id="new-game-type" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
+                            <option value="roulette">🎡 Ruleta Personalizada</option>
+                            <option value="chests">📦 Cofres Personalizados</option>
+                        </select>
+                    </div>
+
+                    <!-- Casilleros de Premios Individuales -->
+                    <div class="bg-black/60 p-3 rounded-xl border border-zinc-800 space-y-2">
+                        <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider block">🎯 Modifica el texto de cada premio en la ruleta/cofres:</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <input type="text" id="prize-1" placeholder="Premio 1 (Principal - Ej: 20% OFF)" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
+                            <input type="text" id="prize-2" placeholder="Premio 2 (Ej: 10% OFF)" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
+                            <input type="text" id="prize-3" placeholder="Premio 3 (Ej: Trago Gratis)" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
+                            <input type="text" id="prize-4" placeholder="Premio 4 (Ej: Sin Premio ❌)" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">📝 Instrucciones o mensaje final para el cliente:</label>
+                        <input type="text" id="new-instructions" placeholder="Ej: Presentar captura en barra." class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
                     </div>
                     
-                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <div>
-                            <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Juego:</label>
-                            <select id="new-game-type" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
-                                <option value="chests">📦 Cofres</option>
-                                <option value="roulette">🎡 Ruleta</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Probabilidad:</label>
+                            <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Probabilidad de Éxito (%):</label>
                             <select id="new-probability" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
-                                <option value="100">100% (Seguro)</option>
+                                <option value="100">100% (Gana Seguro)</option>
                                 <option value="75">75% (Alta)</option>
-                                <option value="50">50% (50/50)</option>
+                                <option value="50">50% (50 / 50)</option>
                                 <option value="25">25% (Difícil)</option>
                                 <option value="10">10% (Jackpot)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Stock Máx:</label>
+                            <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Stock Máximo:</label>
                             <input type="number" id="new-stock" value="1" min="1" max="999" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
                         </div>
                         <div>
-                            <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Vence:</label>
+                            <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Vencimiento:</label>
                             <input type="datetime-local" id="new-expires-exact" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
                         </div>
                     </div>
@@ -100,8 +112,8 @@
                     <h3 id="list-title" class="cinzel text-xs font-black dynamic-text">📋 CUPONES</h3>
                     <div class="flex items-center gap-1.5 w-full sm:w-auto justify-end">
                         <input type="text" id="search-code" placeholder="🔍 Buscar..." oninput="filterCoupons()" class="bg-black/80 border border-zinc-700 rounded-xl px-2.5 py-1 text-xs text-white font-bold focus:outline-none w-28">
-                        <button onclick="clearUsedCoupons()" title="Borrar usados o vencidos" class="bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-600/50 px-2 py-1 rounded-xl text-[10px] font-bold">🗑️ Limpiar</button>
-                        <button onclick="clearAllCoupons()" title="Borrar todos los cupones" class="bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-600/50 px-2 py-1 rounded-xl text-[10px] font-bold">💥 Todo</button>
+                        <button onclick="clearUsedCoupons()" title="Borrar agotados o vencidos" class="bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-600/50 px-2 py-1 rounded-xl text-[10px] font-bold">🗑️ Limpiar</button>
+                        <button onclick="clearAllCoupons()" title="Borrar todos" class="bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-600/50 px-2 py-1 rounded-xl text-[10px] font-bold">💥 Todo</button>
                     </div>
                 </div>
                 <div id="coupons-list" class="space-y-1.5 text-xs font-bold max-h-60 overflow-y-auto">
@@ -118,7 +130,7 @@
                     <span id="admins-count-badge" class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-bold">0</span>
                 </div>
                 <div id="admins-management-list" class="space-y-2 text-xs font-bold max-h-64 overflow-y-auto pt-1">
-                    <p class="text-zinc-500 text-center py-2">Conectando a Firebase...</p>
+                    <p class="text-zinc-500 text-center py-2">Cargando...</p>
                 </div>
             </div>
         </div>
@@ -138,11 +150,11 @@
                 <h3 class="cinzel text-xs font-black dynamic-text">⚙️ MIS AJUSTES DE JUEGOS</h3>
                 <div class="space-y-3 pt-2">
                     <div class="bg-black/60 p-3 rounded-xl border border-zinc-800">
-                        <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider block mb-1">📦 Cofres:</label>
-                        <input type="text" id="cfg-chest-msg" placeholder="Mensaje al ganar en cofre" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
+                        <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider block mb-1">📦 Mensaje Cofres:</label>
+                        <input type="text" id="cfg-chest-msg" placeholder="Mensaje al ganar" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
                     </div>
                     <div class="bg-black/60 p-3 rounded-xl border border-zinc-800">
-                        <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider block mb-1">🎡 Ruleta:</label>
+                        <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider block mb-1">🎡 Título Ruleta:</label>
                         <input type="text" id="cfg-roulette-title" placeholder="Título de la ruleta" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
                     </div>
                 </div>
@@ -182,22 +194,12 @@
         if(!currentUser) { window.location.href = "login.html"; }
 
         const userStatusRef = db.ref('status/' + currentUser);
-        const connectedRef = db.ref('.info/connected');
-
-        connectedRef.on('value', (snap) => {
+        db.ref('.info/connected').on('value', (snap) => {
             if (snap.val() === true) {
                 userStatusRef.onDisconnect().set({ state: 'offline', last_changed: firebase.database.ServerValue.TIMESTAMP });
                 userStatusRef.set({ state: 'online', last_changed: firebase.database.ServerValue.TIMESTAMP });
             }
         });
-
-        let inactivityTimer;
-        function resetInactivityTimer() {
-            clearTimeout(inactivityTimer);
-            inactivityTimer = setTimeout(() => { logout(); }, 15 * 60 * 1000);
-        }
-        window.onload = resetInactivityTimer;
-        window.onmousemove = resetInactivityTimer;
 
         function setDefaultExpiration() {
             let now = new Date();
@@ -244,13 +246,23 @@
 
         function createCoupon() {
             let code = document.getElementById('new-code').value.trim().toUpperCase();
-            let prize = document.getElementById('new-prize').value.trim();
+            let p1 = document.getElementById('prize-1').value.trim();
+            let p2 = document.getElementById('prize-2').value.trim();
+            let p3 = document.getElementById('prize-3').value.trim();
+            let p4 = document.getElementById('prize-4').value.trim();
+            let instructions = document.getElementById('new-instructions').value.trim();
             let gameType = document.getElementById('new-game-type').value;
             let probability = parseInt(document.getElementById('new-probability').value);
             let stockMax = parseInt(document.getElementById('new-stock').value) || 1;
             let expireInput = document.getElementById('new-expires-exact').value;
 
-            if(!code || !prize || !expireInput) { alert("Completa todos los campos."); return; }
+            if(!code || !p1 || !expireInput) { alert("Completa el código, el Premio 1 (Principal) y la fecha de vencimiento."); return; }
+
+            // Armar la lista de opciones con lo que el admin escribió
+            let optionsArray = [p1];
+            if(p2) optionsArray.push(p2);
+            if(p3) optionsArray.push(p3);
+            if(p4) optionsArray.push(p4);
 
             let expiresAt = new Date(expireInput).getTime();
 
@@ -258,15 +270,20 @@
                 usedCount: 0,
                 stockMax: stockMax,
                 createdBy: currentUser, 
-                customPrize: prize, 
+                options: optionsArray, 
+                instructions: instructions || "Presente este resultado en caja.",
                 gameType: gameType,
                 probability: probability,
                 createdAt: new Date().toLocaleDateString(), 
                 expiresAt: expiresAt
             }, () => {
-                alert(`¡Cupón [${code}] con Stock (${stockMax}) creado con éxito!`);
+                alert(`¡Cupón [${code}] creado con éxito!`);
                 document.getElementById('new-code').value = ""; 
-                document.getElementById('new-prize').value = "";
+                document.getElementById('prize-1').value = "";
+                document.getElementById('prize-2').value = "";
+                document.getElementById('prize-3').value = "";
+                document.getElementById('prize-4').value = "";
+                document.getElementById('new-instructions').value = "";
                 setDefaultExpiration();
             });
         }
@@ -298,23 +315,20 @@
                 let stockMax = item.stockMax || 1;
                 let isSoldOut = usedCount >= stockMax;
 
-                let st = isSoldOut ? `<span class="text-red-400">AGOTADO</span>` : (expired ? `<span class="text-amber-400">VENCIDO</span>` : `<span class="text-emerald-400">DISPONIBLE (${usedCount}/${stockMax})</span>`);
-                
+                let st = isSoldOut ? `<span class="text-red-400">AGOTADO</span>` : (expired ? `<span class="text-amber-400">VENCIDO</span>` : `<span class="text-emerald-400">DISP. (${usedCount}/${stockMax})</span>`);
                 let gameIcon = item.gameType === 'roulette' ? '🎡 Ruleta' : '📦 Cofres';
-                let expireFormatted = item.expiresAt ? new Date(item.expiresAt).toLocaleString([], { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + " hs" : "Sin límite";
-                let probText = item.probability !== undefined ? ` | 🎲 ${item.probability}%` : "";
+                let optionsPreview = item.options ? item.options[0] : "Premio";
 
                 list.innerHTML += `
                     <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800 flex justify-between items-center gap-2">
                         <div class="truncate">
-                            <strong class="text-amber-400">${code}</strong>: ${item.customPrize} 
-                            <div class="text-[9px] text-zinc-400 font-semibold">${gameIcon}${probText}</div>
-                            <div class="text-[9px] text-zinc-500">🕒 Vence: ${expireFormatted}</div>
+                            <strong class="text-amber-400">${code}</strong>: <span class="text-zinc-300">${optionsPreview}</span>
+                            <div class="text-[9px] text-zinc-400 font-semibold">${gameIcon} | 🎲 ${item.probability || 100}% éxito</div>
                         </div>
                         <div class="flex items-center gap-1.5 shrink-0">
                             ${st} 
                             <button onclick="navigator.clipboard.writeText('${code}'); alert('Copiado')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-300 px-2 py-1 rounded text-[10px]">📋</button>
-                            <button onclick="deleteCoupon('${code}')" class="bg-red-950 hover:bg-red-900 text-red-300 px-2 py-1 rounded text-[10px]">🗑️</button>
+                            <button onclick="deleteCoupon('${code}')" class="bg-red-950 hover:bg-red-900 text-red-300 border border-red-600/40 px-2 py-1 rounded text-[10px]">🗑️</button>
                         </div>
                     </div>`;
             }
@@ -348,8 +362,7 @@
                     let item = data[code];
                     let isExpired = item.expiresAt && now > item.expiresAt;
                     let isSoldOut = (item.usedCount || 0) >= (item.stockMax || 1);
-                    let isCreatorValid = (currentRole === 'super' || item.createdBy === currentUser);
-                    if (isCreatorValid && (isSoldOut || isExpired)) {
+                    if ((currentRole === 'super' || item.createdBy === currentUser) && (isSoldOut || isExpired)) {
                         updates[code] = null;
                     }
                 }
@@ -365,9 +378,7 @@
                 db.ref('cupones').once('value', (snap) => {
                     let data = snap.val() || {};
                     let updates = {};
-                    for(let code in data) {
-                        if(data[code].createdBy === currentUser) updates[code] = null;
-                    }
+                    for(let code in data) { if(data[code].createdBy === currentUser) updates[code] = null; }
                     db.ref('cupones').update(updates);
                 });
             }
@@ -377,7 +388,7 @@
             let term = document.getElementById('search-code').value.toUpperCase();
             let filtered = {};
             for(let c in allCouponsData) {
-                if(c.includes(term) || allCouponsData[c].customPrize.toUpperCase().includes(term)) filtered[c] = allCouponsData[c];
+                if(c.includes(term) || JSON.stringify(allCouponsData[c].options).toUpperCase().includes(term)) filtered[c] = allCouponsData[c];
             }
             renderCoupons(filtered);
         }
@@ -398,7 +409,7 @@
             db.ref(`admins/${currentUser}/configuracion_juegos`).set({
                 chestMsg: chestMsg || "¡Premio Sorpresa en Cofre!",
                 rouletteTitle: rouletteTitle || "Ruleta de la Suerte"
-            }, () => { alert("¡Ajustes guardados con éxito!"); });
+            }, () => { alert("¡Ajustes guardados!"); });
         }
 
         function loadAdminsManagement() {
@@ -406,47 +417,24 @@
                 let list = document.getElementById('admins-management-list');
                 list.innerHTML = "";
                 let data = snap.val();
-                if(!data) { 
-                    list.innerHTML = "<p class='text-zinc-500 text-center py-2'>No hay administradores.</p>";
-                    document.getElementById('admins-count-badge').innerText = "0"; 
-                    return; 
-                }
+                if(!data) { list.innerHTML = "<p class='text-zinc-500 text-center py-2'>No hay admins.</p>"; return; }
                 let count = 0;
                 for(let name in data) {
                     if(name === "superadmin") continue;
                     count++;
                     let info = data[name];
                     let isApproved = info.approved === true;
-                    let emailTxt = info.email ? `<div class='text-[10px] text-zinc-400'>${info.email}</div>` : "";
-                    
                     let actionBtn = (currentRole === 'super') ? (isApproved ? `<button onclick="toggleAdminApproval('${name}', false)" class="bg-amber-950 text-amber-300 px-2 py-1 rounded">Pausar</button>` : `<button onclick="toggleAdminApproval('${name}', true)" class="bg-emerald-500 text-black px-2 py-1 rounded">Aprobar</button>`) : "";
                     let deleteBtn = (currentRole === 'super') ? `<button onclick="deleteAdmin('${name}')" class="bg-red-950 text-red-300 px-2 py-1 rounded">🗑️</button>` : "";
-                    let keyBtn = (currentRole === 'super') ? `<button onclick="resetAdminPassword('${name}')" class="bg-zinc-800 text-amber-300 px-2 py-1 rounded">🔑</button>` : "";
-
+                    
                     list.innerHTML += `
                         <div class="bg-black/60 p-3 rounded-xl border border-zinc-800 flex justify-between items-center">
-                            <div>
-                                <div class="flex items-center gap-1.5">
-                                    <strong>👤 ${name}</strong>
-                                    <span id="online-status-${name}" class="text-[9px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full font-bold">⚪ Desconectado</span>
-                                </div>
-                                ${emailTxt}
-                            </div>
-                            <div class="flex gap-1">${keyBtn} ${actionBtn} ${deleteBtn}</div>
+                            <div><strong>👤 ${name}</strong> <span id="online-${name}" class="text-[9px] text-zinc-400">⚪</span></div>
+                            <div class="flex gap-1">${actionBtn} ${deleteBtn}</div>
                         </div>`;
-
-                    db.ref('status/' + name).on('value', (statusSnap) => {
-                        let stData = statusSnap.val();
-                        let badgeEl = document.getElementById(`online-status-${name}`);
-                        if(badgeEl) {
-                            if(stData && stData.state === 'online') {
-                                badgeEl.className = "text-[9px] bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded-full font-bold animate-pulse";
-                                badgeEl.innerText = "🟢 En línea";
-                            } else {
-                                badgeEl.className = "text-[9px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full font-bold";
-                                badgeEl.innerText = "⚪ Desconectado";
-                            }
-                        }
+                    db.ref('status/' + name).on('value', s => {
+                        let badge = document.getElementById(`online-${name}`);
+                        if(badge && s.val() && s.val().state === 'online') { badge.className = "text-[9px] text-emerald-400 font-bold"; badge.innerText = "🟢 En línea"; }
                     });
                 }
                 document.getElementById('admins-count-badge').innerText = count;
@@ -455,31 +443,20 @@
 
         function toggleAdminApproval(name, status) { db.ref('admins/' + name).update({ approved: status }); }
         function deleteAdmin(name) { if(!confirm(`¿Eliminar?`)) return; db.ref('admins/' + name).remove(); db.ref('status/' + name).remove(); }
-        function resetAdminPassword(adminName) {
-            let newPass = prompt(`Nueva clave para [${adminName}]:`);
-            if (!newPass) return;
-            db.ref('admins/' + adminName).update({ password: newPass.trim() }, () => { alert("¡Clave actualizada!"); });
-        }
         function changeMyPassword() {
-            let currentPassInput = document.getElementById('current-pass').value.trim();
-            let newPassInput = document.getElementById('new-pass').value.trim();
-            if (!currentPassInput || !newPassInput) { alert("Completa ambos campos."); return; }
-            db.ref('admins/' + currentUser).once('value', (snap) => {
-                let data = snap.val();
-                if (!data || data.password !== currentPassInput) { alert("Contraseña incorrecta."); return; }
-                db.ref('admins/' + currentUser).update({ password: newPassInput }, () => { alert("¡Contraseña actualizada!"); document.getElementById('current-pass').value = ""; document.getElementById('new-pass').value = ""; });
+            let curr = document.getElementById('current-pass').value.trim();
+            let neu = document.getElementById('new-pass').value.trim();
+            if(!curr || !neu) { alert("Completa los campos."); return; }
+            db.ref('admins/' + currentUser).once('value', s => {
+                if(!s.val() || s.val().password !== curr) { alert("Clave actual incorrecta."); return; }
+                db.ref('admins/' + currentUser).update({ password: neu }, () => { alert("¡Actualizado!"); document.getElementById('current-pass').value = ""; document.getElementById('new-pass').value = ""; });
             });
         }
         function loadCurrentTexts() {
-            db.ref('configuracion').once('value', (snap) => {
-                let data = snap.val();
-                if(data) { if(data.titulo) document.getElementById('edit-title').value = data.titulo; if(data.subtitulo) document.getElementById('edit-subtitle').value = data.subtitulo; }
-            });
+            db.ref('configuracion').once('value', s => { if(s.val()) { if(s.val().titulo) document.getElementById('edit-title').value = s.val().titulo; if(s.val().subtitulo) document.getElementById('edit-subtitle').value = s.val().subtitulo; } });
         }
         function saveSiteTexts() {
-            let titulo = document.getElementById('edit-title').value.trim().toUpperCase();
-            let subtitulo = document.getElementById('edit-subtitle').value.trim().toUpperCase();
-            db.ref('configuracion').set({ titulo: titulo || "BÓVEDA DE LA SUERTE", subtitulo: subtitulo || "ZONA DE PREMIOS" }, () => { alert("¡Guardado!"); });
+            db.ref('configuracion').set({ titulo: document.getElementById('edit-title').value.trim().toUpperCase() || "BÓVEDA", subtitulo: document.getElementById('edit-subtitle').value.trim().toUpperCase() || "PREMIOS" }, () => { alert("¡Guardado!"); });
         }
         function logout() { localStorage.clear(); window.location.href = "login.html"; }
     </script>
