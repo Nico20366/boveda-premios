@@ -57,27 +57,21 @@
         <!-- PESTAÑA 1: CUPONES -->
         <div id="tab-content-coupons" class="space-y-4">
             <div class="slot-marquee rounded-2xl p-4 space-y-3">
-                <h3 class="cinzel text-xs font-black dynamic-text">🎁 NUEVO CUPÓN CON GAJOS PERSONALIZADOS</h3>
+                <h3 class="cinzel text-xs font-black dynamic-text">🎁 NUEVO CUPÓN CON GAJOS Y PROBABILIDADES</h3>
                 <div class="space-y-2">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <input type="text" id="new-code" placeholder="Código (Ej: RULETAVIP)" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold uppercase focus:outline-none focus:border-amber-500">
                         <select id="new-game-type" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
-                            <option value="roulette">🎡 Ruleta Personalizada</option>
-                            <option value="chests">📦 Cofres Personalizados</option>
+                            <option value="roulette">🎡 Ruleta con Porcentajes</option>
+                            <option value="chests">📦 Cofres con Porcentajes</option>
                         </select>
                     </div>
 
-                    <!-- Gajos / Premios Principales separados por comas -->
+                    <!-- Premios con su probabilidad individual -->
                     <div>
-                        <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider block mb-1">🎯 Premios / Gajos (separados por comas):</label>
-                        <input type="text" id="new-prizes" placeholder="Ej: 20% OFF, Trago Gratis, 10% OFF, Premio Especial" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
-                        <p class="text-[9px] text-zinc-500 mt-1">💡 El primero es el premio principal (ganador).</p>
-                    </div>
-
-                    <!-- Texto personalizado para cuando no sale el premio principal -->
-                    <div>
-                        <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">💬 Texto de mensaje alternativo / consolación (Sin alerta roja):</label>
-                        <input type="text" id="new-consolation" placeholder="Ej: Sigue intentando, Vuelve a probar mañana" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
+                        <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider block mb-1">🎯 Premios y Porcentajes (Formato: Premio:%)</label>
+                        <textarea id="new-prizes-weighted" rows="3" placeholder="Ej:&#10;20% OFF : 20&#10;Trago Gratis : 30&#10;Sigue intentando : 50" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500"></textarea>
+                        <p class="text-[9px] text-zinc-400 mt-1">💡 Escribí cada premio seguido de dos puntos y su porcentaje (Ej: <code>Premio : 25</code>). La suma total de los porcentajes debe dar 100.</p>
                     </div>
 
                     <div>
@@ -85,17 +79,7 @@
                         <input type="text" id="new-instructions" placeholder="Ej: Presentar captura en barra." class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
                     </div>
                     
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <div>
-                            <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Probabilidad (%):</label>
-                            <select id="new-probability" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
-                                <option value="100">100% (Gana Seguro)</option>
-                                <option value="75">75% (Alta)</option>
-                                <option value="50">50% (50 / 50)</option>
-                                <option value="25">25% (Difícil)</option>
-                                <option value="10">10% (Jackpot)</option>
-                            </select>
-                        </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <div>
                             <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Stock (Máx 50):</label>
                             <input type="number" id="new-stock" value="1" min="1" max="50" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
@@ -248,23 +232,42 @@
 
         function createCoupon() {
             let code = document.getElementById('new-code').value.trim().toUpperCase();
-            let prizesText = document.getElementById('new-prizes').value.trim();
-            let consolationText = document.getElementById('new-consolation').value.trim();
+            let rawText = document.getElementById('new-prizes-weighted').value.trim();
             let instructions = document.getElementById('new-instructions').value.trim();
             let gameType = document.getElementById('new-game-type').value;
-            let probability = parseInt(document.getElementById('new-probability').value);
             let stockMax = parseInt(document.getElementById('new-stock').value) || 1;
             let expireInput = document.getElementById('new-expires-exact').value;
 
-            if(!code || !prizesText || !expireInput) { alert("Completa el código, los premios y la fecha de vencimiento."); return; }
+            if(!code || !rawText || !expireInput) { alert("Completa el código, los premios con porcentajes y la fecha de vencimiento."); return; }
 
             if (stockMax < 1 || stockMax > 50) {
                 alert("⚠️ Error: El stock máximo permitido es de 50 unidades.");
                 return;
             }
 
-            let optionsArray = prizesText.split(',').map(item => item.trim()).filter(item => item.length > 0);
-            if(optionsArray.length === 0) { alert("Ingresa al menos un premio."); return; }
+            // Procesar líneas tipo "Premio : Porcentaje"
+            let lines = rawText.split('\n');
+            let prizesArray = [];
+            let weightsArray = [];
+
+            for (let line of lines) {
+                if(!line.trim()) continue;
+                let parts = line.split(':');
+                if(parts.length < 2) {
+                    alert(`⚠️ Formato inválido en la línea: "${line}". Usa el formato Nombre : Porcentaje`);
+                    return;
+                }
+                let prizeName = parts[0].trim();
+                let prizeWeight = parseFloat(parts[1].trim());
+                if(isNaN(prizeWeight) || prizeWeight <= 0) {
+                    alert(`⚠️ Porcentaje inválido en: "${prizeName}"`);
+                    return;
+                }
+                prizesArray.push(prizeName);
+                weightsArray.push(prizeWeight);
+            }
+
+            if(prizesArray.length === 0) { alert("Ingresa al menos un premio con su porcentaje."); return; }
 
             let expiresAt = new Date(expireInput).getTime();
 
@@ -272,18 +275,16 @@
                 usedCount: 0,
                 stockMax: stockMax,
                 createdBy: currentUser, 
-                options: optionsArray, 
-                consolation: consolationText || "¡Gracias por participar!",
+                prizes: prizesArray, 
+                weights: weightsArray,
                 instructions: instructions || "Presente este resultado en caja.",
                 gameType: gameType,
-                probability: probability,
                 createdAt: new Date().toLocaleDateString(), 
                 expiresAt: expiresAt
             }, () => {
                 alert(`¡Cupón [${code}] creado con éxito!`);
                 document.getElementById('new-code').value = ""; 
-                document.getElementById('new-prizes').value = "";
-                document.getElementById('new-consolation').value = "";
+                document.getElementById('new-prizes-weighted').value = "";
                 document.getElementById('new-instructions').value = "";
                 setDefaultExpiration();
             });
@@ -318,13 +319,13 @@
 
                 let st = isSoldOut ? `<span class="text-red-400">AGOTADO</span>` : (expired ? `<span class="text-amber-400">VENCIDO</span>` : `<span class="text-emerald-400">DISP. (${usedCount}/${stockMax})</span>`);
                 let gameIcon = item.gameType === 'roulette' ? '🎡 Ruleta' : '📦 Cofres';
-                let optionsPreview = item.options ? item.options[0] : "Premio";
+                let firstPrize = item.prizes ? item.prizes[0] : "Premio";
 
                 list.innerHTML += `
                     <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800 flex justify-between items-center gap-2">
                         <div class="truncate">
-                            <strong class="text-amber-400">${code}</strong>: <span class="text-zinc-300">${optionsPreview}</span>
-                            <div class="text-[9px] text-zinc-400 font-semibold">${gameIcon} | 🎲 ${item.probability || 100}% éxito</div>
+                            <strong class="text-amber-400">${code}</strong>: <span class="text-zinc-300">${firstPrize} y más</span>
+                            <div class="text-[9px] text-zinc-400 font-semibold">${gameIcon} | Porcentajes personalizados</div>
                         </div>
                         <div class="flex items-center gap-1.5 shrink-0">
                             ${st} 
@@ -389,7 +390,7 @@
             let term = document.getElementById('search-code').value.toUpperCase();
             let filtered = {};
             for(let c in allCouponsData) {
-                if(c.includes(term) || JSON.stringify(allCouponsData[c].options).toUpperCase().includes(term)) filtered[c] = allCouponsData[c];
+                if(c.includes(term) || JSON.stringify(allCouponsData[c].prizes).toUpperCase().includes(term)) filtered[c] = allCouponsData[c];
             }
             renderCoupons(filtered);
         }
