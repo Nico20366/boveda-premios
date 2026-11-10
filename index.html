@@ -57,7 +57,7 @@
 
     <main class="flex-grow flex flex-col items-center justify-center px-4 py-6 max-w-md mx-auto w-full text-center z-10">
         
-        <!-- Pantalla de Ingreso de Código (Privada y Segura) -->
+        <!-- Pantalla de Ingreso de Código -->
         <div id="step-token" class="w-full slot-marquee rounded-3xl p-6 sm:p-8 backdrop-blur-xl">
             <div class="text-4xl mb-3">🔑</div>
             <h2 class="cinzel text-xl sm:text-2xl font-black text-white mb-2">INGRESE SU CÓDIGO</h2>
@@ -275,9 +275,10 @@
                 let isWin = (Math.random() * 100) <= probability;
 
                 if (isWin) {
-                    resolvedFinalPrize = options[0];
+                    resolvedFinalPrize = options[0]; // Premio principal
                 } else {
-                    resolvedFinalPrize = options.length > 1 ? options[Math.floor(Math.random() * (options.length - 1)) + 1] : options[0];
+                    // Usa el mensaje de consolación personalizado que configuró el admin
+                    resolvedFinalPrize = data.consolation || "¡Gracias por participar!";
                 }
 
                 let creator = data.createdBy;
@@ -307,9 +308,11 @@
 
         function showResultScreen() {
             let isActualWin = resolvedFinalPrize === (currentTokenData.options ? currentTokenData.options[0] : "");
-            document.getElementById('result-emoji').innerText = isActualWin ? '💎' : '❌';
+            
+            // Emoji amigable o festivo en lugar de alertas rojas feas
+            document.getElementById('result-emoji').innerText = isActualWin ? '💎' : '✨';
             document.getElementById('result-text').innerText = resolvedFinalPrize;
-            document.getElementById('result-desc').innerText = isActualWin ? "🎉 ¡Felicitaciones! Presente esta captura en caja." : "📸 Lástima, no hubo suerte en esta tirada.";
+            document.getElementById('result-desc').innerText = isActualWin ? "🎉 ¡Felicitaciones! Presente esta captura en caja." : "💫 ¡Buen intento! Guarda este resultado.";
             
             let instEl = document.getElementById('result-instructions');
             if (currentTokenData && currentTokenData.instructions) {
@@ -408,7 +411,8 @@
                         if(selectedChest) {
                             selectedChest.style.opacity = '1';
                             selectedChest.classList.add('opened');
-                            selectedChest.innerText = isActualWin ? '👑' : '💀';
+                            // Icono amigable o corona según sea el premio principal o consolación
+                            selectedChest.innerText = isActualWin ? '👑' : '✨';
                         }
 
                         if (isActualWin) { playVictoryFanfare(); } else { playSound('loss'); }
