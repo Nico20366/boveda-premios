@@ -30,11 +30,9 @@
             100% { transform: scale(1.15) rotate(2deg); filter: brightness(1.2); }
         }
 
-        .roulette-wheel { width: 280px; height: 280px; border-radius: 50%; border: 6px solid #f59e0b; position: relative; margin: 0 auto; overflow: hidden; box-shadow: 0 0 30px rgba(245, 158, 11, 0.4); transition: transform 4s cubic-bezier(0.15, 0.9, 0.2, 1); background: #18181b; }
-        .roulette-pointer { width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 24px solid #ef4444; position: absolute; top: -12px; left: calc(50% - 12px); z-index: 20; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); }
-        
-        /* Gajos mejorados para que el texto luzca legible */
-        .roulette-slice { position: absolute; width: 50%; height: 50%; transform-origin: 100% 100%; left: 0; top: 0; display: flex; align-items: flex-start; justify-content: center; font-size: 11px; font-weight: 900; color: #fff; border: 1px solid rgba(255,255,255,0.15); text-align: center; }
+        .roulette-wheel { width: 220px; height: 220px; border-radius: 50%; border: 6px solid #f59e0b; position: relative; margin: 0 auto; overflow: hidden; box-shadow: 0 0 30px rgba(245, 158, 11, 0.4); transition: transform 4s cubic-bezier(0.15, 0.9, 0.2, 1); background: radial-gradient(circle, #27272a 0%, #09090c 100%); }
+        .roulette-pointer { width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 20px solid #ef4444; position: absolute; top: -10px; left: calc(50% - 10px); z-index: 20; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); }
+        .roulette-slice { position: absolute; width: 50%; height: 50%; transform-origin: 100% 100%; left: 0; top: 0; border: 1px solid rgba(255,255,255,0.1); }
 
         .particle { position: absolute; pointer-events: none; animation: fall linear forwards; z-index: 1; }
         @keyframes fall { 0% { transform: translateY(-20px) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
@@ -87,9 +85,12 @@
         <!-- Ruleta -->
         <div id="step-game-roulette" class="w-full hidden slot-marquee rounded-3xl p-6 sm:p-8 backdrop-blur-xl">
             <h2 id="roulette-game-title" class="cinzel text-xl sm:text-2xl font-black text-white mb-2">🎡 RULETA DE LA SUERTE</h2>
-            <p class="text-zinc-400 text-xs sm:text-sm mb-4 font-medium">Gire la rueda para obtener su premio:</p>
+            <p class="text-zinc-400 text-xs sm:text-sm mb-3 font-medium">Premios disponibles en este giro:</p>
             
-            <div class="relative py-4 mb-5">
+            <!-- Lista visual clara de los premios de esta ruleta -->
+            <div id="roulette-prizes-list" class="flex flex-wrap justify-center gap-1.5 mb-4 bg-black/60 p-2.5 rounded-xl border border-zinc-800"></div>
+
+            <div class="relative py-3 mb-4">
                 <div class="roulette-pointer"></div>
                 <div id="roulette-wheel" class="roulette-wheel"></div>
             </div>
@@ -232,19 +233,26 @@
 
         function setupRouletteWheel(prizesArray) {
             let wheel = document.getElementById('roulette-wheel');
+            let listContainer = document.getElementById('roulette-prizes-list');
             wheel.innerHTML = "";
+            listContainer.innerHTML = "";
+
             let colors = ["#d97706", "#27272a", "#b45309", "#18181b", "#f59e0b", "#3f3f46"];
             let sliceAngle = 360 / prizesArray.length;
 
             prizesArray.forEach((text, index) => {
+                // Dibujar gajo en la ruleta
                 let slice = document.createElement('div');
                 slice.className = 'roulette-slice';
                 slice.style.transform = `rotate(${index * sliceAngle}deg) skewY(${90 - sliceAngle}deg)`;
                 slice.style.backgroundColor = colors[index % colors.length];
-                
-                // Texto posicionado para que se vea perfectamente legible dentro del gajo
-                slice.innerHTML = `<span style="transform: skewY(-${90 - sliceAngle}deg) rotate(${sliceAngle/2}deg); display:block; text-align:center; padding-top:25px; padding-left:15px; width:90px;" class="truncate">${text}</span>`;
                 wheel.appendChild(slice);
+
+                // Mostrar etiqueta clara arriba de la ruleta
+                let badge = document.createElement('span');
+                badge.className = "text-[10px] bg-zinc-800 text-amber-300 px-2 py-0.5 rounded-md font-bold border border-amber-500/20";
+                badge.innerText = text;
+                listContainer.appendChild(badge);
             });
         }
 
