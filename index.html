@@ -64,40 +64,27 @@
 
         /* Estilos Ruleta */
         .roulette-wheel {
-            width: 260px;
-            height: 260px;
-            border-radius: 50%;
-            border: 6px solid #f59e0b;
-            position: relative;
-            margin: 0 auto;
-            overflow: hidden;
+            width: 260px; height: 260px;
+            border-radius: 50%; border: 6px solid #f59e0b;
+            position: relative; margin: 0 auto; overflow: hidden;
             box-shadow: 0 0 30px rgba(245, 158, 11, 0.4);
             transition: transform 4s cubic-bezier(0.15, 0.9, 0.2, 1);
         }
         .roulette-pointer {
             width: 0; height: 0; 
-            border-left: 12px solid transparent;
-            border-right: 12px solid transparent;
-            border-top: 24px solid #ef4444;
-            position: absolute;
-            top: -12px; left: calc(50% - 12px);
-            z-index: 20;
+            border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 24px solid #ef4444;
+            position: absolute; top: -12px; left: calc(50% - 12px); z-index: 20;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
         }
         .roulette-slice {
-            position: absolute;
-            width: 50%; height: 50%;
-            transform-origin: 100% 100%;
-            left: 0; top: 0;
+            position: absolute; width: 50%; height: 50%;
+            transform-origin: 100% 100%; left: 0; top: 0;
             display: flex; align-items: center; justify-content: center;
             font-size: 10px; font-weight: 900; color: #fff;
-            border: 1px solid rgba(0,0,0,0.3);
-            text-align: center;
+            border: 1px solid rgba(0,0,0,0.3); text-align: center;
         }
 
-        .particle {
-            position: absolute; pointer-events: none; animation: fall linear forwards; z-index: 1;
-        }
+        .particle { position: absolute; pointer-events: none; animation: fall linear forwards; z-index: 1; }
         @keyframes fall {
             0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
             100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
@@ -128,9 +115,9 @@
         <div id="step-token" class="w-full slot-marquee rounded-3xl p-6 sm:p-8 backdrop-blur-xl">
             <div class="text-4xl mb-3">🔑</div>
             <h2 class="cinzel text-xl sm:text-2xl font-black text-white mb-2">INGRESE SU CÓDIGO</h2>
-            <p class="text-zinc-400 text-xs sm:text-sm mb-5 font-medium leading-relaxed">Escriba su código (Ej: C1 para Cofre, R1 para Ruleta):</p>
+            <p class="text-zinc-400 text-xs sm:text-sm mb-5 font-medium leading-relaxed">Escriba su código para abrir su premio:</p>
             
-            <input type="text" id="token-input" placeholder="EJ: C1 o R928" 
+            <input type="text" id="token-input" placeholder="EJ: VIP1" 
                 class="w-full bg-black/80 border-2 border-zinc-700 focus:border-amber-500 rounded-xl px-4 py-3.5 text-center text-xl font-black text-amber-400 uppercase mb-5 focus:outline-none tracking-widest shadow-inner transition-colors">
             
             <button onclick="verifyToken()" class="w-full dynamic-btn py-3.5 rounded-xl cinzel tracking-widest uppercase text-sm font-black">
@@ -320,8 +307,6 @@
         function setupRouletteWheel(winningPrize, isWin) {
             let wheel = document.getElementById('roulette-wheel');
             wheel.innerHTML = "";
-            
-            // Si gana, ponemos más casillas con el premio; si pierde, más casillas de "Sin Premio"
             let slices = isWin ? [winningPrize, "SUERTE", winningPrize, "OTRA VEZ", winningPrize, "GANA"] : ["SIN PREMIO", "SUERTE", "OTRA VEZ", "SIN PREMIO", winningPrize, "CASI"];
             let colors = ["#d97706", "#18181b", "#27272a", "#b45309", "#09090c", "#f59e0b"];
             let sliceAngle = 360 / slices.length;
@@ -344,14 +329,14 @@
 
             db.ref('cupones/' + code).once('value', (snapshot) => {
                 let data = snapshot.val();
-                if (!data) { err.innerText = "❌ Código incorrecto o inexistente."; err.classList.remove('hidden'); return; }
+                if (!data) { err.innerText = "❌ Código incorrecto o inexistente."; err.classList.add('hidden'); err.classList.remove('hidden'); return; }
                 if (data.used) { err.innerText = "⚠️ Este código ya fue utilizado."; err.classList.remove('hidden'); return; }
 
                 if (data.expiresAt) {
                     let nowTimestamp = new Date().getTime();
                     if (nowTimestamp > data.expiresAt) {
                         err.innerText = "⌛ Este código ha expirado.";
-                        err.classList.add('hidden');
+                        err.classList.remove('hidden');
                         return;
                     }
                 }
@@ -362,12 +347,13 @@
                 document.getElementById('step-token').classList.add('hidden');
                 gameLocked = false;
 
-                // Calcular probabilidad real con el % configurado por el Admin
+                // Calcular probabilidad real
                 let probability = data.probability !== undefined ? data.probability : 100;
                 let randomChance = Math.random() * 100;
                 resolvedIsWin = randomChance <= probability;
 
-                if (code.startsWith('R')) {
+                // Verificar el tipo de juego configurado en el panel (chests o roulette)
+                if (data.gameType === 'roulette') {
                     setupRouletteWheel(data.customPrize, resolvedIsWin);
                     document.getElementById('step-game-roulette').classList.remove('hidden');
                 } else {
