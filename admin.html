@@ -101,7 +101,7 @@
                     </div>
                 </div>
                 <div id="coupons-list" class="space-y-1.5 text-xs font-bold max-h-60 overflow-y-auto">
-                    <p class="text-zinc-500 text-center py-2">Cargando cupones desde Firebase...</p>
+                    <p class="text-zinc-500 text-center py-2">Conectando a Firebase...</p>
                 </div>
             </div>
         </div>
@@ -114,7 +114,7 @@
                     <span id="admins-count-badge" class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-bold">0</span>
                 </div>
                 <div id="admins-management-list" class="space-y-2 text-xs font-bold max-h-64 overflow-y-auto pt-1">
-                    <p class="text-zinc-500 text-center py-2">Cargando administradores...</p>
+                    <p class="text-zinc-500 text-center py-2">Conectando a Firebase...</p>
                 </div>
             </div>
         </div>
@@ -124,8 +124,8 @@
             <div class="slot-marquee rounded-2xl p-4 space-y-3">
                 <h3 class="cinzel text-xs font-black text-amber-400">🔑 CAMBIAR MI CONTRASEÑA</h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <input type="password" id="current-pass" placeholder="Actual" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:border-amber-500 focus:outline-none">
-                    <input type="password" id="new-pass" placeholder="Nueva" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:border-amber-500 focus:outline-none">
+                    <input type="password" id="current-pass" placeholder="Actual" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
+                    <input type="password" id="new-pass" placeholder="Nueva" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
                 </div>
                 <button onclick="changeMyPassword()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-amber-500/30 py-2 rounded-xl text-xs font-bold uppercase">Actualizar Clave</button>
             </div>
@@ -258,6 +258,8 @@
                 } else { allCouponsData = raw; }
                 renderCoupons(allCouponsData);
                 updateStats(allCouponsData);
+            }, (error) => {
+                document.getElementById('coupons-list').innerHTML = `<p class='text-red-400 text-center py-2'>Error de conexión con Firebase.</p>`;
             });
         }
 
@@ -288,7 +290,7 @@
                         <div class="flex items-center gap-1.5 shrink-0">
                             ${st} 
                             <button onclick="navigator.clipboard.writeText('${code}'); alert('Copiado')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-300 px-2 py-1 rounded text-[10px]">📋</button>
-                            <button onclick="deleteCoupon('${code}')" class="bg-red-950 hover:bg-red-900 text-red-300 px-2 py-1 rounded text-[10px]">🗑️</button>
+                            <button onclick="deleteCoupon('${code}')" class="bg-red-950 hover:bg-red-900 text-red-300 border border-red-600/40 px-2 py-1 rounded text-[10px]">🗑️</button>
                         </div>
                     </div>`;
             }
@@ -359,7 +361,7 @@
                 list.innerHTML = "";
                 let data = snap.val();
                 if(!data) { 
-                    list.innerHTML = "<p class='text-zinc-500 text-center py-2'>No hay administradores.</p>";
+                    list.innerHTML = "<p class='text-zinc-500 text-center py-2'>No hay administradores registrados.</p>";
                     document.getElementById('admins-count-badge').innerText = "0"; 
                     return; 
                 }
@@ -380,12 +382,62 @@
                         </div>`;
                 }
                 document.getElementById('admins-count-badge').innerText = count;
+            }, (error) => {
+                document.getElementById('admins-management-list').innerHTML = `<p class='text-red-400 text-center py-2'>Error al cargar administradores.</p>`;
             });
         }
 
         function toggleAdminApproval(name, status) { db.ref('admins/' + name).update({ approved: status }); }
         function deleteAdmin(name) { if(!confirm(`¿Eliminar?`)) return; db.ref('admins/' + name).remove(); db.ref('status/' + name).remove(); }
-        function logout() { localStorage.clear(); window.location.href = "login.html"; }
+        
+        function changeMyPassword() {
+            let currentPassInput = document.getElementById('current-pass').value.trim();
+            let newPassInput = document.getElementById('new-pass').value.trim();
+            if (!currentPassInput || !newPassInput) { alert("Completa ambos campos."); return; }
+
+            if (currentRole === 'super') {
+                db.ref('admins/superadmin/password').once('value', (snap) => {
+                    if (currentPassInput !== (snap.val() || "123456")) { alert("Contraseña incorrecta."); return; }
+                    db.ref('admins/superadmin').update({ password: newPassInput, approved: true }, () => {
+                        alert("¡Contraseña actualizada!");
+                        document.getElementById('current-pass').value = ""; document.getElementById('new-pass').value = "";
+                    });
+                });
+            } else {
+                db.ref('admins/' + currentUser).once('value', (snap) => {
+                    let data = snap.val();
+                    if (!data || data.password !== currentPassInput) { alert("Contraseña incorrecta."); return; }
+                    db.ref('admins/' + currentUser).update({ password: newPassInput }, () => {
+                        alert("¡Contraseña actualizada!");
+                        document.getElementById('current-pass').value = ""; document.getElementById('new-pass').value = "";
+                    });
+                });
+            }
+        }
+
+        function loadCurrentTexts() {
+            db.ref('configuracion').once('value', (snap) => {
+                let data = snap.val();
+                if(data) {
+                    if(data.titulo) document.getElementById('edit-title').value = data.titulo;
+                    if(data.subtitulo) document.getElementById('edit-subtitle').value = data.subtitulo;
+                }
+            });
+        }
+
+        function saveSiteTexts() {
+            let titulo = document.getElementById('edit-title').value.trim().toUpperCase();
+            let subtitulo = document.getElementById('edit-subtitle').value.trim().toUpperCase();
+            db.ref('configuracion').set({ titulo: titulo || "BÓVEDA DE LA SUERTE", subtitO: subtitulo || "ZONA DE PREMIOS" }, () => { alert("¡Guardado!"); });
+        }
+
+        function logout() { 
+            if(currentUser) {
+                db.ref('status/' + currentUser).set({ state: 'offline', last_changed: firebase.database.ServerValue.TIMESTAMP });
+            }
+            localStorage.clear(); 
+            window.location.href = "login.html"; 
+        }
     </script>
 </body>
 </html>
