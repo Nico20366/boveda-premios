@@ -458,7 +458,7 @@
             if(!curr || !neu) { alert("Completa los campos."); return; }
             db.ref('admins/' + currentUser).once('value', s => {
                 if(!s.val() || s.val().password !== curr) { alert("Clave actual incorrecta."); return; }
-                db.ref('admins/' + currentUser).update({ password: neu }, () => { alert("¡Actualizado!"); document.getElementById('current-pass'].value = ""; document.getElementById('new-pass'].value = ""; });
+                db.ref('admins/' + currentUser).update({ password: neu }, () => { alert("¡Actualizado!"); document.getElementById('current-pass').value = ""; document.getElementById('new-pass').value = ""; });
             });
         }
         function loadCurrentTexts() {
