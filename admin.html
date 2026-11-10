@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración - Bóveda</title>
@@ -17,42 +17,45 @@
         .dynamic-text { text-shadow: 0 0 15px var(--neon-main); color: var(--neon-main) !important; }
         .dynamic-btn { background: linear-gradient(135deg, var(--neon-main) 0%, #ca8a04 100%); color: #000 !important; font-weight: 900; box-shadow: 0 0 25px var(--neon-shadow); }
     </style>
-  </head>
-  <body class="min-h-screen casino-bg p-4 sm:p-8">
+</head>
+<body class="min-h-screen casino-bg p-4 sm:p-8">
     <div class="max-w-3xl mx-auto space-y-6">
-      <header class="slot-marquee rounded-3xl p-6 flex justify-between items-center">
-        <div>
-          <h1 class="cinzel text-xl sm:text-2xl font-black dynamic-text">PANEL DE CONTROL</h1>
-          <p id="welcome-msg" class="text-xs text-zinc-300 font-bold mt-1">
-          </p>
+        
+        <header class="slot-marquee rounded-3xl p-6 flex justify-between items-center">
+            <div>
+                <h1 class="cinzel text-xl sm:text-2xl font-black dynamic-text">PANEL DE CONTROL</h1>
+                <p id="welcome-msg" class="text-xs text-zinc-300 font-bold mt-1"></p>
+            </div>
+            <button onclick="logout()" class="bg-red-950 text-red-300 border border-red-600 px-4 py-2 rounded-xl text-xs font-bold">Cerrar Sesión ✖</button>
+        </header>
+
+        <div id="super-admin-section" class="slot-marquee rounded-3xl p-6 hidden space-y-4">
+            <h3 class="cinzel text-sm font-black dynamic-text">👑 GESTIÓN DE SOLICITUDES DE ADMINISTRADORES</h3>
+            <div id="requests-list" class="space-y-2 text-xs font-bold"></div>
         </div>
-        <button onclick="logout()" class="bg-red-950 text-red-300 border border-red-600 px-4 py-2 rounded-xl text-xs font-bold">Cerrar Sesión ✖</button>
-      </header>
-      <div id="super-admin-section" class="slot-marquee rounded-3xl p-6 hidden space-y-4">
-        <h3 class="cinzel text-sm font-black dynamic-text">👑 GESTIÓN DE SOLICITUDES DE ADMINISTRADORES</h3>
-        <div id="requests-list" class="space-y-2 text-xs font-bold">
+
+        <div class="slot-marquee rounded-3xl p-6 space-y-4">
+            <h3 class="cinzel text-sm font-black dynamic-text">🎁 CREAR NUEVO CUPÓN CON PREMIO PERSONALIZADO</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs text-zinc-300 font-bold">Código del Cupón:</label>
+                    <input type="text" id="new-code" placeholder="Ej: JUAN50" class="w-full bg-black border-2 border-zinc-700 rounded-xl px-3 py-2 text-sm text-white font-bold uppercase mt-1 focus:border-amber-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="text-xs text-zinc-300 font-bold">Premio / Bono Específico:</label>
+                    <input type="text" id="new-prize" placeholder="Ej: ¡Ganó 20% extra en recarga!" class="w-full bg-black border-2 border-zinc-700 rounded-xl px-3 py-2 text-sm text-white font-bold mt-1 focus:border-amber-500 focus:outline-none">
+                </div>
+            </div>
+            <button onclick="createCoupon()" class="w-full dynamic-btn py-3 rounded-xl text-xs cinzel uppercase tracking-wider">Crear y Guardar en la Nube 💾</button>
         </div>
-      </div>
-      <div class="slot-marquee rounded-3xl p-6 space-y-4">
-        <h3 class="cinzel text-sm font-black dynamic-text">🎁 CREAR NUEVO CUPÓN CON PREMIO PERSONALIZADO</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="text-xs text-zinc-300 font-bold">Código del Cupón:</label>
-            <input type="text" id="new-code" placeholder="Ej: JUAN50" class="w-full bg-black border-2 border-zinc-700 rounded-xl px-3 py-2 text-sm text-white font-bold uppercase mt-1 focus:border-amber-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="text-xs text-zinc-300 font-bold">Premio / Bono Específico:</label>
-            <input type="text" id="new-prize" placeholder="Ej: ¡Ganó 20% extra en recarga!" class="w-full bg-black border-2 border-zinc-700 rounded-xl px-3 py-2 text-sm text-white font-bold mt-1 focus:border-amber-500 focus:outline-none">
-          </div>
+
+        <div class="slot-marquee rounded-3xl p-6 space-y-4">
+            <h3 class="cinzel text-sm font-black dynamic-text">📋 CUPONES GENERADOS EN EL SISTEMA</h3>
+            <div id="coupons-list" class="space-y-2 text-xs font-bold max-h-64 overflow-y-auto"></div>
         </div>
-        <button onclick="createCoupon()" class="w-full dynamic-btn py-3 rounded-xl text-xs cinzel uppercase tracking-wider">Crear y Guardar en la Nube 💾</button>
-      </div>
-      <div class="slot-marquee rounded-3xl p-6 space-y-4">
-        <h3 class="cinzel text-sm font-black dynamic-text">📋 CUPONES GENERADOS EN EL SISTEMA</h3>
-        <div id="coupons-list" class="space-y-2 text-xs font-bold max-h-64 overflow-y-auto">
-        </div>
-      </div>
+
     </div>
+
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBqLgy8LhtKaOZgf1tLH5tG6Pm8qYj3ouQ",
@@ -103,13 +106,12 @@
 
         function approveAdmin(name) {
             db.ref('admins/' + name).update({ approved: true });
-            alert(`¡Permisos aprobados para ${name}! Ya puede iniciar sesión.`);
+            alert(`¡Permisos aprobados para ${name}!`);
         }
 
         function createCoupon() {
             let code = document.getElementById('new-code').value.trim().toUpperCase();
             let prize = document.getElementById('new-prize').value.trim();
-
             if(!code || !prize) { alert("Complete todos los campos."); return; }
 
             db.ref('cupones/' + code).set({
@@ -117,14 +119,10 @@
                 createdBy: currentUser,
                 customPrize: prize,
                 createdAt: new Date().toLocaleString()
-            }, (error) => {
-                if(error) {
-                    alert("Error al guardar.");
-                } else {
-                    alert(`¡Cupón [${code}] creado exitosamente!`);
-                    document.getElementById('new-code').value = "";
-                    document.getElementById('new-prize').value = "";
-                }
+            }, () => {
+                alert(`¡Cupón [${code}] creado con éxito!`);
+                document.getElementById('new-code').value = "";
+                document.getElementById('new-prize').value = "";
             });
         }
 
@@ -137,13 +135,11 @@
 
                 for(let code in data) {
                     let item = data[code];
-                    let status = item.used ? `<span class="text-red-400">[USADO: ${item.usedAt}]</span>` : `<span class="text-emerald-400">[DISPONIBLE]</span>`;
-                    
+                    let status = item.used ? `<span class="text-red-400">[USADO]</span>` : `<span class="text-emerald-400">[DISPONIBLE]</span>`;
                     list.innerHTML += `
                         <div class="bg-zinc-900 p-3 rounded-xl border border-zinc-800 flex justify-between items-center">
                             <div>
                                 <span class="text-amber-400 font-black text-sm">${code}</span> -> ${item.customPrize}
-                                <div class="text-[10px] text-zinc-400">Creado por: <strong>${item.createdBy || 'Sistema'}</strong></div>
                             </div>
                             <div class="text-right text-xs">${status}</div>
                         </div>
@@ -157,5 +153,5 @@
             window.location.href = "login.html";
         }
     </script>
-  </body>
+</body>
 </html>
