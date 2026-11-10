@@ -30,9 +30,11 @@
             100% { transform: scale(1.15) rotate(2deg); filter: brightness(1.2); }
         }
 
-        .roulette-wheel { width: 260px; height: 260px; border-radius: 50%; border: 6px solid #f59e0b; position: relative; margin: 0 auto; overflow: hidden; box-shadow: 0 0 30px rgba(245, 158, 11, 0.4); transition: transform 4s cubic-bezier(0.15, 0.9, 0.2, 1); }
+        .roulette-wheel { width: 280px; height: 280px; border-radius: 50%; border: 6px solid #f59e0b; position: relative; margin: 0 auto; overflow: hidden; box-shadow: 0 0 30px rgba(245, 158, 11, 0.4); transition: transform 4s cubic-bezier(0.15, 0.9, 0.2, 1); background: #18181b; }
         .roulette-pointer { width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 24px solid #ef4444; position: absolute; top: -12px; left: calc(50% - 12px); z-index: 20; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); }
-        .roulette-slice { position: absolute; width: 50%; height: 50%; transform-origin: 100% 100%; left: 0; top: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; color: #fff; border: 1px solid rgba(0,0,0,0.3); text-align: center; }
+        
+        /* Gajos mejorados para que el texto luzca legible */
+        .roulette-slice { position: absolute; width: 50%; height: 50%; transform-origin: 100% 100%; left: 0; top: 0; display: flex; align-items: flex-start; justify-content: center; font-size: 11px; font-weight: 900; color: #fff; border: 1px solid rgba(255,255,255,0.15); text-align: center; }
 
         .particle { position: absolute; pointer-events: none; animation: fall linear forwards; z-index: 1; }
         @keyframes fall { 0% { transform: translateY(-20px) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
@@ -228,20 +230,35 @@
         }
         renderChests(3);
 
-        function setupRouletteWheel(optionsArray) {
+        function setupRouletteWheel(prizesArray) {
             let wheel = document.getElementById('roulette-wheel');
             wheel.innerHTML = "";
-            let colors = ["#d97706", "#18181b", "#27272a", "#b45309", "#09090c", "#f59e0b"];
-            let sliceAngle = 360 / optionsArray.length;
+            let colors = ["#d97706", "#27272a", "#b45309", "#18181b", "#f59e0b", "#3f3f46"];
+            let sliceAngle = 360 / prizesArray.length;
 
-            optionsArray.forEach((text, index) => {
+            prizesArray.forEach((text, index) => {
                 let slice = document.createElement('div');
                 slice.className = 'roulette-slice';
                 slice.style.transform = `rotate(${index * sliceAngle}deg) skewY(${90 - sliceAngle}deg)`;
                 slice.style.backgroundColor = colors[index % colors.length];
-                slice.innerHTML = `<span style="transform: skewY(-${90 - sliceAngle}deg) rotate(${sliceAngle/2}deg); display:block; text-align:center; padding-left:25px;" class="truncate w-20">${text}</span>`;
+                
+                // Texto posicionado para que se vea perfectamente legible dentro del gajo
+                slice.innerHTML = `<span style="transform: skewY(-${90 - sliceAngle}deg) rotate(${sliceAngle/2}deg); display:block; text-align:center; padding-top:25px; padding-left:15px; width:90px;" class="truncate">${text}</span>`;
                 wheel.appendChild(slice);
             });
+        }
+
+        function rollWeightedPrize(prizes, weights) {
+            let totalWeight = weights.reduce((a, b) => a + b, 0);
+            let randomNum = Math.random() * totalWeight;
+            let currentSum = 0;
+            for (let i = 0; i < prizes.length; i++) {
+                currentSum += weights[i];
+                if (randomNum <= currentSum) {
+                    return prizes[i];
+                }
+            }
+            return prizes[0];
         }
 
         function verifyToken() {
@@ -270,16 +287,10 @@
                 document.getElementById('step-token').classList.add('hidden');
                 gameLocked = false;
 
-                let options = data.options || ["PREMIO"];
-                let probability = data.probability !== undefined ? data.probability : 100;
-                let isWin = (Math.random() * 100) <= probability;
+                let prizes = data.prizes || ["PREMIO"];
+                let weights = data.weights || [100];
 
-                if (isWin) {
-                    resolvedFinalPrize = options[0]; // Premio principal
-                } else {
-                    // Usa el mensaje de consolación personalizado que configuró el admin
-                    resolvedFinalPrize = data.consolation || "¡Gracias por participar!";
-                }
+                resolvedFinalPrize = rollWeightedPrize(prizes, weights);
 
                 let creator = data.createdBy;
                 let configRef = creator ? db.ref(`admins/${creator}/configuracion_juegos`) : null;
@@ -289,17 +300,17 @@
                         let cfg = cfgSnap.val() || {};
                         if (cfg.chestMsg) document.getElementById('chest-game-title').innerText = cfg.chestMsg;
                         if (cfg.rouletteTitle) document.getElementById('roulette-game-title').innerText = cfg.rouletteTitle;
-                        proceedWithGame(data, options);
+                        proceedWithGame(data, prizes);
                     });
                 } else {
-                    proceedWithGame(data, options);
+                    proceedWithGame(data, prizes);
                 }
             });
         }
 
-        function proceedWithGame(data, options) {
+        function proceedWithGame(data, prizes) {
             if (data.gameType === 'roulette') {
-                setupRouletteWheel(options);
+                setupRouletteWheel(prizes);
                 document.getElementById('step-game-roulette').classList.remove('hidden');
             } else {
                 document.getElementById('step-game-chests').classList.remove('hidden');
@@ -307,12 +318,9 @@
         }
 
         function showResultScreen() {
-            let isActualWin = resolvedFinalPrize === (currentTokenData.options ? currentTokenData.options[0] : "");
-            
-            // Emoji amigable o festivo en lugar de alertas rojas feas
-            document.getElementById('result-emoji').innerText = isActualWin ? '💎' : '✨';
+            document.getElementById('result-emoji').innerText = '💎';
             document.getElementById('result-text').innerText = resolvedFinalPrize;
-            document.getElementById('result-desc').innerText = isActualWin ? "🎉 ¡Felicitaciones! Presente esta captura en caja." : "💫 ¡Buen intento! Guarda este resultado.";
+            document.getElementById('result-desc').innerText = "🎉 ¡Felicitaciones! Presente esta captura en caja.";
             
             let instEl = document.getElementById('result-instructions');
             if (currentTokenData && currentTokenData.instructions) {
@@ -339,8 +347,7 @@
                 lastPrizeWon: resolvedFinalPrize
             });
 
-            let isActualWin = resolvedFinalPrize === currentTokenData.options[0];
-            if (isActualWin) playVictoryFanfare(); else playSound('loss');
+            playVictoryFanfare();
 
             let wheel = document.getElementById('roulette-wheel');
             let randomSpins = 360 * 5; 
@@ -369,8 +376,6 @@
                 lastUsedAt: now,
                 lastPrizeWon: resolvedFinalPrize
             });
-
-            let isActualWin = resolvedFinalPrize === currentTokenData.options[0];
 
             let steps = 6, currentStep = 0;
             let interval = setInterval(() => {
@@ -411,11 +416,10 @@
                         if(selectedChest) {
                             selectedChest.style.opacity = '1';
                             selectedChest.classList.add('opened');
-                            // Icono amigable o corona según sea el premio principal o consolación
-                            selectedChest.innerText = isActualWin ? '👑' : '✨';
+                            selectedChest.innerText = '👑';
                         }
 
-                        if (isActualWin) { playVictoryFanfare(); } else { playSound('loss'); }
+                        playVictoryFanfare();
 
                         setTimeout(() => {
                             document.getElementById('step-game-chests').classList.add('hidden');
