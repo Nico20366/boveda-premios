@@ -46,6 +46,27 @@
             </div>
         </div>
 
+        <!-- 🔒 SEGURIDAD: CAMBIAR CONTRASEÑA (Para cualquier Admin o SuperAdmin) -->
+        <div class="slot-marquee rounded-3xl p-6 space-y-4 border-amber-500/50">
+            <div class="border-b border-zinc-800 pb-3 flex justify-between items-center">
+                <h3 class="cinzel text-sm font-black text-amber-400">🔒 SEGURIDAD: CAMBIAR MI CONTRASEÑA</h3>
+                <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-lg font-bold">Cuenta Personal</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs text-zinc-300 font-bold">Contraseña Actual:</label>
+                    <input type="password" id="current-pass" placeholder="••••••••" class="w-full bg-black border-2 border-zinc-700 rounded-xl px-3 py-2 text-sm text-white font-bold mt-1 focus:border-amber-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="text-xs text-zinc-300 font-bold">Nueva Contraseña:</label>
+                    <input type="password" id="new-pass" placeholder="••••••••" class="w-full bg-black border-2 border-zinc-700 rounded-xl px-3 py-2 text-sm text-white font-bold mt-1 focus:border-amber-500 focus:outline-none">
+                </div>
+            </div>
+            <button onclick="changeMyPassword()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-amber-500/50 font-black py-3 rounded-xl text-xs cinzel uppercase tracking-wider shadow">
+                Actualizar Mi Contraseña 🔑
+            </button>
+        </div>
+
         <!-- 👑 SECCIÓN EXCLUSIVA: EDITAR TEXTOS DE LA PÁGINA (Solo Super Admin) -->
         <div id="super-text-section" class="slot-marquee rounded-3xl p-6 hidden space-y-4">
             <div class="border-b border-zinc-800 pb-3 flex justify-between items-center">
@@ -140,6 +161,46 @@
         }
 
         loadCoupons();
+
+        function changeMyPassword() {
+            let currentPassInput = document.getElementById('current-pass').value.trim();
+            let newPassInput = document.getElementById('new-pass').value.trim();
+
+            if (!currentPassInput || !newPassInput) {
+                alert("❌ Por favor completa la contraseña actual y la nueva contraseña.");
+                return;
+            }
+
+            if (currentRole === 'super') {
+                // Validación para el SuperAdmin (password por defecto "123456" o almacenada en Firebase)
+                db.ref('admins/superadmin/password').once('value', (snap) => {
+                    let realPass = snap.val() || "123456";
+                    if (currentPassInput !== realPass) {
+                        alert("❌ La contraseña actual es incorrecta.");
+                        return;
+                    }
+                    db.ref('admins/superadmin').update({ password: newPassInput, approved: true }, () => {
+                        alert("¡Contraseña de SuperAdmin actualizada con éxito!");
+                        document.getElementById('current-pass').value = "";
+                        document.getElementById('new-pass').value = "";
+                    });
+                });
+            } else {
+                // Validación para administrador normal
+                db.ref('admins/' + currentUser).once('value', (snap) => {
+                    let data = snap.val();
+                    if (!data || data.password !== currentPassInput) {
+                        alert("❌ La contraseña actual es incorrecta.");
+                        return;
+                    }
+                    db.ref('admins/' + currentUser).update({ password: newPassInput }, () => {
+                        alert("¡Tu contraseña ha sido actualizada con éxito!");
+                        document.getElementById('current-pass').value = "";
+                        document.getElementById('new-pass').value = "";
+                    });
+                });
+            }
+        }
 
         function loadCurrentTexts() {
             db.ref('configuracion').once('value', (snap) => {
