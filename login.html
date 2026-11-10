@@ -28,7 +28,7 @@
                 <p class="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">ZONA RESTRINGIDA</p>
             </div>
         </div>
-        <a href="index.html" class="text-[10px] sm:text-xs bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-700 px-3 py-1.5 rounded-lg font-bold cinzel shadow-lg">
+        <a href="index.html" class="text-xs bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-700 px-3 py-1.5 rounded-lg font-bold cinzel shadow-lg">
             ← VOLVER
         </a>
     </header>
@@ -38,7 +38,7 @@
             <h2 id="form-title" class="cinzel text-2xl font-black dynamic-text text-center mb-6">LOGIN DE ACCESO</h2>
             <div id="msg-box" class="mb-4 text-xs font-bold text-center text-red-400 hidden bg-red-950/40 p-2 rounded-xl border border-red-800"></div>
 
-            <!-- LOGIN -->
+            <!-- Form Login -->
             <div id="login-form" class="space-y-4">
                 <div>
                     <label class="text-xs text-zinc-300 font-bold uppercase tracking-wider">Usuario / Alias:</label>
@@ -59,7 +59,7 @@
                 </div>
             </div>
 
-            <!-- REGISTRO -->
+            <!-- Form Registro -->
             <div id="register-form" class="space-y-4 hidden">
                 <div>
                     <label class="text-xs text-zinc-300 font-bold uppercase tracking-wider">Crea tu Usuario / Alias:</label>
@@ -104,8 +104,7 @@
             let loginForm = document.getElementById('login-form');
             let registerForm = document.getElementById('register-form');
             let title = document.getElementById('form-title');
-            let msg = document.getElementById('msg-box');
-            msg.classList.add('hidden');
+            document.getElementById('msg-box').classList.add('hidden');
 
             if(view === 'register') {
                 loginForm.classList.add('hidden');
@@ -122,25 +121,12 @@
             let name = document.getElementById('reg-name').value.trim();
             let pass = document.getElementById('reg-pass').value.trim();
             let msg = document.getElementById('msg-box');
-
-            if(!name || !pass) {
-                msg.innerText = "Complete todos los campos.";
-                msg.classList.remove('hidden');
-                return;
-            }
+            if(!name || !pass) { msg.innerText = "Complete todos los campos."; msg.classList.remove('hidden'); return; }
 
             db.ref('admins/' + name).once('value', (snap) => {
-                if(snap.exists()) {
-                    msg.innerText = "⚠️ Ese usuario ya existe.";
-                    msg.classList.remove('hidden');
-                    return;
-                }
-                db.ref('admins/' + name).set({
-                    password: pass,
-                    approved: false,
-                    role: "admin"
-                });
-                alert("¡Solicitud enviada con éxito! Queda pendiente a que el Super Admin la apruebe.");
+                if(snap.exists()) { msg.innerText = "⚠️ Ese usuario ya existe."; msg.classList.remove('hidden'); return; }
+                db.ref('admins/' + name).set({ password: pass, approved: false });
+                alert("¡Solicitud enviada! Queda pendiente de aprobación por el Super Admin.");
                 toggleView('login');
             });
         }
@@ -159,16 +145,8 @@
 
             db.ref('admins/' + name).once('value', (snap) => {
                 let data = snap.val();
-                if(!data || data.password !== pass) {
-                    msg.innerText = "❌ Usuario o contraseña incorrectos.";
-                    msg.classList.remove('hidden');
-                    return;
-                }
-                if(!data.approved) {
-                    msg.innerText = "⏳ Tu cuenta aún no ha sido aprobada por el Super Admin.";
-                    msg.classList.remove('hidden');
-                    return;
-                }
+                if(!data || data.password !== pass) { msg.innerText = "❌ Usuario o contraseña incorrectos."; msg.classList.remove('hidden'); return; }
+                if(!data.approved) { msg.innerText = "⏳ Tu cuenta aún no ha sido aprobada."; msg.classList.remove('hidden'); return; }
 
                 localStorage.setItem("current_admin", name);
                 localStorage.setItem("admin_role", "admin");
