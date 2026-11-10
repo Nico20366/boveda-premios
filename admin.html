@@ -67,7 +67,7 @@
             </button>
         </div>
 
-        <!-- 👑 SECCIÓN EXCLUSIVA: EDITAR TEXTOS DE LA PÁGINA (Solo Super Admin) -->
+        <!-- 👑 EDITAR TEXTOS DE LA PÁGINA (Solo Super Admin) -->
         <div id="super-text-section" class="slot-marquee rounded-3xl p-6 hidden space-y-4">
             <div class="border-b border-zinc-800 pb-3 flex justify-between items-center">
                 <h3 class="cinzel text-sm font-black dynamic-text">✏️ EDITAR TEXTOS DE LA PÁGINA PRINCIPAL</h3>
@@ -88,13 +88,13 @@
             </button>
         </div>
 
-        <!-- 👑 SECCIÓN EXCLUSIVA DE CONTROL TOTAL DEL SUPER ADMIN -->
+        <!-- 👑 CONTROL TOTAL DE ADMINISTRADORES -->
         <div id="super-admin-section" class="slot-marquee rounded-3xl p-6 hidden space-y-4">
             <div class="border-b border-zinc-800 pb-3 flex justify-between items-center">
                 <h3 class="cinzel text-sm font-black dynamic-text">👑 CONTROL TOTAL DE ADMINISTRADORES</h3>
                 <span id="admins-count-badge" class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-lg font-bold">Total: 0</span>
             </div>
-            <p class="text-xs text-zinc-400 font-bold">Aquí puedes ver el listado de admins, aprobar solicitudes, cambiarles la contraseña si la olvidaron, suspenderlos o eliminarlos:</p>
+            <p class="text-xs text-zinc-400 font-bold">Listado de administradores registrados con sus correos y accesos:</p>
             <div id="admins-management-list" class="space-y-2 text-xs font-bold"></div>
         </div>
 
@@ -114,7 +114,7 @@
             <button onclick="createCoupon()" class="w-full dynamic-btn py-3 rounded-xl text-xs cinzel uppercase tracking-wider">Guardar Cupón en la Nube 💾</button>
         </div>
 
-        <!-- Lista de Cupones con Buscador -->
+        <!-- Lista de Cupones -->
         <div class="slot-marquee rounded-3xl p-6 space-y-4">
             <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
                 <h3 id="list-title" class="cinzel text-sm font-black dynamic-text">📋 MIS CUPONES</h3>
@@ -201,10 +201,9 @@
             }
         }
 
-        // 🔑 FUNCIÓN PARA QUE EL SUPER ADMIN CAMBIE LA CLAVE DE OTRO ADMIN
         function resetAdminPassword(adminName) {
             let newPass = prompt(`🔑 Ingrese la nueva contraseña para el administrador [${adminName}]:`);
-            if (newPass === null) return; // Si canceló
+            if (newPass === null) return;
             newPass = newPass.trim();
 
             if (!newPass) {
@@ -213,7 +212,7 @@
             }
 
             db.ref('admins/' + adminName).update({ password: newPass }, () => {
-                alert(`¡Contraseña actualizada con éxito para el administrador [${adminName}]!`);
+                alert(`¡Contraseña actualizada con éxito para [${adminName}]!`);
             });
         }
 
@@ -254,7 +253,9 @@
                 for(let name in data) {
                     if(name === "superadmin") continue;
                     count++;
-                    let isApproved = data[name].approved;
+                    let adminInfo = data[name];
+                    let isApproved = adminInfo.approved;
+                    let emailText = adminInfo.email ? `<div class='text-[11px] text-zinc-400 font-normal'>📧 ${adminInfo.email}</div>` : "";
                     let statusBadge = isApproved 
                         ? `<span class="text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">ACTIVO</span>` 
                         : `<span class="text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800">PENDIENTE</span>`;
@@ -273,6 +274,7 @@
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-zinc-900 p-3.5 rounded-xl border border-zinc-800 gap-2">
                             <div>
                                 <span class="text-white font-black text-sm">👤 ${name}</span>
+                                ${emailText}
                                 <div class="mt-1">${statusBadge}</div>
                             </div>
                             <div class="flex items-center gap-1.5 w-full sm:w-auto justify-end flex-wrap">
