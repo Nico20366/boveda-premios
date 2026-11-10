@@ -57,10 +57,11 @@
 
     <main class="flex-grow flex flex-col items-center justify-center px-4 py-6 max-w-md mx-auto w-full text-center z-10">
         
+        <!-- Pantalla de Ingreso de Código (Privada y Segura) -->
         <div id="step-token" class="w-full slot-marquee rounded-3xl p-6 sm:p-8 backdrop-blur-xl">
             <div class="text-4xl mb-3">🔑</div>
             <h2 class="cinzel text-xl sm:text-2xl font-black text-white mb-2">INGRESE SU CÓDIGO</h2>
-            <p class="text-zinc-400 text-xs sm:text-sm mb-5 font-medium leading-relaxed">Escriba su código para abrir su premio:</p>
+            <p class="text-zinc-400 text-xs sm:text-sm mb-5 font-medium leading-relaxed">Escriba su código secreto para abrir su premio:</p>
             
             <input type="text" id="token-input" placeholder="EJ: RULETAVIP" 
                 class="w-full bg-black/80 border-2 border-zinc-700 focus:border-amber-500 rounded-xl px-4 py-3.5 text-center text-xl font-black text-amber-400 uppercase mb-5 focus:outline-none tracking-widest shadow-inner transition-colors">
@@ -69,11 +70,6 @@
                 ABRIR BÓVEDA 🎰
             </button>
             <p id="error-msg" class="text-red-400 text-xs mt-3 font-bold hidden"></p>
-            
-            <div id="recent-winners-box" class="mt-6 pt-4 border-t border-zinc-800/80 text-left hidden">
-                <p class="text-[10px] cinzel font-bold text-zinc-400 mb-2 uppercase tracking-wider">🏆 Últimos Premios:</p>
-                <div id="winners-list" class="space-y-1 text-xs font-medium text-zinc-300"></div>
-            </div>
         </div>
 
         <!-- Cofres -->
@@ -113,7 +109,7 @@
             </div>
 
             <button onclick="resetToHome()" class="w-full dynamic-btn py-3.5 rounded-xl cinzel tracking-wider uppercase text-xs font-black">
-                ⬅️ CANJEAR OTRO CÓDIGO
+                ⬅️ FINALIZAR
             </button>
         </div>
     </main>
@@ -260,11 +256,10 @@
 
                 let usedCount = data.usedCount || 0;
                 let stockMax = data.stockMax || 1;
-                if (usedCount >= stockMax) { err.innerText = "⚠️ Este cupón ya agotó su stock."; err.classList.remove('hidden'); return; }
+                if (usedCount >= stockMax) { err.innerText = "⚠️ Este cupón ya agotó su stock disponible."; err.classList.remove('hidden'); return; }
 
                 if (data.expiresAt && new Date().getTime() > data.expiresAt) {
                     err.innerText = "⌛ Este código ha expirado.";
-                    err.classList.add('hidden'); // Fix typo
                     err.classList.remove('hidden');
                     return;
                 }
@@ -280,9 +275,8 @@
                 let isWin = (Math.random() * 100) <= probability;
 
                 if (isWin) {
-                    resolvedFinalPrize = options[0]; // Gana el premio 1 (principal)
+                    resolvedFinalPrize = options[0];
                 } else {
-                    // Si no gana, toma un premio alternativo de la lista (ej: premio 2, 3 o 4)
                     resolvedFinalPrize = options.length > 1 ? options[Math.floor(Math.random() * (options.length - 1)) + 1] : options[0];
                 }
 
@@ -343,7 +337,7 @@
             });
 
             let isActualWin = resolvedFinalPrize === currentTokenData.options[0];
-            if (isActualWin) recordWinner(currentCodeKey, resolvedFinalPrize);
+            if (isActualWin) playVictoryFanfare(); else playSound('loss');
 
             let wheel = document.getElementById('roulette-wheel');
             let randomSpins = 360 * 5; 
@@ -354,16 +348,8 @@
             playSound('suspense');
 
             setTimeout(() => {
-                if (isActualWin) {
-                    playVictoryFanfare();
-                } else {
-                    playSound('loss');
-                }
-
-                setTimeout(() => {
-                    document.getElementById('step-game-roulette').classList.add('hidden');
-                    showResultScreen();
-                }, 1000);
+                document.getElementById('step-game-roulette').classList.add('hidden');
+                showResultScreen();
             }, 4000);
         }
 
@@ -382,7 +368,6 @@
             });
 
             let isActualWin = resolvedFinalPrize === currentTokenData.options[0];
-            if (isActualWin) recordWinner(currentCodeKey, resolvedFinalPrize);
 
             let steps = 6, currentStep = 0;
             let interval = setInterval(() => {
@@ -426,8 +411,7 @@
                             selectedChest.innerText = isActualWin ? '👑' : '💀';
                         }
 
-                        if (isActualWin) { playVictoryFanfare(); } 
-                        else { playSound('loss'); }
+                        if (isActualWin) { playVictoryFanfare(); } else { playSound('loss'); }
 
                         setTimeout(() => {
                             document.getElementById('step-game-chests').classList.add('hidden');
@@ -437,24 +421,6 @@
                 }
             }, 180);
         }
-
-        function recordWinner(code, prizeText) {
-            let winners = JSON.parse(localStorage.getItem('vip_recent_winners') || "[]");
-            winners.unshift({ code: code, prize: prizeText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
-            if (winners.length > 3) winners = winners.slice(0, 3);
-            localStorage.setItem('vip_recent_winners', JSON.stringify(winners));
-            renderRecentWinners();
-        }
-
-        function renderRecentWinners() {
-            let winners = JSON.parse(localStorage.getItem('vip_recent_winners') || "[]");
-            let box = document.getElementById('recent-winners-box');
-            let list = document.getElementById('winners-list');
-            if(!box || !list) return;
-            if (winners.length === 0) { box.classList.add('hidden'); return; }
-            box.classList.add('hidden');
-        }
-        renderRecentWinners();
 
         function resetToHome() {
             playSound('click');
