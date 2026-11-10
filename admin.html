@@ -57,7 +57,7 @@
         <!-- PESTAÑA 1: CUPONES -->
         <div id="tab-content-coupons" class="space-y-4">
             <div class="slot-marquee rounded-2xl p-4 space-y-3">
-                <h3 class="cinzel text-xs font-black dynamic-text">🎁 NUEVO CUPÓN CON CONTROL DE STOCK</h3>
+                <h3 class="cinzel text-xs font-black dynamic-text">🎁 NUEVO CUPÓN CON GAJOS PERSONALIZADOS</h3>
                 <div class="space-y-2">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <input type="text" id="new-code" placeholder="Código (Ej: RULETAVIP)" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold uppercase focus:outline-none focus:border-amber-500">
@@ -67,15 +67,17 @@
                         </select>
                     </div>
 
-                    <!-- Casilleros de Premios Individuales -->
-                    <div class="bg-black/60 p-3 rounded-xl border border-zinc-800 space-y-2">
-                        <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider block">🎯 Modifica el texto de cada premio en la ruleta/cofres:</label>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <input type="text" id="prize-1" placeholder="Premio 1 (Principal - Ej: 20% OFF)" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
-                            <input type="text" id="prize-2" placeholder="Premio 2 (Ej: 10% OFF)" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
-                            <input type="text" id="prize-3" placeholder="Premio 3 (Ej: Trago Gratis)" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
-                            <input type="text" id="prize-4" placeholder="Premio 4 (Ej: Sin Premio ❌)" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
-                        </div>
+                    <!-- Gajos / Premios Principales separados por comas -->
+                    <div>
+                        <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider block mb-1">🎯 Premios / Gajos (separados por comas):</label>
+                        <input type="text" id="new-prizes" placeholder="Ej: 20% OFF, Trago Gratis, 10% OFF, Premio Especial" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
+                        <p class="text-[9px] text-zinc-500 mt-1">💡 El primero es el premio principal (ganador).</p>
+                    </div>
+
+                    <!-- Texto personalizado para cuando no sale el premio principal -->
+                    <div>
+                        <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">💬 Texto de mensaje alternativo / consolación (Sin alerta roja):</label>
+                        <input type="text" id="new-consolation" placeholder="Ej: Sigue intentando, Vuelve a probar mañana" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
                     </div>
 
                     <div>
@@ -85,7 +87,7 @@
                     
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <div>
-                            <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Probabilidad de Éxito (%):</label>
+                            <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Probabilidad (%):</label>
                             <select id="new-probability" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
                                 <option value="100">100% (Gana Seguro)</option>
                                 <option value="75">75% (Alta)</option>
@@ -95,8 +97,7 @@
                             </select>
                         </div>
                         <div>
-                            <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Stock Máx (1 a 50):</label>
-                            <!-- Tope máximo configurado en 50 -->
+                            <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Stock (Máx 50):</label>
                             <input type="number" id="new-stock" value="1" min="1" max="50" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
                         </div>
                         <div>
@@ -247,28 +248,23 @@
 
         function createCoupon() {
             let code = document.getElementById('new-code').value.trim().toUpperCase();
-            let p1 = document.getElementById('prize-1').value.trim();
-            let p2 = document.getElementById('prize-2').value.trim();
-            let p3 = document.getElementById('prize-3').value.trim();
-            let p4 = document.getElementById('prize-4').value.trim();
+            let prizesText = document.getElementById('new-prizes').value.trim();
+            let consolationText = document.getElementById('new-consolation').value.trim();
             let instructions = document.getElementById('new-instructions').value.trim();
             let gameType = document.getElementById('new-game-type').value;
             let probability = parseInt(document.getElementById('new-probability').value);
             let stockMax = parseInt(document.getElementById('new-stock').value) || 1;
             let expireInput = document.getElementById('new-expires-exact').value;
 
-            if(!code || !p1 || !expireInput) { alert("Completa el código, el Premio 1 (Principal) y la fecha de vencimiento."); return; }
+            if(!code || !prizesText || !expireInput) { alert("Completa el código, los premios y la fecha de vencimiento."); return; }
 
-            // 🛡️ VALIDACIÓN DE SEGURIDAD MÁXIMO 50 DE STOCK
             if (stockMax < 1 || stockMax > 50) {
-                alert("⚠️ Error: El stock máximo permitido por cupón es de 50 unidades.");
+                alert("⚠️ Error: El stock máximo permitido es de 50 unidades.");
                 return;
             }
 
-            let optionsArray = [p1];
-            if(p2) optionsArray.push(p2);
-            if(p3) optionsArray.push(p3);
-            if(p4) optionsArray.push(p4);
+            let optionsArray = prizesText.split(',').map(item => item.trim()).filter(item => item.length > 0);
+            if(optionsArray.length === 0) { alert("Ingresa al menos un premio."); return; }
 
             let expiresAt = new Date(expireInput).getTime();
 
@@ -277,18 +273,17 @@
                 stockMax: stockMax,
                 createdBy: currentUser, 
                 options: optionsArray, 
+                consolation: consolationText || "¡Gracias por participar!",
                 instructions: instructions || "Presente este resultado en caja.",
                 gameType: gameType,
                 probability: probability,
                 createdAt: new Date().toLocaleDateString(), 
                 expiresAt: expiresAt
             }, () => {
-                alert(`¡Cupón [${code}] creado con éxito (Stock: ${stockMax})!`);
+                alert(`¡Cupón [${code}] creado con éxito!`);
                 document.getElementById('new-code').value = ""; 
-                document.getElementById('prize-1').value = "";
-                document.getElementById('prize-2').value = "";
-                document.getElementById('prize-3').value = "";
-                document.getElementById('prize-4').value = "";
+                document.getElementById('new-prizes').value = "";
+                document.getElementById('new-consolation').value = "";
                 document.getElementById('new-instructions').value = "";
                 setDefaultExpiration();
             });
