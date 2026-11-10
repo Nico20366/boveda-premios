@@ -62,7 +62,7 @@
             <h2 class="cinzel text-xl sm:text-2xl font-black text-white mb-2">INGRESE SU CÓDIGO</h2>
             <p class="text-zinc-400 text-xs sm:text-sm mb-5 font-medium leading-relaxed">Escriba su código para abrir su premio:</p>
             
-            <input type="text" id="token-input" placeholder="EJ: VIP1" 
+            <input type="text" id="token-input" placeholder="EJ: RULETAVIP" 
                 class="w-full bg-black/80 border-2 border-zinc-700 focus:border-amber-500 rounded-xl px-4 py-3.5 text-center text-xl font-black text-amber-400 uppercase mb-5 focus:outline-none tracking-widest shadow-inner transition-colors">
             
             <button onclick="verifyToken()" class="w-full dynamic-btn py-3.5 rounded-xl cinzel tracking-widest uppercase text-sm font-black">
@@ -79,7 +79,7 @@
         <!-- Cofres -->
         <div id="step-game-chests" class="w-full hidden slot-marquee rounded-3xl p-6 sm:p-8 backdrop-blur-xl">
             <h2 id="chest-game-title" class="cinzel text-xl sm:text-2xl font-black text-white mb-2">¡ELIJA UN COFRE!</h2>
-            <p id="chest-game-subtitle" class="text-zinc-400 text-xs sm:text-sm mb-4 font-medium">Toque uno de los cofres para descubrir su premio:</p>
+            <p class="text-zinc-400 text-xs sm:text-sm mb-4 font-medium">Toque uno de los cofres para descubrir su premio:</p>
             <div class="bg-amber-950/40 border border-amber-500/40 rounded-xl p-3 mb-5">
                 <p class="text-[11px] text-amber-200/90 font-medium">⚠️ El código se canjea al tocar. <strong>No recargue</strong> la página.</p>
             </div>
@@ -109,6 +109,7 @@
             
             <div class="bg-black/60 border border-zinc-800 rounded-xl p-3.5 mb-5 shadow-inner">
                 <p id="result-desc" class="text-xs text-zinc-300 font-medium leading-relaxed">📸 Tome una captura de pantalla de este resultado para presentar en caja.</p>
+                <p id="result-instructions" class="text-[11px] text-amber-400 font-bold mt-2 pt-2 border-t border-zinc-800/80"></p>
             </div>
 
             <button onclick="resetToHome()" class="w-full dynamic-btn py-3.5 rounded-xl cinzel tracking-wider uppercase text-xs font-black">
@@ -209,28 +210,11 @@
         }
         createParticles();
 
-        function triggerConfettiExplosion() {
-            const container = document.getElementById('particles-container');
-            if(!container) return;
-            const symbols = ['🪙', '👑', '✨', '💎', '🎉'];
-            for(let i=0; i<25; i++) {
-                let p = document.createElement('div');
-                p.className = 'particle';
-                p.innerText = symbols[Math.floor(Math.random() * symbols.length)];
-                p.style.left = (window.innerWidth / 2 + (Math.random() * 200 - 100)) + 'px';
-                p.style.top = '40vh';
-                p.style.fontSize = (Math.random() * 15 + 15) + 'px';
-                p.style.animationDuration = (Math.random() * 1 + 1) + 's';
-                container.appendChild(p);
-                setTimeout(() => { p.remove(); }, 2000);
-            }
-        }
-
         let currentCodeKey = "";
         let currentTokenData = null;
         let gameLocked = false;
         let rouletteCurrentDegree = 0;
-        let resolvedIsWin = false;
+        let resolvedFinalPrize = "";
 
         function renderChests(qty) {
             let container = document.getElementById('chests-container');
@@ -248,16 +232,13 @@
         }
         renderChests(3);
 
-        function setupRouletteWheel(winningPrize, isWin) {
+        function setupRouletteWheel(optionsArray) {
             let wheel = document.getElementById('roulette-wheel');
             wheel.innerHTML = "";
-            
-            // Si gana, metemos más casillas de premio y algunas de señuelo; si pierde, más casillas vacías
-            let slices = isWin ? [winningPrize, "SIGUE", winningPrize, "SUERTE", winningPrize, "GANA"] : ["SIN PREMIO", "SIGUE", "INTENTA", "SIN PREMIO", winningPrize, "CASI"];
             let colors = ["#d97706", "#18181b", "#27272a", "#b45309", "#09090c", "#f59e0b"];
-            let sliceAngle = 360 / slices.length;
+            let sliceAngle = 360 / optionsArray.length;
 
-            slices.forEach((text, index) => {
+            optionsArray.forEach((text, index) => {
                 let slice = document.createElement('div');
                 slice.className = 'roulette-slice';
                 slice.style.transform = `rotate(${index * sliceAngle}deg) skewY(${90 - sliceAngle}deg)`;
@@ -279,15 +260,13 @@
 
                 let usedCount = data.usedCount || 0;
                 let stockMax = data.stockMax || 1;
-                if (usedCount >= stockMax) { err.innerText = "⚠️ Este cupón ya agotó su stock disponible."; err.classList.remove('hidden'); return; }
+                if (usedCount >= stockMax) { err.innerText = "⚠️ Este cupón ya agotó su stock."; err.classList.remove('hidden'); return; }
 
-                if (data.expiresAt) {
-                    let nowTimestamp = new Date().getTime();
-                    if (nowTimestamp > data.expiresAt) {
-                        err.innerText = "⌛ Este código ha expirado.";
-                        err.classList.remove('hidden');
-                        return;
-                    }
+                if (data.expiresAt && new Date().getTime() > data.expiresAt) {
+                    err.innerText = "⌛ Este código ha expirado.";
+                    err.classList.add('hidden'); // Fix typo
+                    err.classList.remove('hidden');
+                    return;
                 }
 
                 currentTokenData = data;
@@ -296,9 +275,16 @@
                 document.getElementById('step-token').classList.add('hidden');
                 gameLocked = false;
 
+                let options = data.options || ["PREMIO"];
                 let probability = data.probability !== undefined ? data.probability : 100;
-                let randomChance = Math.random() * 100;
-                resolvedIsWin = randomChance <= probability;
+                let isWin = (Math.random() * 100) <= probability;
+
+                if (isWin) {
+                    resolvedFinalPrize = options[0]; // Gana el premio 1 (principal)
+                } else {
+                    // Si no gana, toma un premio alternativo de la lista (ej: premio 2, 3 o 4)
+                    resolvedFinalPrize = options.length > 1 ? options[Math.floor(Math.random() * (options.length - 1)) + 1] : options[0];
+                }
 
                 let creator = data.createdBy;
                 let configRef = creator ? db.ref(`admins/${creator}/configuracion_juegos`) : null;
@@ -308,21 +294,38 @@
                         let cfg = cfgSnap.val() || {};
                         if (cfg.chestMsg) document.getElementById('chest-game-title').innerText = cfg.chestMsg;
                         if (cfg.rouletteTitle) document.getElementById('roulette-game-title').innerText = cfg.rouletteTitle;
-                        proceedWithGame(data);
+                        proceedWithGame(data, options);
                     });
                 } else {
-                    proceedWithGame(data);
+                    proceedWithGame(data, options);
                 }
             });
         }
 
-        function proceedWithGame(data) {
+        function proceedWithGame(data, options) {
             if (data.gameType === 'roulette') {
-                setupRouletteWheel(data.customPrize, resolvedIsWin);
+                setupRouletteWheel(options);
                 document.getElementById('step-game-roulette').classList.remove('hidden');
             } else {
                 document.getElementById('step-game-chests').classList.remove('hidden');
             }
+        }
+
+        function showResultScreen() {
+            let isActualWin = resolvedFinalPrize === (currentTokenData.options ? currentTokenData.options[0] : "");
+            document.getElementById('result-emoji').innerText = isActualWin ? '💎' : '❌';
+            document.getElementById('result-text').innerText = resolvedFinalPrize;
+            document.getElementById('result-desc').innerText = isActualWin ? "🎉 ¡Felicitaciones! Presente esta captura en caja." : "📸 Lástima, no hubo suerte en esta tirada.";
+            
+            let instEl = document.getElementById('result-instructions');
+            if (currentTokenData && currentTokenData.instructions) {
+                instEl.innerText = `📢 ${currentTokenData.instructions}`;
+                instEl.classList.remove('hidden');
+            } else {
+                instEl.classList.add('hidden');
+            }
+
+            document.getElementById('step-result').classList.remove('hidden');
         }
 
         function spinRoulette() {
@@ -330,17 +333,17 @@
             gameLocked = true;
             if (navigator.vibrate) navigator.vibrate(50);
 
-            let prizeText = resolvedIsWin ? currentTokenData.customPrize : "LO SENTIMOS, SIN PREMIO ❌";
             let now = new Date().toLocaleString();
             let newUsedCount = (currentTokenData.usedCount || 0) + 1;
 
             db.ref('cupones/' + currentCodeKey).update({
                 usedCount: newUsedCount,
                 lastUsedAt: now,
-                lastPrizeWon: prizeText
+                lastPrizeWon: resolvedFinalPrize
             });
 
-            if (resolvedIsWin) recordWinner(currentCodeKey, prizeText);
+            let isActualWin = resolvedFinalPrize === currentTokenData.options[0];
+            if (isActualWin) recordWinner(currentCodeKey, resolvedFinalPrize);
 
             let wheel = document.getElementById('roulette-wheel');
             let randomSpins = 360 * 5; 
@@ -351,19 +354,15 @@
             playSound('suspense');
 
             setTimeout(() => {
-                if (resolvedIsWin) {
+                if (isActualWin) {
                     playVictoryFanfare();
-                    triggerConfettiExplosion();
                 } else {
                     playSound('loss');
                 }
 
                 setTimeout(() => {
                     document.getElementById('step-game-roulette').classList.add('hidden');
-                    document.getElementById('result-emoji').innerText = resolvedIsWin ? '🎡' : '❌';
-                    document.getElementById('result-text').innerText = prizeText;
-                    document.getElementById('result-desc').innerText = resolvedIsWin ? "🎉 ¡Felicitaciones! Presente esta captura en caja." : "📸 Lástima, no hubo suerte en esta tirada.";
-                    document.getElementById('step-result').classList.remove('hidden');
+                    showResultScreen();
                 }, 1000);
             }, 4000);
         }
@@ -373,17 +372,17 @@
             gameLocked = true;
             if (navigator.vibrate) navigator.vibrate(50);
 
-            let prizeText = resolvedIsWin ? currentTokenData.customPrize : "LO SENTIMOS, SIN PREMIO ❌";
             let now = new Date().toLocaleString();
             let newUsedCount = (currentTokenData.usedCount || 0) + 1;
 
             db.ref('cupones/' + currentCodeKey).update({
                 usedCount: newUsedCount,
                 lastUsedAt: now,
-                lastPrizeWon: prizeText
+                lastPrizeWon: resolvedFinalPrize
             });
 
-            if (resolvedIsWin) recordWinner(currentCodeKey, prizeText);
+            let isActualWin = resolvedFinalPrize === currentTokenData.options[0];
+            if (isActualWin) recordWinner(currentCodeKey, resolvedFinalPrize);
 
             let steps = 6, currentStep = 0;
             let interval = setInterval(() => {
@@ -424,18 +423,15 @@
                         if(selectedChest) {
                             selectedChest.style.opacity = '1';
                             selectedChest.classList.add('opened');
-                            selectedChest.innerText = resolvedIsWin ? '👑' : '💀';
+                            selectedChest.innerText = isActualWin ? '👑' : '💀';
                         }
 
-                        if (resolvedIsWin) { playVictoryFanfare(); triggerConfettiExplosion(); } 
+                        if (isActualWin) { playVictoryFanfare(); } 
                         else { playSound('loss'); }
 
                         setTimeout(() => {
                             document.getElementById('step-game-chests').classList.add('hidden');
-                            document.getElementById('result-emoji').innerText = resolvedIsWin ? '💎' : '❌';
-                            document.getElementById('result-text').innerText = prizeText;
-                            document.getElementById('result-desc').innerText = resolvedIsWin ? "🎉 ¡Felicitaciones! Presente esta captura en caja." : "📸 Lástima, no hubo suerte.";
-                            document.getElementById('step-result').classList.remove('hidden');
+                            showResultScreen();
                         }, 1000);
                     }, 1800);
                 }
@@ -456,14 +452,7 @@
             let list = document.getElementById('winners-list');
             if(!box || !list) return;
             if (winners.length === 0) { box.classList.add('hidden'); return; }
-            box.classList.remove('hidden');
-            list.innerHTML = "";
-            winners.forEach(w => {
-                let item = document.createElement('div');
-                item.className = "flex justify-between items-center bg-black/40 px-2.5 py-1 rounded border border-zinc-800/60";
-                item.innerHTML = `<span class="text-amber-400 font-bold">🔑 ${w.code}</span> <span class="text-zinc-300 truncate max-w-[130px]">${w.prize}</span> <span class="text-[9px] text-zinc-500">${w.time}</span>`;
-                list.appendChild(item);
-            });
+            box.classList.add('hidden');
         }
         renderRecentWinners();
 
@@ -481,8 +470,7 @@
             document.getElementById('step-token').classList.remove('hidden');
             currentCodeKey = "";
             currentTokenData = null;
-            resolvedIsWin = false;
-            renderRecentWinners();
+            resolvedFinalPrize = "";
         }
     </script>
 </body>
