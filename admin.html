@@ -24,7 +24,7 @@
         <!-- Header & Stats -->
         <header class="slot-marquee rounded-3xl p-6 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div>
-                <h1 class="cinzel text-xl sm:text-2xl font-black dynamic-text">PANEL MAESTRO</h1>
+                <h1 id="panel-title" class="cinzel text-xl sm:text-2xl font-black dynamic-text">PANEL DE CONTROL</h1>
                 <p id="welcome-msg" class="text-xs text-zinc-300 font-bold mt-1"></p>
             </div>
             <button onclick="logout()" class="bg-red-950 hover:bg-red-900 text-red-300 border border-red-600 px-4 py-2 rounded-xl text-xs font-bold transition-all">Cerrar Sesión ✖</button>
@@ -33,7 +33,7 @@
         <!-- Tarjetas de Estadísticas en Vivo -->
         <div class="grid grid-cols-3 gap-3">
             <div class="slot-marquee rounded-2xl p-4 text-center">
-                <p class="text-[10px] text-zinc-400 font-bold uppercase">Total Cupones</p>
+                <p id="stat-total-label" class="text-[10px] text-zinc-400 font-bold uppercase">Mis Cupones</p>
                 <p id="stat-total" class="text-xl sm:text-2xl font-black dynamic-text">0</p>
             </div>
             <div class="slot-marquee rounded-2xl p-4 text-center">
@@ -52,7 +52,7 @@
                 <h3 class="cinzel text-sm font-black dynamic-text">👑 CONTROL TOTAL DE ADMINISTRADORES</h3>
                 <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-lg font-bold">Modo Maestro</span>
             </div>
-            <p class="text-xs text-zinc-400 font-bold">Aquí puedes aprobar nuevas solicitudes, revocar permisos o eliminar cuentas de administradores por completo:</p>
+            <p class="text-xs text-zinc-400 font-bold">Aquí puedes aprobar solicitudes, suspender o eliminar cuentas de administradores:</p>
             <div id="admins-management-list" class="space-y-2 text-xs font-bold"></div>
         </div>
 
@@ -75,7 +75,7 @@
         <!-- Lista de Cupones con Buscador -->
         <div class="slot-marquee rounded-3xl p-6 space-y-4">
             <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
-                <h3 class="cinzel text-sm font-black dynamic-text">📋 LISTADO DE CUPONES</h3>
+                <h3 id="list-title" class="cinzel text-sm font-black dynamic-text">📋 MIS CUPONES</h3>
                 <input type="text" id="search-code" placeholder="🔍 Buscar código..." oninput="filterCoupons()" class="bg-black border border-zinc-700 rounded-xl px-3 py-1.5 text-xs text-white font-bold focus:outline-none focus:border-amber-500 w-full sm:w-48">
             </div>
             <div id="coupons-list" class="space-y-2 text-xs font-bold max-h-64 overflow-y-auto"></div>
@@ -103,11 +103,19 @@
 
         if(!currentUser) { window.location.href = "login.html"; }
 
-        document.getElementById('welcome-msg').innerText = `Conectado como: ${currentUser} (${currentRole === 'super' ? 'Super Admin' : 'Admin'})`;
-
+        // Personalizar interfaz según el rol
         if(currentRole === 'super') {
+            document.getElementById('welcome-msg').innerText = `Conectado como: ${currentUser} (Super Admin - Control Total)`;
+            document.getElementById('panel-title').innerText = "PANEL MAESTRO";
+            document.getElementById('stat-total-label').innerText = "Cupones Totales";
+            document.getElementById('list-title').innerText = "📋 TODOS LOS CUPONES DEL SISTEMA";
             document.getElementById('super-admin-section').classList.remove('hidden');
             loadAdminsManagement();
+        } else {
+            document.getElementById('welcome-msg').innerText = `Conectado como: ${currentUser} (Administrador)`;
+            document.getElementById('panel-title').innerText = "PANEL DE ADMINISTRADOR";
+            document.getElementById('stat-total-label').innerText = "Mis Cupones";
+            document.getElementById('list-title').innerText = "📋 MIS CUPONES CREADOS";
         }
 
         loadCoupons();
@@ -153,9 +161,9 @@
         }
 
         function deleteAdmin(name) {
-            if(!confirm(`⚠️ ¿Estás totalmente seguro de eliminar la cuenta de administrador [${name}]? Esta acción no se puede deshacer.`)) return;
+            if(!confirm(`⚠️ ¿Estás totalmente seguro de eliminar la cuenta [${name}]?`)) return;
             db.ref('admins/' + name).remove();
-            alert(`Cuenta de ${name} eliminada con éxito.`);
+            alert(`Cuenta de ${name} eliminada.`);
         }
 
         function createCoupon() {
@@ -169,7 +177,7 @@
                 customPrize: prize,
                 createdAt: new Date().toLocaleString()
             }, () => {
-                alert(`¡Cupón [${code}] creado!`);
+                alert(`¡Cupón [${code}] creado con éxito!`);
                 document.getElementById('new-code').value = "";
                 document.getElementById('new-prize').value = "";
             });
@@ -177,7 +185,21 @@
 
         function loadCoupons() {
             db.ref('cupones').on('value', (snap) => {
-                allCouponsData = snap.val() || {};
+                let rawData = snap.val() || {};
+                
+                // Si es admin normal, filtramos solo los creados por él
+                if (currentRole === 'admin') {
+                    allCouponsData = {};
+                    for (let c in rawData) {
+                        if (rawData[c].createdBy === currentUser) {
+                            allCouponsData[c] = rawData[c];
+                        }
+                    }
+                } else {
+                    // Si es SuperAdmin, ve absolutamente todo
+                    allCouponsData = rawData;
+                }
+
                 renderCouponsList(allCouponsData);
                 updateStats(allCouponsData);
             });
@@ -197,18 +219,22 @@
         function renderCouponsList(data) {
             let list = document.getElementById('coupons-list');
             list.innerHTML = "";
-            if(Object.keys(data).length === 0) { list.innerHTML = "<p class='text-zinc-500'>No hay cupones creados.</p>"; return; }
+            if(Object.keys(data).length === 0) { 
+                list.innerHTML = "<p class='text-zinc-500 text-center py-2'>No hay cupones registrados.</p>"; 
+                return; 
+            }
 
             for(let code in data) {
                 let item = data[code];
                 let status = item.used ? `<span class="text-red-400">[USADO]</span>` : `<span class="text-emerald-400">[DISPONIBLE]</span>`;
                 let copyBtn = `<button onclick="navigator.clipboard.writeText('${code}'); alert('Copiado: ${code}')" class="bg-zinc-800 text-amber-300 px-2.5 py-1 rounded text-[10px] border border-amber-500/30 font-bold">📋 Copiar</button>`;
+                let creatorInfo = currentRole === 'super' ? `<div class="text-[10px] text-zinc-500">Creado por: ${item.createdBy || 'Sistema'}</div>` : "";
 
                 list.innerHTML += `
                     <div class="coupon-row bg-zinc-900 p-3 rounded-xl border border-zinc-800 flex justify-between items-center" data-code="${code}">
                         <div>
                             <span class="text-amber-400 font-black text-sm">${code}</span> -> ${item.customPrize}
-                            <div class="text-[10px] text-zinc-500">Creado por: ${item.createdBy || 'Sistema'}</div>
+                            ${creatorInfo}
                         </div>
                         <div class="flex items-center gap-2 text-right text-xs">
                             ${status} ${copyBtn}
