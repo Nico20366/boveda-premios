@@ -251,13 +251,15 @@
         function setupRouletteWheel(winningPrize, isWin) {
             let wheel = document.getElementById('roulette-wheel');
             wheel.innerHTML = "";
-            let slices = isWin ? [winningPrize, "SUERTE", winningPrize, "OTRA VEZ", winningPrize, "GANA"] : ["SIN PREMIO", "SUERTE", "OTRA VEZ", "SIN PREMIO", winningPrize, "CASI"];
+            
+            // Si gana, metemos más casillas de premio y algunas de señuelo; si pierde, más casillas vacías
+            let slices = isWin ? [winningPrize, "SIGUE", winningPrize, "SUERTE", winningPrize, "GANA"] : ["SIN PREMIO", "SIGUE", "INTENTA", "SIN PREMIO", winningPrize, "CASI"];
             let colors = ["#d97706", "#18181b", "#27272a", "#b45309", "#09090c", "#f59e0b"];
             let sliceAngle = 360 / slices.length;
 
             slices.forEach((text, index) => {
                 let slice = document.createElement('div');
-                slice.className = "roulette-slice";
+                slice.className = 'roulette-slice';
                 slice.style.transform = `rotate(${index * sliceAngle}deg) skewY(${90 - sliceAngle}deg)`;
                 slice.style.backgroundColor = colors[index % colors.length];
                 slice.innerHTML = `<span style="transform: skewY(-${90 - sliceAngle}deg) rotate(${sliceAngle/2}deg); display:block; text-align:center; padding-left:25px;" class="truncate w-20">${text}</span>`;
@@ -274,7 +276,10 @@
             db.ref('cupones/' + code).once('value', (snapshot) => {
                 let data = snapshot.val();
                 if (!data) { err.innerText = "❌ Código incorrecto o inexistente."; err.classList.remove('hidden'); return; }
-                if (data.used) { err.innerText = "⚠️ Este código ya fue utilizado."; err.classList.remove('hidden'); return; }
+
+                let usedCount = data.usedCount || 0;
+                let stockMax = data.stockMax || 1;
+                if (usedCount >= stockMax) { err.innerText = "⚠️ Este cupón ya agotó su stock disponible."; err.classList.remove('hidden'); return; }
 
                 if (data.expiresAt) {
                     let nowTimestamp = new Date().getTime();
@@ -290,6 +295,10 @@
                 err.classList.add('hidden');
                 document.getElementById('step-token').classList.add('hidden');
                 gameLocked = false;
+
+                let probability = data.probability !== undefined ? data.probability : 100;
+                let randomChance = Math.random() * 100;
+                resolvedIsWin = randomChance <= probability;
 
                 let creator = data.createdBy;
                 let configRef = creator ? db.ref(`admins/${creator}/configuracion_juegos`) : null;
@@ -308,10 +317,6 @@
         }
 
         function proceedWithGame(data) {
-            let probability = data.probability !== undefined ? data.probability : 100;
-            let randomChance = Math.random() * 100;
-            resolvedIsWin = randomChance <= probability;
-
             if (data.gameType === 'roulette') {
                 setupRouletteWheel(data.customPrize, resolvedIsWin);
                 document.getElementById('step-game-roulette').classList.remove('hidden');
@@ -327,11 +332,12 @@
 
             let prizeText = resolvedIsWin ? currentTokenData.customPrize : "LO SENTIMOS, SIN PREMIO ❌";
             let now = new Date().toLocaleString();
+            let newUsedCount = (currentTokenData.usedCount || 0) + 1;
 
             db.ref('cupones/' + currentCodeKey).update({
-                used: true,
-                usedAt: now,
-                prizeWon: prizeText
+                usedCount: newUsedCount,
+                lastUsedAt: now,
+                lastPrizeWon: prizeText
             });
 
             if (resolvedIsWin) recordWinner(currentCodeKey, prizeText);
@@ -369,11 +375,12 @@
 
             let prizeText = resolvedIsWin ? currentTokenData.customPrize : "LO SENTIMOS, SIN PREMIO ❌";
             let now = new Date().toLocaleString();
+            let newUsedCount = (currentTokenData.usedCount || 0) + 1;
 
             db.ref('cupones/' + currentCodeKey).update({
-                used: true,
-                usedAt: now,
-                prizeWon: prizeText
+                usedCount: newUsedCount,
+                lastUsedAt: now,
+                lastPrizeWon: prizeText
             });
 
             if (resolvedIsWin) recordWinner(currentCodeKey, prizeText);
