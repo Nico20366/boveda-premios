@@ -113,14 +113,16 @@
                     <h3 class="cinzel text-xs font-black dynamic-text">👥 ADMINISTRADORES</h3>
                     <span id="admins-count-badge" class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-bold">0</span>
                 </div>
+                <p class="text-[11px] text-zinc-400 font-medium">Estado de conexión en tiempo real y permisos:</p>
                 <div id="admins-management-list" class="space-y-2 text-xs font-bold max-h-64 overflow-y-auto pt-1">
                     <p class="text-zinc-500 text-center py-2">Conectando a Firebase...</p>
                 </div>
             </div>
         </div>
 
-        <!-- PESTAÑA 3: AJUSTES -->
+        <!-- PESTAÑA 3: AJUSTES (CONFIGURACIÓN INDEPENDIENTE POR ADMIN) -->
         <div id="tab-content-config" class="space-y-4 hidden">
+            <!-- Cambiar Clave -->
             <div class="slot-marquee rounded-2xl p-4 space-y-3">
                 <h3 class="cinzel text-xs font-black text-amber-400">🔑 CAMBIAR MI CONTRASEÑA</h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -130,8 +132,29 @@
                 <button onclick="changeMyPassword()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-amber-500/30 py-2 rounded-xl text-xs font-bold uppercase">Actualizar Clave</button>
             </div>
 
+            <!-- Ajustes Específicos de Mis Juegos (Cofres / Ruleta) -->
+            <div class="slot-marquee rounded-2xl p-4 space-y-3">
+                <h3 class="cinzel text-xs font-black dynamic-text">⚙️ MIS AJUSTES DE JUEGOS</h3>
+                <p class="text-[11px] text-zinc-400 font-medium">Personaliza cómo operan tus juegos en la bóveda:</p>
+                
+                <div class="space-y-3 pt-2">
+                    <div class="bg-black/60 p-3 rounded-xl border border-zinc-800">
+                        <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider block mb-1">📦 Configuración de Cofres:</label>
+                        <input type="text" id="cfg-chest-msg" placeholder="Mensaje al ganar en cofre" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold mb-2 focus:outline-none">
+                    </div>
+
+                    <div class="bg-black/60 p-3 rounded-xl border border-zinc-800">
+                        <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider block mb-1">🎡 Configuración de Ruleta:</label>
+                        <input type="text" id="cfg-roulette-title" placeholder="Título de la ruleta (Ej: Ruleta VIP)" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold mb-2 focus:outline-none">
+                    </div>
+                </div>
+
+                <button onclick="saveMyGameConfig()" class="w-full dynamic-btn py-2 rounded-xl text-xs uppercase">Guardar Mis Ajustes</button>
+            </div>
+
+            <!-- Super Admin: Textos de la Web -->
             <div id="super-text-section" class="slot-marquee rounded-2xl p-4 space-y-3">
-                <h3 class="cinzel text-xs font-black dynamic-text">✏️ TÍTULOS DE LA WEB</h3>
+                <h3 class="cinzel text-xs font-black dynamic-text">✏️ TÍTULOS GENERALES DE LA WEB</h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <input type="text" id="edit-title" placeholder="Título Principal" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold uppercase focus:outline-none">
                     <input type="text" id="edit-subtitle" placeholder="Subtítulo" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold uppercase focus:outline-none">
@@ -204,6 +227,7 @@
 
         loadCoupons();
         loadAdminsManagement();
+        loadMyGameConfig();
 
         function switchTab(tabName) {
             ['coupons', 'admins', 'config'].forEach(t => {
@@ -258,8 +282,6 @@
                 } else { allCouponsData = raw; }
                 renderCoupons(allCouponsData);
                 updateStats(allCouponsData);
-            }, (error) => {
-                document.getElementById('coupons-list').innerHTML = `<p class='text-red-400 text-center py-2'>Error de conexión con Firebase.</p>`;
             });
         }
 
@@ -284,7 +306,7 @@
                     <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800 flex justify-between items-center gap-2">
                         <div class="truncate">
                             <strong class="text-amber-400">${code}</strong>: ${item.customPrize} 
-                            <div class="text-[9px] text-zinc-400 font-semibold">${gameIcon}${probText}</div>
+                            <div class="text-[9px] text-zinc-400 font-semibold">${gameIcon}${probText} (Creado por: ${item.createdBy || 'Desconocido'})</div>
                             <div class="text-[9px] text-zinc-500">🕒 Vence: ${expireFormatted}</div>
                         </div>
                         <div class="flex items-center gap-1.5 shrink-0">
@@ -355,13 +377,33 @@
             renderCoupons(filtered);
         }
 
+        function loadMyGameConfig() {
+            db.ref(`admins/${currentUser}/configuracion_juegos`).once('value', (snap) => {
+                let data = snap.val();
+                if(data) {
+                    if(data.chestMsg) document.getElementById('cfg-chest-msg').value = data.chestMsg;
+                    if(data.rouletteTitle) document.getElementById('cfg-roulette-title').value = data.rouletteTitle;
+                }
+            });
+        }
+
+        function saveMyGameConfig() {
+            let chestMsg = document.getElementById('cfg-chest-msg').value.trim();
+            let rouletteTitle = document.getElementById('cfg-roulette-title').value.trim();
+
+            db.ref(`admins/${currentUser}/configuracion_juegos`).set({
+                chestMsg: chestMsg || "¡Premio Sorpresa en Cofre!",
+                rouletteTitle: rouletteTitle || "Ruleta de la Suerte"
+            }, () => { alert("¡Ajustes guardados con éxito!"); });
+        }
+
         function loadAdminsManagement() {
             db.ref('admins').on('value', (snap) => {
                 let list = document.getElementById('admins-management-list');
                 list.innerHTML = "";
                 let data = snap.val();
                 if(!data) { 
-                    list.innerHTML = "<p class='text-zinc-500 text-center py-2'>No hay administradores registrados.</p>";
+                    list.innerHTML = "<p class='text-zinc-500 text-center py-2'>No hay administradores.</p>";
                     document.getElementById('admins-count-badge').innerText = "0"; 
                     return; 
                 }
@@ -372,72 +414,70 @@
                     let info = data[name];
                     let isApproved = info.approved === true;
                     let emailTxt = info.email ? `<div class='text-[10px] text-zinc-400'>${info.email}</div>` : "";
+                    
                     let actionBtn = (currentRole === 'super') ? (isApproved ? `<button onclick="toggleAdminApproval('${name}', false)" class="bg-amber-950 text-amber-300 px-2 py-1 rounded">Pausar</button>` : `<button onclick="toggleAdminApproval('${name}', true)" class="bg-emerald-500 text-black px-2 py-1 rounded">Aprobar</button>`) : "";
                     let deleteBtn = (currentRole === 'super') ? `<button onclick="deleteAdmin('${name}')" class="bg-red-950 text-red-300 px-2 py-1 rounded">🗑️</button>` : "";
-                    
+                    let keyBtn = (currentRole === 'super') ? `<button onclick="resetAdminPassword('${name}')" class="bg-zinc-800 text-amber-300 px-2 py-1 rounded">🔑</button>` : "";
+
                     list.innerHTML += `
-                        <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800 flex justify-between items-center">
-                            <div><strong>👤 ${name}</strong> ${emailTxt}</div>
-                            <div class="flex gap-1">${actionBtn} ${deleteBtn}</div>
+                        <div class="bg-black/60 p-3 rounded-xl border border-zinc-800 flex justify-between items-center">
+                            <div>
+                                <div class="flex items-center gap-1.5">
+                                    <strong>👤 ${name}</strong>
+                                    <span id="online-status-${name}" class="text-[9px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full font-bold">⚪ Desconectado</span>
+                                </div>
+                                ${emailTxt}
+                            </div>
+                            <div class="flex gap-1">${keyBtn} ${actionBtn} ${deleteBtn}</div>
                         </div>`;
+
+                    db.ref('status/' + name).on('value', (statusSnap) => {
+                        let stData = statusSnap.val();
+                        let badgeEl = document.getElementById(`online-status-${name}`);
+                        if(badgeEl) {
+                            if(stData && stData.state === 'online') {
+                                badgeEl.className = "text-[9px] bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded-full font-bold animate-pulse";
+                                badgeEl.innerText = "🟢 En línea";
+                            } else {
+                                badgeEl.className = "text-[9px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full font-bold";
+                                badgeEl.innerText = "⚪ Desconectado";
+                            }
+                        }
+                    });
                 }
                 document.getElementById('admins-count-badge').innerText = count;
-            }, (error) => {
-                document.getElementById('admins-management-list').innerHTML = `<p class='text-red-400 text-center py-2'>Error al cargar administradores.</p>`;
             });
         }
 
         function toggleAdminApproval(name, status) { db.ref('admins/' + name).update({ approved: status }); }
         function deleteAdmin(name) { if(!confirm(`¿Eliminar?`)) return; db.ref('admins/' + name).remove(); db.ref('status/' + name).remove(); }
-        
+        function resetAdminPassword(adminName) {
+            let newPass = prompt(`Nueva clave para [${adminName}]:`);
+            if (!newPass) return;
+            db.ref('admins/' + adminName).update({ password: newPass.trim() }, () => { alert("¡Clave actualizada!"); });
+        }
         function changeMyPassword() {
             let currentPassInput = document.getElementById('current-pass').value.trim();
             let newPassInput = document.getElementById('new-pass').value.trim();
             if (!currentPassInput || !newPassInput) { alert("Completa ambos campos."); return; }
-
-            if (currentRole === 'super') {
-                db.ref('admins/superadmin/password').once('value', (snap) => {
-                    if (currentPassInput !== (snap.val() || "123456")) { alert("Contraseña incorrecta."); return; }
-                    db.ref('admins/superadmin').update({ password: newPassInput, approved: true }, () => {
-                        alert("¡Contraseña actualizada!");
-                        document.getElementById('current-pass').value = ""; document.getElementById('new-pass').value = "";
-                    });
-                });
-            } else {
-                db.ref('admins/' + currentUser).once('value', (snap) => {
-                    let data = snap.val();
-                    if (!data || data.password !== currentPassInput) { alert("Contraseña incorrecta."); return; }
-                    db.ref('admins/' + currentUser).update({ password: newPassInput }, () => {
-                        alert("¡Contraseña actualizada!");
-                        document.getElementById('current-pass').value = ""; document.getElementById('new-pass').value = "";
-                    });
-                });
-            }
+            db.ref('admins/' + currentUser).once('value', (snap) => {
+                let data = snap.val();
+                if (!data || data.password !== currentPassInput) { alert("Contraseña incorrecta."); return; }
+                db.ref('admins/' + currentUser).update({ password: newPassInput }, () => { alert("¡Contraseña actualizada!"); document.getElementById('current-pass').value = ""; document.getElementById('new-pass').value = ""; });
+            });
         }
-
         function loadCurrentTexts() {
             db.ref('configuracion').once('value', (snap) => {
                 let data = snap.val();
-                if(data) {
-                    if(data.titulo) document.getElementById('edit-title').value = data.titulo;
-                    if(data.subtitulo) document.getElementById('edit-subtitle').value = data.subtitulo;
-                }
+                if(data) { if(data.titulo) document.getElementById('edit-title').value = data.titulo; if(data.subtitulo) document.getElementById('edit-subtitle').value = data.subtitulo; }
             });
         }
-
         function saveSiteTexts() {
             let titulo = document.getElementById('edit-title').value.trim().toUpperCase();
             let subtitulo = document.getElementById('edit-subtitle').value.trim().toUpperCase();
-            db.ref('configuracion').set({ titulo: titulo || "BÓVEDA DE LA SUERTE", subtitO: subtitulo || "ZONA DE PREMIOS" }, () => { alert("¡Guardado!"); });
+            db.ref('configuracion').set({ titulo: titulo || "BÓVEDA DE LA SUERTE", subtitulo: subtitulo || "ZONA DE PREMIOS" }, () => { alert("¡Guardado!"); });
         }
-
-        function logout() { 
-            if(currentUser) {
-                db.ref('status/' + currentUser).set({ state: 'offline', last_changed: firebase.database.ServerValue.TIMESTAMP });
-            }
-            localStorage.clear(); 
-            window.location.href = "login.html"; 
-        }
+        function logout() { localStorage.clear(); window.location.href = "login.html"; }
     </script>
 </body>
 </html>
