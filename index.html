@@ -15,7 +15,6 @@
         :root {
             --neon-main: #f59e0b; 
             --neon-glow: rgba(245, 158, 11, 0.15);
-            --neon-shadow: rgba(245, 158, 11, 0.4);
         }
 
         .casino-bg {
@@ -33,9 +32,7 @@
             z-index: 10;
         }
 
-        .dynamic-text { 
-            color: var(--neon-main) !important;
-        }
+        .dynamic-text { color: var(--neon-main) !important; }
         
         .dynamic-btn {
             background: linear-gradient(135deg, var(--neon-main) 0%, #d97706 100%);
@@ -47,9 +44,9 @@
         .dynamic-btn:hover {
             filter: brightness(1.1);
             transform: translateY(-1px);
-            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.4);
         }
 
+        /* Estilos Cofres */
         .chest { 
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
             cursor: pointer; 
@@ -60,41 +57,68 @@
         .chest:hover { 
             transform: translateY(-3px) scale(1.02); 
             border-color: var(--neon-main);
-            box-shadow: 0 12px 30px rgba(245, 158, 11, 0.2); 
         }
         .chest.active-roulette {
             transform: scale(1.08);
             border-color: #ffffff !important;
             background: linear-gradient(145deg, #27272a, #18181b);
-            box-shadow: 0 0 35px rgba(255, 255, 255, 0.4);
         }
-
         .chest.suspense {
             transform: scale(1.15) rotate(-2deg);
             border-color: #ffffff !important;
             background: linear-gradient(145deg, #d97706, #b45309);
-            box-shadow: 0 0 50px rgba(255, 255, 255, 0.5), 0 0 20px rgba(245, 158, 11, 0.5) inset;
             animation: chest-flash 0.15s infinite alternate;
-            z-index: 100;
-            opacity: 1 !important;
         }
-
-        .dimmed {
-            opacity: 0.2;
-            transition: opacity 0.3s ease;
-        }
-
+        .dimmed { opacity: 0.2; transition: opacity 0.3s ease; }
         .chest.opened { 
             transform: scale(1.05); 
             border-color: #10b981 !important;
             background: linear-gradient(145deg, #064e3b, #022c22);
-            box-shadow: 0 0 40px rgba(16, 185, 129, 0.4);
             opacity: 1 !important;
         }
 
         @keyframes chest-flash {
             0% { transform: scale(1.15) rotate(-2deg); filter: brightness(1); }
             100% { transform: scale(1.15) rotate(2deg); filter: brightness(1.2); }
+        }
+
+        /* Estilos Ruleta */
+        .roulette-wheel {
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
+            border: 6px solid #f59e0b;
+            position: relative;
+            margin: 0 auto;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(245, 158, 11, 0.4);
+            transition: transform 4s cubic-bezier(0.15, 0.9, 0.2, 1);
+        }
+        .roulette-pointer {
+            width: 0; 
+            height: 0; 
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 24px solid #ef4444;
+            position: absolute;
+            top: -12px;
+            left: calc(50% - 12px);
+            z-index: 20;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+        }
+        .roulette-slice {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: 100% 100%;
+            left: 0; top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 900;
+            color: #fff;
+            border: 1px solid rgba(0,0,0,0.3);
         }
 
         .particle {
@@ -122,11 +146,8 @@
                 <p id="header-subtitle" class="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">ZONA DE PREMIOS</p>
             </div>
         </div>
-        
         <div class="flex items-center gap-2">
-            <a href="login.html" class="text-[11px] bg-zinc-900/80 hover:bg-zinc-800 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-lg font-bold cinzel shadow">
-                🔐 LOGIN
-            </a>
+            <a href="login.html" class="text-[11px] bg-zinc-900/80 hover:bg-zinc-800 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-lg font-bold cinzel shadow">🔐 LOGIN</a>
         </div>
     </header>
 
@@ -136,9 +157,9 @@
         <div id="step-token" class="w-full slot-marquee rounded-3xl p-6 sm:p-8 backdrop-blur-xl">
             <div class="text-4xl mb-3">🔑</div>
             <h2 class="cinzel text-xl sm:text-2xl font-black text-white mb-2">INGRESE SU CÓDIGO</h2>
-            <p class="text-zinc-400 text-xs sm:text-sm mb-5 font-medium leading-relaxed">Escriba su código para abrir el cofre:</p>
+            <p class="text-zinc-400 text-xs sm:text-sm mb-5 font-medium leading-relaxed">Escriba su código (Ej: C1 para Cofre, R1 para Ruleta):</p>
             
-            <input type="text" id="token-input" placeholder="EJ: VIP77" 
+            <input type="text" id="token-input" placeholder="EJ: C1 o R928" 
                 class="w-full bg-black/80 border-2 border-zinc-700 focus:border-amber-500 rounded-xl px-4 py-3.5 text-center text-xl font-black text-amber-400 uppercase mb-5 focus:outline-none tracking-widest shadow-inner transition-colors">
             
             <button onclick="verifyToken()" 
@@ -153,18 +174,33 @@
             </div>
         </div>
 
-        <!-- PASO 2: Selección de Cofres -->
-        <div id="step-game" class="w-full hidden slot-marquee rounded-3xl p-6 sm:p-8 backdrop-blur-xl">
-            <h2 id="game-title" class="cinzel text-xl sm:text-2xl font-black text-white mb-2 transition-all">¡ELIJA UN COFRE!</h2>
-            <p id="game-subtitle" class="text-zinc-400 text-xs sm:text-sm mb-4 font-medium transition-all">Toque uno de los cofres para descubrir su premio:</p>
+        <!-- PASO 2A: Juego de Cofres -->
+        <div id="step-game-chests" class="w-full hidden slot-marquee rounded-3xl p-6 sm:p-8 backdrop-blur-xl">
+            <h2 id="game-title" class="cinzel text-xl sm:text-2xl font-black text-white mb-2">¡ELIJA UN COFRE!</h2>
+            <p class="text-zinc-400 text-xs sm:text-sm mb-4 font-medium">Toque uno de los cofres para descubrir su premio:</p>
             
-            <div id="game-warning" class="bg-amber-950/40 border border-amber-500/40 rounded-xl p-3 mb-5 transition-all">
-                <p class="text-[11px] text-amber-200/90 font-medium leading-relaxed">
-                    ⚠️ <strong>Aviso:</strong> El código se canjea al tocar el cofre. <strong>No recargue</strong> la página durante el proceso.
-                </p>
+            <div class="bg-amber-950/40 border border-amber-500/40 rounded-xl p-3 mb-5">
+                <p class="text-[11px] text-amber-200/90 font-medium">⚠️ El código se canjea al tocar. <strong>No recargue</strong> la página.</p>
             </div>
 
             <div id="chests-container" class="grid grid-cols-3 gap-3 mb-2"></div>
+        </div>
+
+        <!-- PASO 2B: Juego de Ruleta -->
+        <div id="step-game-roulette" class="w-full hidden slot-marquee rounded-3xl p-6 sm:p-8 backdrop-blur-xl">
+            <h2 class="cinzel text-xl sm:text-2xl font-black text-white mb-2">🎡 RULETA DE LA SUERTE</h2>
+            <p class="text-zinc-400 text-xs sm:text-sm mb-4 font-medium">Gire la rueda para obtener su premio:</p>
+            
+            <div class="relative py-4 mb-5">
+                <div class="roulette-pointer"></div>
+                <div id="roulette-wheel" class="roulette-wheel">
+                    <!-- Se rellena dinámicamente -->
+                </div>
+            </div>
+
+            <button onclick="spinRoulette()" id="spin-btn" class="w-full dynamic-btn py-3 rounded-xl cinzel tracking-widest uppercase text-xs font-black">
+                GIRAR RULETA 🎯
+            </button>
         </div>
 
         <!-- PASO 3: Resultado -->
@@ -202,7 +238,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // CONEXIÓN EN TIEMPO REAL AL INSTANTE DE TÍTULOS Y SUBTÍTULOS
+        // Conexión títulos en tiempo real
         db.ref('configuracion').on('value', (snap) => {
             let data = snap.val();
             if(data) {
@@ -216,17 +252,7 @@
             }
         });
 
-        window.addEventListener('beforeunload', function (e) {
-            let stepGame = document.getElementById('step-game');
-            let stepResult = document.getElementById('step-result');
-            if ((stepGame && !stepGame.classList.contains('hidden')) || (stepResult && !stepResult.classList.contains('hidden'))) {
-                e.preventDefault();
-                e.returnValue = '';
-            }
-        });
-
         let audioCtx = null;
-
         function playSound(type) {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -292,58 +318,6 @@
         }
         createParticles();
 
-        function renderChests(qty) {
-            let container = document.getElementById('chests-container');
-            if(!container) return;
-            container.innerHTML = "";
-            
-            if (qty === 4) container.className = "grid grid-cols-2 gap-3 mb-2";
-            else if (qty === 6) container.className = "grid grid-cols-3 gap-2.5 mb-2";
-            else container.className = "grid grid-cols-3 gap-3 mb-2";
-
-            for (let i = 1; i <= qty; i++) {
-                let div = document.createElement('div');
-                div.className = "flex flex-col items-center";
-                div.innerHTML = `
-                    <div onclick="openChest(${i}, ${qty})" id="chest-${i}" class="chest rounded-2xl p-4 sm:p-5 flex items-center justify-center aspect-square w-full text-4xl sm:text-5xl shadow-lg">📦</div>
-                    <span id="chest-label-${i}" class="text-[10px] font-black text-zinc-400 mt-2 tracking-wider transition-all">COFRE ${i}</span>
-                `;
-                container.appendChild(div);
-            }
-        }
-        renderChests(3);
-
-        let currentCodeKey = "";
-        let currentTokenData = null;
-        let gameLocked = false;
-
-        function recordWinner(code, prizeText) {
-            let winners = JSON.parse(localStorage.getItem('vip_recent_winners') || "[]");
-            winners.unshift({ code: code, prize: prizeText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
-            if (winners.length > 3) winners = winners.slice(0, 3);
-            localStorage.setItem('vip_recent_winners', JSON.stringify(winners));
-            renderRecentWinners();
-        }
-
-        function renderRecentWinners() {
-            let winners = JSON.parse(localStorage.getItem('vip_recent_winners') || "[]");
-            let box = document.getElementById('recent-winners-box');
-            let list = document.getElementById('winners-list');
-            if(!box || !list) return;
-
-            if (winners.length === 0) { box.classList.add('hidden'); return; }
-
-            box.classList.remove('hidden');
-            list.innerHTML = "";
-            winners.forEach(w => {
-                let item = document.createElement('div');
-                item.className = "flex justify-between items-center bg-black/40 px-2.5 py-1 rounded border border-zinc-800/60";
-                item.innerHTML = `<span class="text-amber-400 font-bold">🔑 ${w.code}</span> <span class="text-zinc-300 truncate max-w-[130px]">${w.prize}</span> <span class="text-[9px] text-zinc-500">${w.time}</span>`;
-                list.appendChild(item);
-            });
-        }
-        renderRecentWinners();
-
         function triggerConfettiExplosion() {
             const container = document.getElementById('particles-container');
             if(!container) return;
@@ -359,6 +333,44 @@
                 container.appendChild(p);
                 setTimeout(() => { p.remove(); }, 2000);
             }
+        }
+
+        let currentCodeKey = "";
+        let currentTokenData = null;
+        let gameLocked = false;
+        let rouletteCurrentDegree = 0;
+
+        function renderChests(qty) {
+            let container = document.getElementById('chests-container');
+            if(!container) return;
+            container.innerHTML = "";
+            for (let i = 1; i <= qty; i++) {
+                let div = document.createElement('div');
+                div.className = "flex flex-col items-center";
+                div.innerHTML = `
+                    <div onclick="openChest(${i}, ${qty})" id="chest-${i}" class="chest rounded-2xl p-4 sm:p-5 flex items-center justify-center aspect-square w-full text-4xl sm:text-5xl shadow-lg">📦</div>
+                    <span id="chest-label-${i}" class="text-[10px] font-black text-zinc-400 mt-2 tracking-wider">COFRE ${i}</span>
+                `;
+                container.appendChild(div);
+            }
+        }
+        renderChests(3);
+
+        function setupRouletteWheel(winningPrize) {
+            let wheel = document.getElementById('roulette-wheel');
+            wheel.innerHTML = "";
+            let slices = [winningPrize, "SIN PREMIO", "BUENA SUERTE", winningPrize, "OTRA VEZ", "GANA"];
+            let colors = ["#d97706", "#18181b", "#27272a", "#b45309", "#09090c", "#f59e0b"];
+            let sliceAngle = 360 / slices.length;
+
+            slices.forEach((text, index) => {
+                let slice = document.createElement('div');
+                slice.className = "roulette-slice";
+                slice.style.transform = `rotate(${index * sliceAngle}deg) skewY(${90 - sliceAngle}deg)`;
+                slice.style.backgroundColor = colors[index % colors.length];
+                slice.innerHTML = `<span style="transform: skewY(-${90 - sliceAngle}deg) rotate(${sliceAngle/2}deg); display:block; text-align:center; padding-left:25px;" class="truncate w-20">${text}</span>`;
+                wheel.appendChild(slice);
+            });
         }
 
         function verifyToken() {
@@ -385,17 +397,24 @@
                 currentCodeKey = code;
                 err.classList.add('hidden');
                 document.getElementById('step-token').classList.add('hidden');
-                document.getElementById('step-game').classList.remove('hidden');
                 gameLocked = false;
+
+                // Detectar si es Ruleta (empieza con R) o Cofre (empieza con C o cualquier otra letra)
+                if (code.startsWith('R')) {
+                    setupRouletteWheel(data.customPrize);
+                    document.getElementById('step-game-roulette').classList.remove('hidden');
+                } else {
+                    document.getElementById('step-game-chests').classList.remove('hidden');
+                }
             });
         }
 
-        function openChest(num, totalQty) {
+        function spinRoulette() {
             if (gameLocked) return;
             gameLocked = true;
             if (navigator.vibrate) navigator.vibrate(50);
 
-            let prizeText = (currentTokenData && currentTokenData.customPrize) ? currentTokenData.customPrize : "¡PREMIO SORPRESA GANADOR! 💸";
+            let prizeText = (currentTokenData && currentTokenData.customPrize) ? currentTokenData.customPrize : "¡PREMIO RULETA! 💸";
             let isWin = !prizeText.toUpperCase().includes("NO") && !prizeText.toUpperCase().includes("SUERTE");
             let now = new Date().toLocaleString();
 
@@ -407,8 +426,50 @@
 
             if (isWin) recordWinner(currentCodeKey, prizeText);
 
-            let steps = 6;
-            let currentStep = 0;
+            let wheel = document.getElementById('roulette-wheel');
+            let randomSpins = 360 * 5; // 5 vueltas completas
+            let extraDegree = Math.floor(Math.random() * 360);
+            rouletteCurrentDegree += randomSpins + extraDegree;
+            
+            wheel.style.transform = `rotate(${rouletteCurrentDegree}deg)`;
+            playSound('suspense');
+
+            setTimeout(() => {
+                if (isWin) {
+                    playVictoryFanfare();
+                    triggerConfettiExplosion();
+                } else {
+                    playSound('loss');
+                }
+
+                setTimeout(() => {
+                    document.getElementById('step-game-roulette').classList.add('hidden');
+                    document.getElementById('result-emoji').innerText = isWin ? '🎡' : '❌';
+                    document.getElementById('result-text').innerText = prizeText;
+                    document.getElementById('result-desc').innerText = isWin ? "🎉 ¡Felicitaciones en la ruleta! Presente esta captura en caja." : "📸 Lástima, no hubo suerte en esta tirada.";
+                    document.getElementById('step-result').classList.remove('hidden');
+                }, 1000);
+            }, 4000);
+        }
+
+        function openChest(num, totalQty) {
+            if (gameLocked) return;
+            gameLocked = true;
+            if (navigator.vibrate) navigator.vibrate(50);
+
+            let prizeText = (currentTokenData && currentTokenData.customPrize) ? currentTokenData.customPrize : "¡PREMIO SORPRESA! 💸";
+            let isWin = !prizeText.toUpperCase().includes("NO") && !prizeText.toUpperCase().includes("SUERTE");
+            let now = new Date().toLocaleString();
+
+            db.ref('cupones/' + currentCodeKey).update({
+                used: true,
+                usedAt: now,
+                prizeWon: prizeText
+            });
+
+            if (isWin) recordWinner(currentCodeKey, prizeText);
+
+            let steps = 6, currentStep = 0;
             let interval = setInterval(() => {
                 playSound('roulette');
                 let randomChest = Math.floor(Math.random() * totalQty) + 1;
@@ -422,21 +483,12 @@
                 currentStep++;
                 if(currentStep >= steps) {
                     clearInterval(interval);
-                    
                     for(let i=1; i<=totalQty; i++) {
                         let el = document.getElementById(`chest-${i}`);
                         if(el) el.classList.remove('active-roulette');
                     }
 
                     const selectedChest = document.getElementById(`chest-${num}`);
-                    const gameTitle = document.getElementById('game-title');
-                    const gameSubtitle = document.getElementById('game-subtitle');
-                    const gameWarning = document.getElementById('game-warning');
-
-                    if(gameTitle) gameTitle.classList.add('dimmed');
-                    if(gameSubtitle) gameSubtitle.classList.add('dimmed');
-                    if(gameWarning) gameWarning.classList.add('dimmed');
-
                     for(let i=1; i<=totalQty; i++) {
                         let el = document.getElementById(`chest-${i}`);
                         let lbl = document.getElementById(`chest-label-${i}`);
@@ -450,10 +502,6 @@
                     playSound('suspense');
 
                     setTimeout(() => {
-                        if(gameTitle) gameTitle.classList.remove('dimmed');
-                        if(gameSubtitle) gameSubtitle.classList.remove('dimmed');
-                        if(gameWarning) gameWarning.classList.remove('dimmed');
-
                         for(let i=1; i<=totalQty; i++) {
                             let el = document.getElementById(`chest-${i}`);
                             let lbl = document.getElementById(`chest-label-${i}`);
@@ -472,55 +520,57 @@
                             selectedChest.innerText = isWin ? '👑' : '💀';
                         }
 
-                        if (isWin) {
-                            playVictoryFanfare();
-                            triggerConfettiExplosion();
-                        } else {
-                            playSound('loss');
-                        }
+                        if (isWin) { playVictoryFanfare(); triggerConfettiExplosion(); } 
+                        else { playSound('loss'); }
 
                         setTimeout(() => {
-                            document.getElementById('step-game').classList.add('hidden');
+                            document.getElementById('step-game-chests').classList.add('hidden');
                             document.getElementById('result-emoji').innerText = isWin ? '💎' : '❌';
                             document.getElementById('result-text').innerText = prizeText;
-
-                            if (isWin) {
-                                document.getElementById('result-desc').innerText = "🎉 ¡Felicitaciones! Tome una captura de pantalla de este resultado para presentar en caja.";
-                            } else {
-                                document.getElementById('result-desc').innerText = "📸 Lástima, no hubo suerte.";
-                            }
-
+                            document.getElementById('result-desc').innerText = isWin ? "🎉 ¡Felicitaciones! Presente esta captura en caja." : "📸 Lástima, no hubo suerte.";
                             document.getElementById('step-result').classList.remove('hidden');
                         }, 1000);
-
                     }, 1800);
                 }
             }, 180);
         }
 
+        function recordWinner(code, prizeText) {
+            let winners = JSON.parse(localStorage.getItem('vip_recent_winners') || "[]");
+            winners.unshift({ code: code, prize: prizeText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+            if (winners.length > 3) winners = winners.slice(0, 3);
+            localStorage.setItem('vip_recent_winners', JSON.stringify(winners));
+            renderRecentWinners();
+        }
+
+        function renderRecentWinners() {
+            let winners = JSON.parse(localStorage.getItem('vip_recent_winners') || "[]");
+            let box = document.getElementById('recent-winners-box');
+            let list = document.getElementById('winners-list');
+            if(!box || !list) return;
+            if (winners.length === 0) { box.classList.add('hidden'); return; }
+            box.classList.remove('hidden');
+            list.innerHTML = "";
+            winners.forEach(w => {
+                let item = document.createElement('div');
+                item.className = "flex justify-between items-center bg-black/40 px-2.5 py-1 rounded border border-zinc-800/60";
+                item.innerHTML = `<span class="text-amber-400 font-bold">🔑 ${w.code}</span> <span class="text-zinc-300 truncate max-w-[130px]">${w.prize}</span> <span class="text-[9px] text-zinc-500">${w.time}</span>`;
+                list.appendChild(item);
+            });
+        }
+        renderRecentWinners();
+
         function resetToHome() {
             playSound('click');
-            let gameTitle = document.getElementById('game-title');
-            let gameSubtitle = document.getElementById('game-subtitle');
-            let gameWarning = document.getElementById('game-warning');
-            if(gameTitle) gameTitle.classList.remove('dimmed');
-            if(gameSubtitle) gameSubtitle.classList.remove('dimmed');
-            if(gameWarning) gameWarning.classList.remove('dimmed');
-
             for(let i=1; i<=3; i++) {
                 let chest = document.getElementById(`chest-${i}`);
-                let lbl = document.getElementById(`chest-label-${i}`);
-                if(chest) {
-                    chest.style.opacity = '1';
-                    chest.classList.remove('opened', 'active-roulette', 'suspense', 'dimmed');
-                    chest.innerText = '📦';
-                    if(lbl) lbl.classList.remove('dimmed');
-                }
+                if(chest) { chest.style.opacity = '1'; chest.classList.remove('opened', 'active-roulette', 'suspense', 'dimmed'); chest.innerText = '📦'; }
             }
-            
             document.getElementById('token-input').value = "";
             document.getElementById('error-msg').classList.add('hidden');
             document.getElementById('step-result').classList.add('hidden');
+            document.getElementById('step-game-chests').classList.add('hidden');
+            document.getElementById('step-game-roulette').classList.add('hidden');
             document.getElementById('step-token').classList.remove('hidden');
             currentCodeKey = "";
             currentTokenData = null;
