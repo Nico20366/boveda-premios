@@ -95,14 +95,14 @@
                     <h3 class="cinzel text-xs font-black dynamic-text">👥 ADMINISTRADORES REGISTRADOS</h3>
                     <span id="admins-count-badge" class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-bold">0</span>
                 </div>
-                <p class="text-[11px] text-zinc-400 font-medium">Listado de usuarios habilitados para gestionar cupones:</p>
+                <p class="text-[11px] text-zinc-400 font-medium">Estado de conexión en tiempo real y permisos:</p>
                 <div id="admins-management-list" class="space-y-2 text-xs font-bold max-h-64 overflow-y-auto pt-1">
                     <p class="text-zinc-500 text-center py-2">Cargando administradores...</p>
                 </div>
             </div>
         </div>
 
-        <!-- PESTAÑA 3: AJUSTES (CONTRASEÑA Y TÍTULOS) -->
+        <!-- PESTAÑA 3: AJUSTES -->
         <div id="tab-content-config" class="space-y-4 hidden">
             <!-- Cambiar Contraseña -->
             <div class="slot-marquee rounded-2xl p-4 space-y-3">
@@ -146,6 +146,32 @@
         let allCouponsData = {};
 
         if(!currentUser) { window.location.href = "login.html"; }
+
+        // --- SISTEMA DE PRESENCIA EN TIEMPO REAL ---
+        const userStatusRef = db.ref('status/' + currentUser);
+        const connectedRef = db.ref('.info/connected');
+
+        connectedRef.on('value', (snap) => {
+            if (snap.val() === true) {
+                userStatusRef.onDisconnect().set({
+                    state: 'offline',
+                    last_changed: firebase.database.ServerValue.TIMESTAMP
+                });
+                userStatusRef.set({
+                    state: 'online',
+                    last_changed: firebase.database.ServerValue.TIMESTAMP
+                });
+            }
+        });
+
+        // Autocierre por inactividad
+        let inactivityTimer;
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => { logout(); }, 15 * 60 * 1000);
+        }
+        window.onload = resetInactivityTimer;
+        window.onmousemove = resetInactivityTimer;
 
         if(currentRole === 'super') {
             document.getElementById('welcome-msg').innerText = `${currentUser} (Super Admin)`;
@@ -198,33 +224,27 @@
                     count++;
                     let info = data[name];
                     let isApproved = info.approved === true;
-                    let statusBadge = isApproved 
-                        ? `<span class="text-[10px] bg-emerald-950/80 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded-full font-bold">🟢 ACTIVO</span>` 
-                        : `<span class="text-[10px] bg-amber-950/80 text-amber-400 border border-amber-500/40 px-2 py-0.5 rounded-full font-bold">⏳ PENDIENTE</span>`;
-                    
                     let emailTxt = info.email ? `<div class='text-[10px] text-zinc-400 font-medium'>📧 ${info.email}</div>` : "";
                     
-                    let actionBtn = "";
-                    if (currentRole === 'super') {
-                        actionBtn = isApproved 
-                            ? `<button onclick="toggleAdminApproval('${name}', false)" class="bg-amber-950 hover:bg-amber-900 text-amber-300 border border-amber-600/40 px-2 py-1 rounded-lg text-[10px] font-bold">Pausar</button>`
-                            : `<button onclick="toggleAdminApproval('${name}', true)" class="bg-emerald-500 hover:bg-emerald-400 text-black px-2 py-1 rounded-lg text-[10px] font-black">Aprobar</button>`;
-                    }
+                    let cardId = `admin-card-${name.replace(/\s+/g, '_')}`;
+                    
+                    let actionBtn = (currentRole === 'super') ? (isApproved 
+                        ? `<button onclick="toggleAdminApproval('${name}', false)" class="bg-amber-950 hover:bg-amber-900 text-amber-300 border border-amber-600/40 px-2 py-1 rounded-lg text-[10px] font-bold">Pausar</button>`
+                        : `<button onclick="toggleAdminApproval('${name}', true)" class="bg-emerald-500 hover:bg-emerald-400 text-black px-2 py-1 rounded-lg text-[10px] font-black">Aprobar</button>`) : "";
 
                     let deleteBtn = (currentRole === 'super') 
-                        ? `<button onclick="deleteAdmin('${name}')" class="bg-red-950 hover:bg-red-900 text-red-300 border border-red-600/40 px-2 py-1 rounded-lg text-[10px] font-bold" title="Eliminar Admin">🗑️</button>` 
-                        : "";
+                        ? `<button onclick="deleteAdmin('${name}')" class="bg-red-950 hover:bg-red-900 text-red-300 border border-red-600/40 px-2 py-1 rounded-lg text-[10px] font-bold" title="Eliminar Admin">🗑️</button>` : "";
 
                     let keyBtn = (currentRole === 'super')
-                        ? `<button onclick="resetAdminPassword('${name}')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-300 border border-zinc-700 px-2 py-1 rounded-lg text-[10px] font-bold" title="Cambiar clave">🔑</button>`
-                        : "";
+                        ? `<button onclick="resetAdminPassword('${name}')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-300 border border-zinc-700 px-2 py-1 rounded-lg text-[10px] font-bold" title="Cambiar clave">🔑</button>` : "";
 
                     list.innerHTML += `
-                        <div class="bg-black/60 p-3 rounded-xl border border-zinc-800 flex justify-between items-center gap-2">
+                        <div id="${cardId}" class="bg-black/60 p-3 rounded-xl border border-zinc-800 flex justify-between items-center gap-2">
                             <div>
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-1.5 flex-wrap">
                                     <strong class="text-white text-xs">👤 ${name}</strong>
-                                    ${statusBadge}
+                                    <span id="online-status-${name}" class="text-[9px] bg-zinc-800 text-zinc-400 border border-zinc-700 px-2 py-0.5 rounded-full font-bold">⚪ Desconectado</span>
+                                    ${isApproved ? `<span class="text-[9px] text-emerald-400 font-bold">✓ Aprobado</span>` : `<span class="text-[9px] text-amber-400 font-bold">⏳ Pendiente</span>`}
                                 </div>
                                 ${emailTxt}
                             </div>
@@ -234,6 +254,21 @@
                                 ${deleteBtn}
                             </div>
                         </div>`;
+
+                    // Escuchar estado en vivo de presencia
+                    db.ref('status/' + name).on('value', (statusSnap) => {
+                        let stData = statusSnap.val();
+                        let badgeEl = document.getElementById(`online-status-${name}`);
+                        if(badgeEl) {
+                            if(stData && stData.state === 'online') {
+                                badgeEl.className = "text-[9px] bg-emerald-950/80 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded-full font-bold animate-pulse";
+                                badgeEl.innerText = "🟢 En línea";
+                            } else {
+                                badgeEl.className = "text-[9px] bg-zinc-800 text-zinc-400 border border-zinc-700 px-2 py-0.5 rounded-full font-bold";
+                                badgeEl.innerText = "⚪ Desconectado";
+                            }
+                        }
+                    });
                 }
                 document.getElementById('admins-count-badge').innerText = count;
             });
@@ -246,6 +281,7 @@
         function deleteAdmin(name) {
             if(!confirm(`¿Eliminar al administrador ${name}?`)) return;
             db.ref('admins/' + name).remove();
+            db.ref('status/' + name).remove();
         }
 
         function resetAdminPassword(adminName) {
@@ -406,7 +442,16 @@
             renderCoupons(filtered);
         }
 
-        function logout() { localStorage.clear(); window.location.href = "login.html"; }
+        function logout() { 
+            if(currentUser) {
+                db.ref('status/' + currentUser).set({
+                    state: 'offline',
+                    last_changed: firebase.database.ServerValue.TIMESTAMP
+                });
+            }
+            localStorage.clear(); 
+            window.location.href = "login.html"; 
+        }
     </script>
 </body>
 </html>
