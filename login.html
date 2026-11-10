@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Administradores - Bóveda</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Plus+Jakarta+Sans:wght@600;800;900&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020204; color: #ffffff; }
+        .cinzel { font-family: 'Cinzel', serif; }
+        :root { --neon-main: #eab308; --neon-glow: rgba(234, 179, 8, 0.3); --neon-shadow: rgba(234, 179, 8, 0.7); }
+        .casino-bg { background-color: #050508; background-image: radial-gradient(circle at 50% 20%, var(--neon-glow) 0%, transparent 60%), radial-gradient(circle at 50% 90%, rgba(0,0,0,0.95) 0%, transparent 60%); }
+        .slot-marquee { border: 4px solid var(--neon-main); box-shadow: 0 0 35px var(--neon-shadow), inset 0 0 20px rgba(0,0,0,0.8); background: linear-gradient(180deg, #141419 0%, #08080b 100%); }
+        .dynamic-text { text-shadow: 0 0 15px var(--neon-main); color: var(--neon-main) !important; }
+        .dynamic-btn { background: linear-gradient(135deg, var(--neon-main) 0%, #ca8a04 100%); color: #000 !important; font-weight: 900; box-shadow: 0 0 25px var(--neon-shadow); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between casino-bg p-4">
+
+    <header class="w-full py-4 px-5 border-b border-zinc-800 flex justify-between items-center bg-black/95 rounded-2xl shadow-2xl">
+        <div class="flex items-center space-x-2">
+            <span class="text-3xl">🔐</span>
+            <div>
+                <h1 class="cinzel text-base sm:text-xl font-black dynamic-text tracking-wider">ACCESO ADMIN</h1>
+                <p class="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">ZONA RESTRINGIDA</p>
+            </div>
+        </div>
+        <a href="index.html" class="text-[10px] sm:text-xs bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-700 px-3 py-1.5 rounded-lg font-bold cinzel shadow-lg">
+            ← VOLVER
+        </a>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center px-4 py-8">
+        <div class="max-w-md w-full slot-marquee rounded-3xl p-8 shadow-2xl">
+            <h2 id="form-title" class="cinzel text-2xl font-black dynamic-text text-center mb-6">LOGIN DE ACCESO</h2>
+            <div id="msg-box" class="mb-4 text-xs font-bold text-center text-red-400 hidden bg-red-950/40 p-2 rounded-xl border border-red-800"></div>
+
+            <!-- LOGIN -->
+            <div id="login-form" class="space-y-4">
+                <div>
+                    <label class="text-xs text-zinc-300 font-bold uppercase tracking-wider">Usuario / Alias:</label>
+                    <input type="text" id="log-user" placeholder="Escribe tu usuario" class="w-full bg-black border-2 border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-bold mt-1 focus:border-amber-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="text-xs text-zinc-300 font-bold uppercase tracking-wider">Contraseña:</label>
+                    <input type="password" id="log-pass" placeholder="••••••••" class="w-full bg-black border-2 border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-bold mt-1 focus:border-amber-500 focus:outline-none">
+                </div>
+                <button onclick="loginAdmin()" class="w-full dynamic-btn py-4 rounded-xl text-sm cinzel uppercase tracking-widest mt-2">
+                    INICIAR SESIÓN 🚀
+                </button>
+                <div class="text-center pt-4 border-t border-zinc-800 mt-6">
+                    <p class="text-xs text-zinc-400">¿No tienes una cuenta de administrador?</p>
+                    <button onclick="toggleView('register')" class="text-amber-400 text-xs font-black underline uppercase tracking-wider mt-1 hover:text-white">
+                        Registrarse / Solicitar Permiso 📝
+                    </button>
+                </div>
+            </div>
+
+            <!-- REGISTRO -->
+            <div id="register-form" class="space-y-4 hidden">
+                <div>
+                    <label class="text-xs text-zinc-300 font-bold uppercase tracking-wider">Crea tu Usuario / Alias:</label>
+                    <input type="text" id="reg-name" placeholder="Ej: Carlos" class="w-full bg-black border-2 border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-bold mt-1 focus:border-amber-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="text-xs text-zinc-300 font-bold uppercase tracking-wider">Crea tu Contraseña:</label>
+                    <input type="password" id="reg-pass" placeholder="••••••••" class="w-full bg-black border-2 border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-bold mt-1 focus:border-amber-500 focus:outline-none">
+                </div>
+                <button onclick="registerAdmin()" class="w-full dynamic-btn py-4 rounded-xl text-sm cinzel uppercase tracking-widest mt-2">
+                    ENVIAR SOLICITUD 📨
+                </button>
+                <div class="text-center pt-4 border-t border-zinc-800 mt-6">
+                    <p class="text-xs text-zinc-400">¿Ya tienes una cuenta?</p>
+                    <button onclick="toggleView('login')" class="text-amber-400 text-xs font-black underline uppercase tracking-wider mt-1 hover:text-white">
+                        ← Volver a Iniciar Sesión
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="w-full py-4 text-center text-xs text-zinc-400 border-t border-zinc-800 bg-black/95 rounded-2xl">
+        BÓVEDA DE LA SUERTE © 2026
+    </footer>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBqLgy8LhtKaOZgf1tLH5tG6Pm8qYj3ouQ",
+            authDomain: "boveda-premios-1ebe0.firebaseapp.com",
+            databaseURL: "https://boveda-premios-1ebe0-default-rtdb.firebaseio.com",
+            projectId: "boveda-premios-1ebe0",
+            storageBucket: "boveda-premios-1ebe0.firebasestorage.app",
+            messagingSenderId: "362480473345",
+            appId: "1:362480473345:web:5cc957ea431f0c713c3700",
+            measurementId: "G-DTRB9M5KJ4"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function toggleView(view) {
+            let loginForm = document.getElementById('login-form');
+            let registerForm = document.getElementById('register-form');
+            let title = document.getElementById('form-title');
+            let msg = document.getElementById('msg-box');
+            msg.classList.add('hidden');
+
+            if(view === 'register') {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                title.innerText = "REGISTRO DE ADMIN";
+            } else {
+                registerForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+                title.innerText = "LOGIN DE ACCESO";
+            }
+        }
+
+        function registerAdmin() {
+            let name = document.getElementById('reg-name').value.trim();
+            let pass = document.getElementById('reg-pass').value.trim();
+            let msg = document.getElementById('msg-box');
+
+            if(!name || !pass) {
+                msg.innerText = "Complete todos los campos.";
+                msg.classList.remove('hidden');
+                return;
+            }
+
+            db.ref('admins/' + name).once('value', (snap) => {
+                if(snap.exists()) {
+                    msg.innerText = "⚠️ Ese usuario ya existe.";
+                    msg.classList.remove('hidden');
+                    return;
+                }
+                db.ref('admins/' + name).set({
+                    password: pass,
+                    approved: false,
+                    role: "admin"
+                });
+                alert("¡Solicitud enviada con éxito! Queda pendiente a que el Super Admin la apruebe.");
+                toggleView('login');
+            });
+        }
+
+        function loginAdmin() {
+            let name = document.getElementById('log-user').value.trim();
+            let pass = document.getElementById('log-pass').value.trim();
+            let msg = document.getElementById('msg-box');
+
+            if(name === "superadmin" && pass === "123456") {
+                localStorage.setItem("current_admin", "SuperAdmin");
+                localStorage.setItem("admin_role", "super");
+                window.location.href = "admin.html";
+                return;
+            }
+
+            db.ref('admins/' + name).once('value', (snap) => {
+                let data = snap.val();
+                if(!data || data.password !== pass) {
+                    msg.innerText = "❌ Usuario o contraseña incorrectos.";
+                    msg.classList.remove('hidden');
+                    return;
+                }
+                if(!data.approved) {
+                    msg.innerText = "⏳ Tu cuenta aún no ha sido aprobada por el Super Admin.";
+                    msg.classList.remove('hidden');
+                    return;
+                }
+
+                localStorage.setItem("current_admin", name);
+                localStorage.setItem("admin_role", "admin");
+                window.location.href = "admin.html";
+            });
+        }
+    </script>
+</body>
+</html>

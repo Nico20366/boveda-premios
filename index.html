@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BÓVEDA DE LA SUERTE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Plus+Jakarta+Sans:wght@600;800;900&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020204; color: #ffffff; overflow-x: hidden; position: relative; }
+        .cinzel { font-family: 'Cinzel', serif; }
+        :root { --neon-main: #eab308; --neon-glow: rgba(234, 179, 8, 0.3); --neon-shadow: rgba(234, 179, 8, 0.7); }
+        .casino-bg { background-color: #050508; background-image: radial-gradient(circle at 50% 20%, var(--neon-glow) 0%, transparent 60%), radial-gradient(circle at 50% 90%, rgba(0,0,0,0.95) 0%, transparent 60%); }
+        .slot-marquee { border: 4px solid var(--neon-main); box-shadow: 0 0 35px var(--neon-shadow), inset 0 0 20px rgba(0,0,0,0.8); background: linear-gradient(180deg, #141419 0%, #08080b 100%); }
+        .dynamic-text { text-shadow: 0 0 15px var(--neon-main); color: var(--neon-main) !important; }
+        .dynamic-btn { background: linear-gradient(135deg, var(--neon-main) 0%, #ca8a04 100%); color: #000 !important; font-weight: 900; box-shadow: 0 0 25px var(--neon-shadow); }
+        .chest { transition: all 0.3s ease; cursor: pointer; background: linear-gradient(145deg, #1f1f28, #0e0e12); border: 3px solid var(--neon-main); box-shadow: 0 10px 30px rgba(0,0,0,0.9); }
+        .chest:hover { transform: scale(1.05); box-shadow: 0 0 40px var(--neon-main); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between casino-bg">
+
+    <header class="w-full py-4 px-5 border-b border-zinc-800 flex justify-between items-center bg-black/95 z-10 shadow-2xl">
+        <div class="flex items-center space-x-2">
+            <span class="text-3xl">🎰</span>
+            <div>
+                <h1 class="cinzel text-base sm:text-xl font-black dynamic-text tracking-wider">BÓVEDA DE LA SUERTE</h1>
+                <p class="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">ZONA DE PREMIOS</p>
+            </div>
+        </div>
+        <a href="login.html" class="text-xs bg-zinc-900 hover:bg-zinc-800 text-amber-400 border border-amber-500/40 px-3.5 py-2 rounded-lg font-bold cinzel shadow-lg transition-all">
+            🔐 LOGIN
+        </a>
+    </header>
+
+    <main class="flex-grow flex flex-col items-center justify-center px-4 py-8 max-w-xl mx-auto w-full text-center z-10">
+        <!-- PASO 1 -->
+        <div id="step-token" class="w-full slot-marquee rounded-3xl p-8 sm:p-10 backdrop-blur-2xl shadow-2xl">
+            <div class="text-6xl mb-4 animate-bounce">🔑</div>
+            <h2 class="cinzel text-3xl sm:text-4xl font-black dynamic-text mb-3">INGRESE SU CÓDIGO</h2>
+            <p class="text-zinc-200 text-sm sm:text-base mb-6 font-bold leading-relaxed">Escribe tu código para abrir el cofre:</p>
+            <input type="text" id="token-input" placeholder="EJ: VIP77" 
+                class="w-full bg-black border-4 border-amber-500 rounded-2xl px-5 py-5 text-center text-3xl font-black text-amber-400 uppercase mb-6 focus:outline-none tracking-widest shadow-inner">
+            <button onclick="verifyToken()" 
+                class="w-full dynamic-btn py-5 rounded-2xl cinzel tracking-widest uppercase text-base sm:text-lg font-black active:scale-[0.98] transition-all">
+                ABRIR BÓVEDA 🎰
+            </button>
+            <p id="error-msg" class="text-red-400 text-sm mt-4 font-black hidden"></p>
+        </div>
+
+        <!-- PASO 2 -->
+        <div id="step-game" class="w-full hidden slot-marquee rounded-3xl p-8 backdrop-blur-2xl">
+            <h2 class="cinzel text-2xl sm:text-3xl font-black dynamic-text mb-3">¡ELIJA UN COFRE!</h2>
+            <p class="text-zinc-200 text-sm sm:text-base mb-6 animate-pulse font-bold">Toque uno de los cofres para descubrir su premio:</p>
+            <div class="grid grid-cols-3 gap-4 mb-4">
+                <div class="flex flex-col items-center"><div onclick="openChest()" class="chest rounded-2xl p-5 flex items-center justify-center aspect-square w-full text-5xl">📦</div><span class="text-xs font-black dynamic-text mt-3">COFRE 1</span></div>
+                <div class="flex flex-col items-center"><div onclick="openChest()" class="chest rounded-2xl p-5 flex items-center justify-center aspect-square w-full text-5xl">📦</div><span class="text-xs font-black dynamic-text mt-3">COFRE 2</span></div>
+                <div class="flex flex-col items-center"><div onclick="openChest()" class="chest rounded-2xl p-5 flex items-center justify-center aspect-square w-full text-5xl">📦</div><span class="text-xs font-black dynamic-text mt-3">COFRE 3</span></div>
+            </div>
+        </div>
+
+        <!-- PASO 3 -->
+        <div id="step-result" class="w-full hidden slot-marquee rounded-3xl p-8 backdrop-blur-2xl">
+            <div class="text-7xl mb-4 animate-bounce">💎</div>
+            <h3 class="cinzel text-sm text-zinc-300 mb-2 font-black tracking-widest">RESULTADO OFICIAL</h3>
+            <p id="result-text" class="cinzel text-2xl sm:text-3xl font-black dynamic-text mb-6 leading-snug"></p>
+            <div class="bg-black/95 border-2 border-zinc-700 rounded-2xl p-4 shadow-inner mb-6">
+                <p class="text-xs sm:text-sm text-zinc-200 font-bold leading-relaxed">📸 Tome una captura de pantalla de este resultado para presentar en caja.</p>
+            </div>
+            <button onclick="location.reload()" class="w-full dynamic-btn py-4 rounded-2xl cinzel tracking-wider uppercase text-sm font-black">
+                ⬅️ TERMINAR Y VOLVER AL INICIO
+            </button>
+        </div>
+    </main>
+
+    <footer class="w-full py-4 text-center text-xs text-zinc-400 border-t border-zinc-800 bg-black/95 z-10 font-bold tracking-widest">
+        BÓVEDA DE LA SUERTE © 2026
+    </footer>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBqLgy8LhtKaOZgf1tLH5tG6Pm8qYj3ouQ",
+            authDomain: "boveda-premios-1ebe0.firebaseapp.com",
+            databaseURL: "https://boveda-premios-1ebe0-default-rtdb.firebaseio.com",
+            projectId: "boveda-premios-1ebe0",
+            storageBucket: "boveda-premios-1ebe0.firebasestorage.app",
+            messagingSenderId: "362480473345",
+            appId: "1:362480473345:web:5cc957ea431f0c713c3700",
+            measurementId: "G-DTRB9M5KJ4"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let currentCodeKey = "";
+        let currentTokenData = null;
+
+        function verifyToken() {
+            let code = document.getElementById('token-input').value.trim().toUpperCase();
+            let err = document.getElementById('error-msg');
+            if (!code) { err.innerText = "Escriba su código."; err.classList.remove('hidden'); return; }
+
+            db.ref('cupones/' + code).once('value', (snapshot) => {
+                let data = snapshot.val();
+                if (!data) {
+                    err.innerText = "❌ Código incorrecto o inexistente.";
+                    err.classList.remove('hidden');
+                    return;
+                }
+                if (data.used) {
+                    err.innerText = "⚠️ Este código ya fue utilizado.";
+                    err.classList.remove('hidden');
+                    return;
+                }
+
+                currentTokenData = data;
+                currentCodeKey = code;
+                err.classList.add('hidden');
+                document.getElementById('step-token').classList.add('hidden');
+                document.getElementById('step-game').classList.remove('hidden');
+            });
+        }
+
+        function openChest() {
+            let prizeText = currentTokenData.customPrize || "¡PREMIO SORPRESA GANADOR! 💸";
+            let now = new Date().toLocaleString();
+
+            db.ref('cupones/' + currentCodeKey).update({
+                used: true,
+                usedAt: now,
+                prizeWon: prizeText
+            });
+
+            document.getElementById('step-game').classList.add('hidden');
+            document.getElementById('result-text').innerText = prizeText;
+            document.getElementById('step-result').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
