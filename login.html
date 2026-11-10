@@ -6,7 +6,9 @@
     <title>Acceso Administradores - Bóveda</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Plus+Jakarta+Sans:wght@600;800;900&display=swap" rel="stylesheet">
+    <!-- Firebase SDKs (Auth + Realtime Database) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020204; color: #ffffff; }
@@ -41,8 +43,8 @@
             <!-- Login Form -->
             <div id="login-form" class="space-y-4">
                 <div>
-                    <label class="text-xs text-zinc-300 font-bold uppercase tracking-wider">Usuario / Alias:</label>
-                    <input type="text" id="log-user" placeholder="Escribe tu usuario" class="w-full bg-black border-2 border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-bold mt-1 focus:border-amber-500 focus:outline-none">
+                    <label class="text-xs text-zinc-300 font-bold uppercase tracking-wider">Correo o Usuario:</label>
+                    <input type="text" id="log-user" placeholder="tucorreo@email.com o usuario" class="w-full bg-black border-2 border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-bold mt-1 focus:border-amber-500 focus:outline-none">
                 </div>
                 <div>
                     <label class="text-xs text-zinc-300 font-bold uppercase tracking-wider">Contraseña:</label>
@@ -54,7 +56,10 @@
                 <button onclick="loginAdmin()" class="w-full dynamic-btn py-4 rounded-xl text-sm cinzel uppercase tracking-widest mt-2">
                     INICIAR SESIÓN 🚀
                 </button>
-                <div class="text-center pt-4 border-t border-zinc-800 mt-6">
+                <div class="flex justify-between items-center pt-2 text-xs">
+                    <button onclick="forgotPassword()" class="text-zinc-400 hover:text-amber-400 underline">¿Olvidaste tu contraseña?</button>
+                </div>
+                <div class="text-center pt-4 border-t border-zinc-800 mt-4">
                     <p class="text-xs text-zinc-400">¿No tienes cuenta de administrador?</p>
                     <button onclick="toggleView('register')" class="text-amber-400 text-xs font-black underline uppercase tracking-wider mt-1 hover:text-white">
                         Registrarse / Solicitar Permiso 📝
@@ -65,11 +70,15 @@
             <!-- Register Form -->
             <div id="register-form" class="space-y-4 hidden">
                 <div>
+                    <label class="text-xs text-zinc-300 font-bold uppercase tracking-wider">Correo Electrónico:</label>
+                    <input type="email" id="reg-email" placeholder="tucorreo@email.com" class="w-full bg-black border-2 border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-bold mt-1 focus:border-amber-500 focus:outline-none">
+                </div>
+                <div>
                     <label class="text-xs text-zinc-300 font-bold uppercase tracking-wider">Crea tu Usuario / Alias:</label>
                     <input type="text" id="reg-name" placeholder="Ej: Carlos" class="w-full bg-black border-2 border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-bold mt-1 focus:border-amber-500 focus:outline-none">
                 </div>
                 <div>
-                    <label class="text-xs text-zinc-300 font-bold uppercase tracking-wider">Crea tu Contraseña:</label>
+                    <label class="text-xs text-zinc-300 font-bold uppercase tracking-wider">Crea tu Contraseña (mín. 6 car.):</label>
                     <div class="relative mt-1">
                         <input type="password" id="reg-pass" placeholder="••••••••" class="w-full bg-black border-2 border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-bold focus:border-amber-500 focus:outline-none">
                         <button type="button" onclick="togglePassword('reg-pass')" class="absolute right-3 top-3.5 text-xs text-zinc-400 font-bold">👁️</button>
@@ -104,6 +113,7 @@
             measurementId: "G-DTRB9M5KJ4"
         };
         firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
         const db = firebase.database();
 
         function toggleView(view) {
@@ -124,40 +134,89 @@
         }
 
         function registerAdmin() {
+            let email = document.getElementById('reg-email').value.trim();
             let name = document.getElementById('reg-name').value.trim();
             let pass = document.getElementById('reg-pass').value.trim();
             let msg = document.getElementById('msg-box');
-            if(!name || !pass) { msg.innerText = "Complete todos los campos."; msg.classList.remove('hidden'); return; }
 
-            db.ref('admins/' + name).once('value', (snap) => {
-                if(snap.exists()) { msg.innerText = "⚠️ Ese usuario ya existe."; msg.classList.remove('hidden'); return; }
-                db.ref('admins/' + name).set({ password: pass, approved: false });
-                alert("¡Solicitud enviada! Queda pendiente de aprobación.");
-                toggleView('login');
-            });
+            if(!email || !name || !pass) { msg.innerText = "Complete todos los campos."; msg.classList.remove('hidden'); return; }
+            if(pass.length < 6) { msg.innerText = "La contraseña debe tener al menos 6 caracteres."; msg.classList.remove('hidden'); return; }
+
+            // Crear usuario en Firebase Auth con correo y contraseña
+            auth.createUserWithEmailAndPassword(email, pass)
+                .then((userCredential) => {
+                    let uid = userCredential.user.uid;
+                    // Guardar datos adicionales en la base de datos en tiempo real
+                    db.ref('admins/' + name).set({
+                        email: email,
+                        uid: uid,
+                        password: pass,
+                        approved: false
+                    }, () => {
+                        alert("¡Solicitud enviada con éxito! Queda pendiente de aprobación por el Super Admin.");
+                        toggleView('login');
+                    });
+                })
+                .catch((error) => {
+                    msg.innerText = "❌ Error al registrar: " + error.message;
+                    msg.classList.remove('hidden');
+                });
         }
 
         function loginAdmin() {
-            let name = document.getElementById('log-user').value.trim();
+            let identifier = document.getElementById('log-user').value.trim();
             let pass = document.getElementById('log-pass').value.trim();
             let msg = document.getElementById('msg-box');
 
-            if(name === "superadmin" && pass === "123456") {
+            if(identifier === "superadmin" && pass === "123456") {
                 localStorage.setItem("current_admin", "SuperAdmin");
                 localStorage.setItem("admin_role", "super");
                 window.location.href = "admin.html";
                 return;
             }
 
-            db.ref('admins/' + name).once('value', (snap) => {
-                let data = snap.val();
-                if(!data || data.password !== pass) { msg.innerText = "❌ Usuario o contraseña incorrectos."; msg.classList.remove('hidden'); return; }
-                if(!data.approved) { msg.innerText = "⏳ Tu cuenta aún no ha sido aprobada."; msg.classList.remove('hidden'); return; }
+            // Verificar si ingresó un correo o un usuario
+            let queryRef = identifier.includes('@') 
+                ? db.ref('admins').orderByChild('email').equalTo(identifier)
+                : db.ref('admins/' + identifier);
 
-                localStorage.setItem("current_admin", name);
-                localStorage.setItem("admin_role", "admin");
-                window.location.href = "admin.html";
-            });
+            if (identifier.includes('@')) {
+                queryRef.once('value', (snap) => {
+                    let data = snap.val();
+                    if(!data) { msg.innerText = "❌ Correo no encontrado."; msg.classList.remove('hidden'); return; }
+                    let username = Object.keys(data)[0];
+                    let adminData = data[username];
+
+                    if(adminData.password !== pass) { msg.innerText = "❌ Contraseña incorrecta."; msg.classList.remove('hidden'); return; }
+                    if(!adminData.approved) { msg.innerText = "⏳ Tu cuenta aún no ha sido aprobada."; msg.classList.remove('hidden'); return; }
+
+                    localStorage.setItem("current_admin", username);
+                    localStorage.setItem("admin_role", "admin");
+                    window.location.href = "admin.html";
+                });
+            } else {
+                db.ref('admins/' + identifier).once('value', (snap) => {
+                    let data = snap.val();
+                    if(!data || data.password !== pass) { msg.innerText = "❌ Usuario o contraseña incorrectos."; msg.classList.remove('hidden'); return; }
+                    if(!data.approved) { msg.innerText = "⏳ Tu cuenta aún no ha sido aprobada."; msg.classList.remove('hidden'); return; }
+
+                    localStorage.setItem("current_admin", identifier);
+                    localStorage.setItem("admin_role", "admin");
+                    window.location.href = "admin.html";
+                });
+            }
+        }
+
+        function forgotPassword() {
+            let email = prompt("📧 Ingrese su correo electrónico registrado para recuperar la contraseña:");
+            if(!email) return;
+            auth.sendPasswordResetEmail(email.trim())
+                .then(() => {
+                    alert("¡Correo de recuperación enviado! Revisa tu bandeja de entrada o spam.");
+                })
+                .catch((error) => {
+                    alert("❌ Error: " + error.message);
+                });
         }
     </script>
 </body>
