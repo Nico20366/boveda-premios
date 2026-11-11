@@ -31,7 +31,6 @@
         }
 
         .roulette-wheel { width: 280px; height: 280px; border-radius: 50%; border: 6px solid #f59e0b; position: relative; margin: 0 auto; overflow: hidden; box-shadow: 0 0 30px rgba(245, 158, 11, 0.4); transition: transform 4s cubic-bezier(0.15, 0.9, 0.2, 1); background: #18181b; }
-        /* Puntero cambiado a color dorado brillante en vez de rojo */
         .roulette-pointer { width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 24px solid #f59e0b; position: absolute; top: -12px; left: calc(50% - 12px); z-index: 20; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); }
         
         .roulette-slice { position: absolute; width: 50%; height: 50%; transform-origin: 100% 100%; left: 0; top: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; color: #fff; border: 1px solid rgba(255,255,255,0.15); text-align: center; }
@@ -71,7 +70,7 @@
             <button onclick="verifyToken()" class="w-full dynamic-btn py-3.5 rounded-xl cinzel tracking-widest uppercase text-sm font-black">
                 ABRIR BÓVEDA 🎰
             </button>
-            <p id="error-msg" class="text-red-400 text-xs mt-3 font-bold hidden"></p>
+            <p id="error-msg" class="text-amber-400 text-xs mt-3 font-bold hidden"></p>
         </div>
 
         <!-- Cofres -->
