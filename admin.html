@@ -90,7 +90,7 @@
                     <h3 id="list-title" class="cinzel text-xs font-black dynamic-text">📋 LISTADO DE CUPONES</h3>
                     <div class="flex items-center gap-1.5 w-full sm:w-auto justify-end">
                         <input type="text" id="search-code" placeholder="🔍 Buscar..." oninput="filterCoupons()" class="bg-black/80 border border-zinc-700 rounded-xl px-2.5 py-1.5 text-xs text-white font-bold focus:outline-none w-28">
-                        <button onclick="clearUsedCoupons()" title="Limpiar vencidos o agotados" class="bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-600/50 px-2 py-1.5 rounded-xl text-[10px] font-bold">🗑️ Limpiar</button>
+                        <button onclick="clearUsedCoupons()" title="Limpiar vencidos o usados" class="bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-600/50 px-2 py-1.5 rounded-xl text-[10px] font-bold">🗑️ Limpiar</button>
                         <button onclick="clearAllCoupons()" title="Borrar todo" class="bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-600/50 px-2 py-1.5 rounded-xl text-[10px] font-bold">💥 Todo</button>
                     </div>
                 </div>
@@ -180,7 +180,6 @@
         }
         setDefaultExpiration();
 
-        // Inicializar con 2 campos de premio por defecto
         function initDefaultPrizeRows() {
             let container = document.getElementById('prizes-dynamic-container');
             container.innerHTML = "";
@@ -277,7 +276,7 @@
 
             db.ref('cupones/' + code).set({
                 usedCount: 0,
-                stockMax: 1, // Fijo en 1 uso por código como pediste
+                stockMax: 1, 
                 createdBy: currentUser, 
                 prizes: prizesArray, 
                 weights: weightsArray,
