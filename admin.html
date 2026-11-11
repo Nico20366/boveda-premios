@@ -476,7 +476,8 @@
 
                     let actionBtn = (currentRole === 'super') ? (isApproved ? `<button onclick="toggleAdminApproval('${name}', false)" class="bg-amber-950 text-amber-300 px-2 py-1 rounded text-[10px]">Pausar</button>` : `<button onclick="toggleAdminApproval('${name}', true)" class="bg-emerald-500 text-black px-2 py-1 rounded text-[10px]">Aprobar</button>`) : "";
                     
-                    // Botón para renovar 30 días más al instante
+                    // Botones de gestión de tiempo y claves
+                    let editDateBtn = (currentRole === 'super') ? `<button onclick="superEditAdminDate('${name}')" class="bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-600/40 px-2 py-1 rounded text-[10px]" title="Editar/Ajustar fecha de vencimiento">✏️ Fecha</button>` : "";
                     let renewBtn = (currentRole === 'super') ? `<button onclick="renewAdminMonth('${name}', ${info.expiresAt || now})" class="bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600/40 px-2 py-1 rounded text-[10px]" title="Extender 30 días más">➕30d</button>` : "";
                     let changePassBtn = (currentRole === 'super') ? `<button onclick="superChangeAdminPassword('${name}')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-amber-500/30 px-2 py-1 rounded text-[10px]">🔑 Clave</button>` : "";
                     let deleteBtn = (currentRole === 'super') ? `<button onclick="deleteAdmin('${name}')" class="bg-red-950 text-red-300 px-2 py-1 rounded text-[10px]">🗑️</button>` : "";
@@ -487,7 +488,7 @@
                                 <strong>👤 ${name}</strong> <span id="online-${name}" class="text-[9px] text-zinc-400">⚪</span>
                                 ${expiryText}
                             </div>
-                            <div class="flex gap-1 shrink-0 items-center">${renewBtn} ${changePassBtn} ${actionBtn} ${deleteBtn}</div>
+                            <div class="flex gap-1 shrink-0 items-center">${editDateBtn} ${renewBtn} ${changePassBtn} ${actionBtn} ${deleteBtn}</div>
                         </div>`;
                     db.ref('status/' + name).on('value', s => {
                         let badge = document.getElementById(`online-${name}`);
@@ -498,10 +499,32 @@
             });
         }
 
-        // Función para sumar 30 días a partir de hoy o de su fecha actual de vencimiento
+        // Función para editar manualmente la fecha (quitar o poner los días que quieras)
+        function superEditAdminDate(name) {
+            let currentNow = new Date();
+            let defaultIso = new Date(currentNow.getTime() - (currentNow.getTimezoneOffset() * 60000)).toISOString().slice(0, 10);
+            
+            let newDateStr = prompt(`Ingresa la nueva fecha exacta de vencimiento para "${name}" (Formato: AAAA-MM-DD, ej: 2026-06-30):`, defaultIso);
+            if (!newDateStr) return;
+
+            let targetTime = new Date(newDateStr.trim() + "T23:59:59").getTime();
+            if (isNaN(targetTime)) {
+                alert("❌ Formato de fecha inválido. Usa AAAA-MM-DD.");
+                return;
+            }
+
+            db.ref('admins/' + name).update({ expiresAt: targetTime }, (error) => {
+                if (error) {
+                    alert("❌ Error al actualizar la fecha.");
+                } else {
+                    alert(`✅ ¡Fecha de vencimiento de "${name}" actualizada con éxito!`);
+                }
+            });
+        }
+
         function renewAdminMonth(name, currentExpiry) {
             let baseTime = currentExpiry > new Date().getTime() ? currentExpiry : new Date().getTime();
-            let newExpiry = baseTime + (30 * 24 * 60 * 60 * 1000); // Sumar 30 días exactos
+            let newExpiry = baseTime + (30 * 24 * 60 * 60 * 1000); 
 
             db.ref('admins/' + name).update({ expiresAt: newExpiry }, (error) => {
                 if (error) {
