@@ -232,8 +232,8 @@
         function setupRouletteWheel(prizesArray) {
             let wheel = document.getElementById('roulette-wheel');
             wheel.innerHTML = "";
-            // Colores limpios y elegantes (dorados, grises y negros, cero rojo)
-            let colors = ["#b45309", "#18181b", "#d97706", "#27272a", "#f59e0b", "#3f3f46"];
+            // Paleta 100% libre de rojos: solo tonos dorados, ámbar, negros y grises oscuros
+            let colors = ["#d97706", "#1c1917", "#f59e0b", "#09090b", "#b45309", "#27272a"];
             let sliceAngle = 360 / prizesArray.length;
 
             prizesArray.forEach((text, index) => {
