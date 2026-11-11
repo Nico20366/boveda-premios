@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel - Bóveda</title>
+    <title>Panel - Bóveda v2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -67,7 +67,6 @@
                         </select>
                     </div>
 
-                    <!-- Fila de Premios con casillero numérico de porcentaje al lado -->
                     <div class="bg-black/60 p-3 rounded-xl border border-zinc-800 space-y-2">
                         <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider block">🎯 Gajos / Premios y su probabilidad (%) individual:</label>
                         
@@ -87,7 +86,6 @@
                             <input type="text" id="prize-4" placeholder="Premio 4 (Opcional)" class="col-span-2 bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
                             <input type="number" id="weight-4" placeholder="%" min="1" max="100" value="0" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-amber-400 font-black text-center focus:outline-none">
                         </div>
-                        <p class="text-[9px] text-zinc-400 mt-1">💡 Ingresá el nombre del premio y el número del 1 al 100 en la casilla de al lado.</p>
                     </div>
 
                     <div>
@@ -146,6 +144,15 @@
                     <input type="password" id="new-pass" placeholder="Nueva" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
                 </div>
                 <button onclick="changeMyPassword()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-amber-500/30 py-2 rounded-xl text-xs font-bold uppercase">Actualizar Clave</button>
+            </div>
+
+            <!-- APARTADO DE MANTENIMIENTO Y CACHÉ -->
+            <div class="slot-marquee rounded-2xl p-4 space-y-3 border border-amber-500/40">
+                <h3 class="cinzel text-xs font-black dynamic-text">🧹 MANTENIMIENTO Y CACHÉ</h3>
+                <p class="text-[11px] text-zinc-400 font-medium">Si actualizaste la web y querés forzar que los navegadores limpien la memoria temporal:</p>
+                <button onclick="clearAppCache()" class="w-full bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-600/50 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider">
+                    🔄 Borrar Caché y Forzar Actualización
+                </button>
             </div>
 
             <div class="slot-marquee rounded-2xl p-4 space-y-3">
@@ -244,6 +251,21 @@
                 targetContent.classList.remove('hidden');
                 targetBtn.className = "py-2 rounded-lg text-[11px] font-black cinzel transition-all bg-zinc-800 text-amber-400 shadow";
             }
+        }
+
+        function clearAppCache() {
+            if(!confirm("¿Deseas limpiar el almacenamiento y forzar la actualización de la plataforma?")) return;
+            localStorage.clear();
+            sessionStorage.clear();
+            if ('caches' in window) {
+                caches.keys().then((names) => {
+                    names.forEach((name) => {
+                        caches.delete(name);
+                    });
+                });
+            }
+            alert("¡Caché limpiada con éxito! La página se recargará ahora.");
+            window.location.reload(true);
         }
 
         function createCoupon() {
