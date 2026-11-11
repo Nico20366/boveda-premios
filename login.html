@@ -1,86 +1,55 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso Administradores - Bóveda</title>
+    <title>Login Admin - Bóveda de Premios</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Plus+Jakarta+Sans:wght@600;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020204; color: #ffffff; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #050508; color: #f4f4f5; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .cinzel { font-family: 'Cinzel', serif; }
-        :root { --neon-main: #eab308; --neon-glow: rgba(234, 179, 8, 0.3); --neon-shadow: rgba(234, 179, 8, 0.7); }
-        .casino-bg { background-color: #050508; background-image: radial-gradient(circle at 50% 20%, var(--neon-glow) 0%, transparent 60%), radial-gradient(circle at 50% 90%, rgba(0,0,0,0.95) 0%, transparent 60%); }
-        .slot-marquee { border: 4px solid var(--neon-main); box-shadow: 0 0 35px var(--neon-shadow), inset 0 0 20px rgba(0,0,0,0.8); background: linear-gradient(180deg, #141419 0%, #08080b 100%); }
-        .dynamic-text { text-shadow: 0 0 15px var(--neon-main); color: var(--neon-main) !important; }
-        .dynamic-btn { background: linear-gradient(135deg, var(--neon-main) 0%, #ca8a04 100%); color: #000 !important; font-weight: 900; box-shadow: 0 0 25px var(--neon-shadow); }
+        :root { --neon-main: #f59e0b; }
+        .casino-bg { background-color: #050508; background-image: radial-gradient(circle at 50% 15%, rgba(245, 158, 11, 0.2) 0%, transparent 60%), radial-gradient(circle at 50% 90%, rgba(0,0,0,0.98) 0%, transparent 70%); }
+        .slot-marquee { border: 3px solid #d97706; box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.95), 0 0 25px rgba(245, 158, 11, 0.2); background: linear-gradient(145deg, #0d0d14 0%, #050508 100%); }
+        .dynamic-text { color: var(--neon-main) !important; text-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
+        .dynamic-btn { background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); color: #000; font-weight: 900; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4); transition: all 0.2s ease; }
+        .dynamic-btn:hover { filter: brightness(1.15); transform: translateY(-2px); }
     </style>
-  </head>
-  <body class="min-h-screen flex flex-col justify-between casino-bg p-4">
-    <header class="w-full py-4 px-5 border-b border-zinc-800 flex justify-between items-center bg-black/95 rounded-2xl shadow-2xl">
-      <div class="flex items-center space-x-2">
-        <span class="text-3xl">🔐</span>
+</head>
+<body class="casino-bg p-4">
+
+    <div class="max-w-sm w-full slot-marquee rounded-3xl p-6 sm:p-8 backdrop-blur-xl text-center space-y-5">
+        <div class="text-5xl mb-1">🔐</div>
         <div>
-          <h1 class="cinzel text-base sm:text-xl font-black dynamic-text tracking-wider">ACCESO ADMIN</h1>
-          <p class="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">ZONA RESTRINGIDA</p>
+            <h1 class="cinzel text-xl sm:text-2xl font-black dynamic-text">PANEL ADMIN</h1>
+            <p class="text-[11px] text-zinc-400 font-bold uppercase tracking-wider mt-1">Acceso restringido</p>
         </div>
-      </div>
-      <a href="index.html" class="text-[10px] sm:text-xs bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-700 px-3 py-1.5 rounded-lg font-bold cinzel shadow-lg">
-        ← VOLVER
-      </a>
-    </header>
-    <main class="flex-grow flex items-center justify-center px-4 py-8">
-      <div class="max-w-md w-full slot-marquee rounded-3xl p-8 shadow-2xl">
-        <h2 id="form-title" class="cinzel text-2xl font-black dynamic-text text-center mb-6">LOGIN DE ACCESO</h2>
-        <div id="msg-box" class="mb-4 text-xs font-bold text-center text-red-400 hidden bg-red-950/40 p-2 rounded-xl border border-red-800">
+
+        <div class="space-y-3 text-left">
+            <div>
+                <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Usuario:</label>
+                <input type="text" id="login-user" placeholder="Tu usuario" class="w-full bg-black/90 border-2 border-zinc-700 focus:border-amber-500 rounded-xl px-3.5 py-3 text-xs text-white font-bold uppercase focus:outline-none shadow-inner">
+            </div>
+            <div>
+                <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Contraseña:</label>
+                <input type="password" id="login-pass" placeholder="••••••••" class="w-full bg-black/90 border-2 border-zinc-700 focus:border-amber-500 rounded-xl px-3.5 py-3 text-xs text-white font-bold focus:outline-none shadow-inner">
+            </div>
         </div>
-        <!-- LOGIN -->
-        <div id="login-form" class="space-y-4">
-          <div>
-            <label class="text-xs text-zinc-300 font-bold uppercase tracking-wider">Usuario / Alias:</label>
-            <input type="text" id="log-user" placeholder="Escribe tu usuario" class="w-full bg-black border-2 border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-bold mt-1 focus:border-amber-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="text-xs text-zinc-300 font-bold uppercase tracking-wider">Contraseña:</label>
-            <input type="password" id="log-pass" placeholder="••••••••" class="w-full bg-black border-2 border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-bold mt-1 focus:border-amber-500 focus:outline-none">
-          </div>
-          <button onclick="loginAdmin()" class="w-full dynamic-btn py-4 rounded-xl text-sm cinzel uppercase tracking-widest mt-2">
-            INICIAR SESIÓN 🚀
-          </button>
-          <div class="text-center pt-4 border-t border-zinc-800 mt-6">
-            <p class="text-xs text-zinc-400">¿No tienes una cuenta de administrador?</p>
-            <button onclick="toggleView('register')" class="text-amber-400 text-xs font-black underline uppercase tracking-wider mt-1 hover:text-white">
-              Registrarse / Solicitar Permiso 📝
-            </button>
-          </div>
+
+        <button onclick="loginAdmin()" class="w-full dynamic-btn py-3 rounded-xl cinzel tracking-wider uppercase text-xs font-black">
+            INGRESAR 🚀
+        </button>
+
+        <p id="login-error" class="text-amber-400 text-xs font-bold hidden"></p>
+        
+        <div class="pt-2 border-t border-zinc-800">
+            <a href="index.html" class="text-[11px] text-zinc-500 hover:text-amber-400 font-bold transition-colors">← Volver al inicio</a>
         </div>
-        <!-- REGISTRO -->
-        <div id="register-form" class="space-y-4 hidden">
-          <div>
-            <label class="text-xs text-zinc-300 font-bold uppercase tracking-wider">Crea tu Usuario / Alias:</label>
-            <input type="text" id="reg-name" placeholder="Ej: Carlos" class="w-full bg-black border-2 border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-bold mt-1 focus:border-amber-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="text-xs text-zinc-300 font-bold uppercase tracking-wider">Crea tu Contraseña:</label>
-            <input type="password" id="reg-pass" placeholder="••••••••" class="w-full bg-black border-2 border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-bold mt-1 focus:border-amber-500 focus:outline-none">
-          </div>
-          <button onclick="registerAdmin()" class="w-full dynamic-btn py-4 rounded-xl text-sm cinzel uppercase tracking-widest mt-2">
-            ENVIAR SOLICITUD 📨
-          </button>
-          <div class="text-center pt-4 border-t border-zinc-800 mt-6">
-            <p class="text-xs text-zinc-400">¿Ya tienes una cuenta?</p>
-            <button onclick="toggleView('login')" class="text-amber-400 text-xs font-black underline uppercase tracking-wider mt-1 hover:text-white">
-              ← Volver a Iniciar Sesión
-            </button>
-          </div>
-        </div>
-      </div>
-    </main>
-    <footer class="w-full py-4 text-center text-xs text-zinc-400 border-t border-zinc-800 bg-black/95 rounded-2xl">
-      BÓVEDA DE LA SUERTE © 2026
-    </footer>
+    </div>
+
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBqLgy8LhtKaOZgf1tLH5tG6Pm8qYj3ouQ",
@@ -95,81 +64,36 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        function toggleView(view) {
-            let loginForm = document.getElementById('login-form');
-            let registerForm = document.getElementById('register-form');
-            let title = document.getElementById('form-title');
-            let msg = document.getElementById('msg-box');
-            msg.classList.add('hidden');
-
-            if(view === 'register') {
-                loginForm.classList.add('hidden');
-                registerForm.classList.remove('hidden');
-                title.innerText = "REGISTRO DE ADMIN";
-            } else {
-                registerForm.classList.add('hidden');
-                loginForm.classList.remove('hidden');
-                title.innerText = "LOGIN DE ACCESO";
-            }
-        }
-
-        function registerAdmin() {
-            let name = document.getElementById('reg-name').value.trim();
-            let pass = document.getElementById('reg-pass').value.trim();
-            let msg = document.getElementById('msg-box');
-
-            if(!name || !pass) {
-                msg.innerText = "Complete todos los campos.";
-                msg.classList.remove('hidden');
-                return;
-            }
-
-            db.ref('admins/' + name).once('value', (snap) => {
-                if(snap.exists()) {
-                    msg.innerText = "⚠️ Ese usuario ya existe.";
-                    msg.classList.remove('hidden');
-                    return;
-                }
-                db.ref('admins/' + name).set({
-                    password: pass,
-                    approved: false,
-                    role: "admin"
-                });
-                alert("¡Solicitud enviada con éxito! Queda pendiente a que el Super Admin la apruebe.");
-                toggleView('login');
-            });
-        }
-
         function loginAdmin() {
-            let name = document.getElementById('log-user').value.trim();
-            let pass = document.getElementById('log-pass').value.trim();
-            let msg = document.getElementById('msg-box');
+            let user = document.getElementById('login-user').value.trim();
+            let pass = document.getElementById('login-pass').value.trim();
+            let err = document.getElementById('login-error');
 
-            if(name === "superadmin" && pass === "123456") {
-                localStorage.setItem("current_admin", "SuperAdmin");
-                localStorage.setItem("admin_role", "super");
-                window.location.href = "admin.html";
+            if(!user || !pass) {
+                err.innerText = "Completa todos los campos.";
+                err.classList.remove('hidden');
                 return;
             }
 
-            db.ref('admins/' + name).once('value', (snap) => {
+            db.ref('admins/' + user).once('value', (snap) => {
                 let data = snap.val();
                 if(!data || data.password !== pass) {
-                    msg.innerText = "❌ Usuario o contraseña incorrectos.";
-                    msg.classList.remove('hidden');
-                    return;
-                }
-                if(!data.approved) {
-                    msg.innerText = "⏳ Tu cuenta aún no ha sido aprobada por el Super Admin.";
-                    msg.classList.remove('hidden');
+                    err.innerText = "❌ Usuario o contraseña incorrectos.";
+                    err.classList.remove('hidden');
                     return;
                 }
 
-                localStorage.setItem("current_admin", name);
-                localStorage.setItem("admin_role", "admin");
+                if(user !== "superadmin" && data.approved !== true) {
+                    err.innerText = "⏳ Tu cuenta espera aprobación del Super Admin.";
+                    err.classList.remove('hidden');
+                    return;
+                }
+
+                localStorage.setItem("current_admin", user);
+                localStorage.setItem("admin_role", user === "superadmin" ? "super" : "admin");
                 window.location.href = "admin.html";
             });
         }
     </script>
-  </body>
+</body>
 </html>
