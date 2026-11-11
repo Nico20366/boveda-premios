@@ -267,7 +267,12 @@
         function openChest(num, totalQty) {
             if (gameLocked) return;
             gameLocked = true;
-            if (navigator.vibrate) navigator.vibrate(60);
+            if (navigator.vibrate) navigator.vibrate(80);
+
+            let selectedChest = document.getElementById(`chest-${num}`);
+            if(selectedChest) {
+                selectedChest.classList.add('active-roulette');
+            }
 
             let nowObj = new Date();
             let formattedDateTime = nowObj.toLocaleDateString() + ", " + 
@@ -282,43 +287,63 @@
                 lastPrizeWon: resolvedFinalPrize
             });
 
-            let steps = 9, currentStep = 0;
-            let interval = setInterval(() => {
+            // SECUENCIA DE TENSIÓN LENTA Y DRAMÁTICA (~4-5 segundos de suspenso)
+            let currentStep = 0;
+            let totalSteps = 18; 
+            let delay = 120; 
+
+            function runSuspenseStep() {
                 playSound('slot');
                 let randomChest = Math.floor(Math.random() * totalQty) + 1;
-                for(let i=1; i<=totalQty; i++) {
+                for(let i = 1; i <= totalQty; i++) {
                     let el = document.getElementById(`chest-${i}`);
                     if(el) el.classList.remove('active-roulette');
                 }
                 let activeEl = document.getElementById(`chest-${randomChest}`);
                 if(activeEl) activeEl.classList.add('active-roulette');
-                
+
                 currentStep++;
-                if(currentStep >= steps) {
-                    clearInterval(interval);
-                    
-                    for(let i=1; i<=totalQty; i++) {
+
+                if (currentStep < totalSteps) {
+                    delay += 35; 
+                    setTimeout(runSuspenseStep, delay);
+                } else {
+                    for(let i = 1; i <= totalQty; i++) {
                         let el = document.getElementById(`chest-${i}`);
                         let lbl = document.getElementById(`chest-label-${i}`);
                         if(el) {
                             el.classList.remove('active-roulette');
-                            if(i !== num) { el.classList.add('dimmed'); if(lbl) lbl.classList.add('dimmed'); }
+                            if(i !== num) { 
+                                el.classList.add('dimmed'); 
+                                if(lbl) lbl.classList.add('dimmed'); 
+                            }
                         }
                     }
 
-                    const selectedChest = document.getElementById(`chest-${num}`);
-                    if(selectedChest) {
-                        selectedChest.classList.add('opened');
-                        selectedChest.innerText = '💎';
+                    let finalChest = document.getElementById(`chest-${num}`);
+                    if(finalChest) {
+                        finalChest.classList.add('active-roulette');
                     }
-                    playVictoryFanfare();
 
                     setTimeout(() => {
-                        document.getElementById('step-game-chests').classList.add('hidden');
-                        showResultScreen();
-                    }, 1000);
+                        if(finalChest) {
+                            finalChest.classList.remove('active-roulette');
+                            finalChest.classList.add('opened');
+                            finalChest.innerText = '💎';
+                        }
+                        
+                        playVictoryFanfare();
+
+                        setTimeout(() => {
+                            document.getElementById('step-game-chests').classList.add('hidden');
+                            showResultScreen();
+                        }, 1800);
+
+                    }, 1200);
                 }
-            }, 140);
+            }
+
+            setTimeout(runSuspenseStep, 200);
         }
 
         function resetToHome() {
