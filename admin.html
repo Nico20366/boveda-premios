@@ -3,90 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Administración - Bóveda de Premios</title>
+    <title>Panel - Bóveda de Premios</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #050508; color: #f4f4f5; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #07070a; color: #f4f4f5; }
         .cinzel { font-family: 'Cinzel', serif; }
         :root { --neon-main: #f59e0b; }
-        .casino-bg { background-color: #050508; background-image: radial-gradient(circle at 50% 10%, rgba(245, 158, 11, 0.15) 0%, transparent 60%), radial-gradient(circle at 50% 90%, rgba(0,0,0,0.98) 0%, transparent 70%); }
-        .slot-marquee { border: 2px solid #d97706; box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.9), 0 0 20px rgba(245, 158, 11, 0.15); background: linear-gradient(145deg, #0d0d14 0%, #050508 100%); }
-        .dynamic-text { color: var(--neon-main) !important; text-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
-        .dynamic-btn { background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); color: #000; font-weight: 900; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); transition: all 0.2s ease; }
-        .dynamic-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
+        .casino-bg { background-color: #050508; background-image: radial-gradient(circle at 50% 10%, rgba(245, 158, 11, 0.15) 0%, transparent 50%), radial-gradient(circle at 50% 90%, rgba(0,0,0,0.95) 0%, transparent 60%); }
+        .slot-marquee { border: 1px solid rgba(245, 158, 11, 0.3); box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.9), 0 0 20px rgba(245, 158, 11, 0.08); background: linear-gradient(145deg, #0d0d12 0%, #060609 100%); }
+        .dynamic-text { color: var(--neon-main) !important; }
+        .dynamic-btn { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000; font-weight: 800; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3); transition: all 0.2s ease; }
+        .dynamic-btn:hover { filter: brightness(1.1); }
     </style>
 </head>
-<body class="casino-bg min-h-screen p-3 sm:p-6 flex flex-col justify-between">
-
-    <div class="max-w-4xl w-full mx-auto space-y-6">
+<body class="min-h-screen casino-bg p-3 sm:p-6">
+    <div class="max-w-xl mx-auto space-y-4">
+        
         <!-- Header -->
-        <div class="slot-marquee rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <header class="slot-marquee rounded-2xl p-4 flex justify-between items-center">
             <div>
-                <h1 id="panel-title" class="cinzel text-xl sm:text-2xl font-black dynamic-text text-center sm:text-left">PANEL OPERATIVO</h1>
-                <p class="text-[11px] text-zinc-400 font-bold uppercase tracking-wider text-center sm:text-left">Usuario: <span id="current-user-lbl" class="text-white">...</span></p>
+                <h1 id="panel-title" class="cinzel text-sm sm:text-base font-black dynamic-text">PANEL DE CONTROL</h1>
+                <p id="welcome-msg" class="text-[11px] text-zinc-400 font-bold mt-0.5"></p>
             </div>
-            <div class="flex items-center gap-2 w-full sm:w-auto justify-center">
-                <button onclick="logout()" class="bg-red-600/20 border border-red-500/50 hover:bg-red-600 text-red-400 hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition-all">
-                    Salir ✖
+            <button onclick="logout()" class="bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-700/50 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors">Salir ✖</button>
+        </header>
+
+        <!-- Estadísticas Rápidas -->
+        <div class="grid grid-cols-3 gap-2">
+            <div class="slot-marquee rounded-xl p-3 text-center">
+                <p id="stat-total-label" class="text-[9px] text-zinc-400 font-bold uppercase">Total</p>
+                <p id="stat-total" class="text-base font-black dynamic-text">0</p>
+            </div>
+            <div class="slot-marquee rounded-xl p-3 text-center">
+                <p class="text-[9px] text-emerald-400 font-bold uppercase">Disponibles</p>
+                <p id="stat-available" class="text-base font-black text-emerald-400">0</p>
+            </div>
+            <div class="slot-marquee rounded-xl p-3 text-center">
+                <p class="text-[9px] text-red-400 font-bold uppercase">Agotados/Venc.</p>
+                <p id="stat-used" class="text-base font-black text-red-400">0</p>
+            </div>
+        </div>
+
+        <!-- Pestañas de Navegación -->
+        <div id="admin-tabs" class="grid grid-cols-3 gap-1 bg-black/60 p-1 rounded-xl border border-zinc-800">
+            <button onclick="switchTab('coupons')" id="tab-btn-coupons" class="py-2 rounded-lg text-[11px] font-black cinzel transition-all bg-zinc-800 text-amber-400 shadow">📋 Cupones</button>
+            <button onclick="switchTab('admins')" id="tab-btn-admins" class="py-2 rounded-lg text-[11px] font-black cinzel transition-all text-zinc-400 hover:text-white">👥 Admins</button>
+            <button onclick="switchTab('config')" id="tab-btn-config" class="py-2 rounded-lg text-[11px] font-black cinzel transition-all text-zinc-400 hover:text-white">⚙️ Ajustes</button>
+        </div>
+
+        <!-- PESTAÑA 1: GESTIÓN DE CUPONES -->
+        <div id="tab-content-coupons" class="space-y-4">
+            <div class="slot-marquee rounded-2xl p-4 space-y-3">
+                <h3 class="cinzel text-xs font-black dynamic-text">🎁 CREAR NUEVO CUPÓN</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Código del cupón:</label>
+                        <input type="text" id="new-code" placeholder="Ej: BAR2026" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold uppercase focus:outline-none focus:border-amber-500">
+                    </div>
+
+                    <!-- Generador Dinámico de Premios -->
+                    <div class="bg-black/60 p-3 rounded-xl border border-zinc-800 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider">🎯 Lista de Premios y Probabilidades (%):</label>
+                            <button onclick="addPrizeRow()" type="button" class="bg-zinc-800 hover:bg-zinc-700 text-amber-300 border border-amber-500/30 px-2 py-1 rounded-lg text-[10px] font-bold">+ Agregar Premio</button>
+                        </div>
+                        
+                        <div id="prizes-dynamic-container" class="space-y-2 pt-1">
+                            <!-- Los renglones se generan automáticamente aquí -->
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Fecha de Vencimiento:</label>
+                        <input type="datetime-local" id="new-expires-exact" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
+                    </div>
+                </div>
+                <button onclick="createCoupon()" class="w-full dynamic-btn py-3 rounded-xl text-xs uppercase tracking-wider font-black mt-2">Crear Cupón 💾</button>
+            </div>
+
+            <!-- Listado y Filtro de Cupones -->
+            <div class="slot-marquee rounded-2xl p-4 space-y-3">
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
+                    <h3 id="list-title" class="cinzel text-xs font-black dynamic-text">📋 LISTADO DE CUPONES</h3>
+                    <div class="flex items-center gap-1.5 w-full sm:w-auto justify-end">
+                        <input type="text" id="search-code" placeholder="🔍 Buscar..." oninput="filterCoupons()" class="bg-black/80 border border-zinc-700 rounded-xl px-2.5 py-1.5 text-xs text-white font-bold focus:outline-none w-28">
+                        <button onclick="clearUsedCoupons()" title="Limpiar vencidos o usados" class="bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-600/50 px-2 py-1.5 rounded-xl text-[10px] font-bold">🗑️ Limpiar</button>
+                        <button onclick="clearAllCoupons()" title="Borrar todo" class="bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-600/50 px-2 py-1.5 rounded-xl text-[10px] font-bold">💥 Todo</button>
+                    </div>
+                </div>
+                <div id="coupons-list" class="space-y-1.5 text-xs font-bold max-h-64 overflow-y-auto">
+                    <p class="text-zinc-500 text-center py-3">Conectando a Firebase...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PESTAÑA 2: ADMINISTRADORES -->
+        <div id="tab-content-admins" class="space-y-4 hidden">
+            <!-- Formulario exclusivo para que el Super Admin cree cuentas -->
+            <div id="super-admin-creator" class="slot-marquee rounded-2xl p-4 space-y-3 hidden">
+                <h3 class="cinzel text-xs font-black dynamic-text">➕ CREAR NUEVO ADMINISTRADOR</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <input type="text" id="new-admin-user" placeholder="Usuario (ej: carlos)" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
+                    <input type="password" id="new-admin-pass" placeholder="Contraseña" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
+                </div>
+                <button onclick="createAdminAccount()" class="w-full dynamic-btn py-2.5 rounded-xl text-xs uppercase font-black">Crear Admin 🚀</button>
+            </div>
+
+            <div class="slot-marquee rounded-2xl p-4 space-y-3">
+                <div class="flex justify-between items-center border-b border-zinc-800 pb-2">
+                    <h3 class="cinzel text-xs font-black dynamic-text">👥 CONTROL DE ADMINISTRADORES</h3>
+                    <span id="admins-count-badge" class="text-[10px] bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded-full font-bold">0</span>
+                </div>
+                <div id="admins-management-list" class="space-y-2 text-xs font-bold max-h-64 overflow-y-auto pt-1">
+                    <p class="text-zinc-500 text-center py-3">Cargando administradores...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PESTAÑA 3: AJUSTES Y MANTENIMIENTO -->
+        <div id="tab-content-config" class="space-y-4 hidden">
+            <div class="slot-marquee rounded-2xl p-4 space-y-3">
+                <h3 class="cinzel text-xs font-black text-amber-400">🔑 CAMBIAR MI CONTRASEÑA</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <input type="password" id="current-pass" placeholder="Contraseña actual" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
+                    <input type="password" id="new-pass" placeholder="Contraseña nueva" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
+                </div>
+                <button onclick="changeMyPassword()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-amber-500/30 py-2.5 rounded-xl text-xs font-bold uppercase transition-colors">Actualizar Clave</button>
+            </div>
+
+            <div class="slot-marquee rounded-2xl p-4 space-y-3 border border-amber-500/40">
+                <h3 class="cinzel text-xs font-black dynamic-text">🧹 MANTENIMIENTO Y CACHÉ</h3>
+                <p class="text-[11px] text-zinc-400 font-medium">Si actualizaste la web en GitHub y querés forzar que todos los navegadores limpien la memoria temporal:</p>
+                <button onclick="clearAppCache()" class="w-full bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-600/50 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
+                    🔄 Borrar Caché y Forzar Actualización
                 </button>
             </div>
-        </div>
 
-        <!-- Navegación exclusiva Super Admin -->
-        <div id="superadmin-nav" class="hidden flex gap-2 border-b border-zinc-800 pb-3">
-            <button onclick="switchTab('operativo')" id="btn-tab-operativo" class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-black">📋 Gestión Operativa</button>
-            <button onclick="switchTab('admins')" id="btn-tab-admins" class="px-4 py-2 rounded-xl text-xs font-bold bg-zinc-900 text-zinc-400 border border-zinc-800">👥 Control de Admins</button>
-        </div>
-
-        <!-- Vista Operativa (Gestión de Cupones y Premios - Para todos los admins) -->
-        <div id="tab-operativo" class="slot-marquee rounded-2xl p-5 sm:p-6 space-y-4">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                <div>
-                    <h2 class="cinzel text-sm sm:text-base font-bold text-amber-400">🎟️ Gestión y Validación de Cupones</h2>
-                    <p class="text-xs text-zinc-400">Monitoreá los cupones y premios de los usuarios participantes.</p>
+            <div id="super-text-section" class="slot-marquee rounded-2xl p-4 space-y-3">
+                <h3 class="cinzel text-xs font-black dynamic-text">✏️ TÍTULOS GENERALES DE LA PLATAFORMA</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <input type="text" id="edit-title" placeholder="Título Principal" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold uppercase focus:outline-none">
+                    <input type="text" id="edit-subtitle" placeholder="Subtítulo" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold uppercase focus:outline-none">
                 </div>
-                <input type="text" id="search-coupon" placeholder="Buscar por código o usuario..." onkeyup="filterCoupons()" class="bg-black/90 border border-zinc-700 focus:border-amber-500 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none w-full sm:w-64">
-            </div>
-
-            <!-- Lista de Cupones / Premios -->
-            <div class="space-y-3 mt-4">
-                <div id="coupons-list" class="space-y-2">
-                    <p class="text-xs text-zinc-500 text-center py-4">Cargando cupones...</p>
-                </div>
+                <button onclick="saveSiteTexts()" class="w-full dynamic-btn py-2.5 rounded-xl text-xs uppercase font-black">Guardar Títulos Generales</button>
             </div>
         </div>
 
-        <!-- Vista de Control de Admins (Solo Super Admin) -->
-        <div id="tab-admins" class="slot-marquee rounded-2xl p-5 sm:p-6 space-y-6 hidden">
-            <h2 class="cinzel text-sm sm:text-base font-bold text-amber-400">🛠️ Crear y Gestionar Administradores</h2>
-            
-            <!-- Formulario de Creación -->
-            <div class="bg-black/60 p-4 rounded-xl border border-zinc-800 space-y-3">
-                <h3 class="text-xs font-extrabold uppercase text-zinc-300 tracking-wider">Registrar Nuevo Administrador</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <input type="text" id="new-admin-user" placeholder="Nombre de usuario" class="bg-black/90 border border-zinc-700 focus:border-amber-500 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
-                    <input type="password" id="new-admin-pass" placeholder="Contraseña" class="bg-black/90 border border-zinc-700 focus:border-amber-500 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
-                    <button onclick="createAdmin()" class="dynamic-btn py-2 rounded-xl text-xs uppercase tracking-wider font-black">Crear Admin 🚀</button>
-                </div>
-                <p id="create-msg" class="text-xs font-bold hidden"></p>
-            </div>
-
-            <!-- Lista de Admins Existentes -->
-            <div class="space-y-3">
-                <h3 class="text-xs font-extrabold uppercase text-zinc-300 tracking-wider">Lista de Cuentas Registradas</h3>
-                <div id="admins-list" class="space-y-2">
-                    <p class="text-xs text-zinc-500">Cargando lista...</p>
-                </div>
-            </div>
-        </div>
     </div>
-
-    <footer class="text-center text-[10px] text-zinc-600 font-bold uppercase tracking-widest mt-8">
-        Bóveda de Premios • Sistema Seguro
-    </footer>
 
     <script>
         const firebaseConfig = {
@@ -104,193 +170,311 @@
 
         let currentUser = localStorage.getItem("current_admin");
         let currentRole = localStorage.getItem("admin_role");
+        let allCouponsData = {};
 
-        if (!currentUser) {
-            window.location.href = "login.html";
+        if(!currentUser) { window.location.href = "login.html"; }
+
+        const userStatusRef = db.ref('status/' + currentUser);
+        db.ref('.info/connected').on('value', (snap) => {
+            if (snap.val() === true) {
+                userStatusRef.onDisconnect().set({ state: 'offline', last_changed: firebase.database.ServerValue.TIMESTAMP });
+                userStatusRef.set({ state: 'online', last_changed: firebase.database.ServerValue.TIMESTAMP });
+            }
+        });
+
+        function setDefaultExpiration() {
+            let now = new Date();
+            now.setHours(now.getHours() + 24);
+            let isoString = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+            document.getElementById('new-expires-exact').value = isoString;
+        }
+        setDefaultExpiration();
+
+        function initDefaultPrizeRows() {
+            let container = document.getElementById('prizes-dynamic-container');
+            container.innerHTML = "";
+            addPrizeRow("Premio Principal", 70);
+            addPrizeRow("Premio Secundario", 30);
+        }
+        initDefaultPrizeRows();
+
+        function addPrizeRow(defaultName = "", defaultWeight = "") {
+            let container = document.getElementById('prizes-dynamic-container');
+            let rowId = 'prize-row-' + Date.now() + Math.random().toString(36).substr(2, 5);
+            let div = document.createElement('div');
+            div.className = "grid grid-cols-6 gap-2 items-center prize-row";
+            div.id = rowId;
+            div.innerHTML = `
+                <input type="text" placeholder="Nombre del premio" value="${defaultName}" class="col-span-4 bg-black/85 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500 prize-name-input">
+                <input type="number" placeholder="%" min="1" max="100" value="${defaultWeight}" class="col-span-1 bg-black/85 border border-zinc-700 rounded-xl px-2 py-2 text-xs text-amber-400 font-black text-center focus:outline-none focus:border-amber-500 prize-weight-input">
+                <button type="button" onclick="document.getElementById('${rowId}').remove()" class="col-span-1 bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-700/50 py-2 rounded-xl text-xs font-bold transition-colors">✕</button>
+            `;
+            container.appendChild(div);
         }
 
-        document.getElementById('current-user-lbl').innerText = currentUser;
-
-        if (currentRole === "super") {
-            document.getElementById('panel-title').innerText = "PANEL MAESTRO (SUPER ADMIN)";
-            document.getElementById('superadmin-nav').classList.remove('hidden');
+        if(currentRole === 'super') {
+            document.getElementById('welcome-msg').innerText = `${currentUser} (Super Admin)`;
+            document.getElementById('panel-title').innerText = "PANEL MAESTRO";
+            document.getElementById('stat-total-label').innerText = "Total";
+            document.getElementById('list-title').innerText = "📋 TODOS LOS CUPONES";
+            document.getElementById('super-admin-creator').classList.remove('hidden');
+            loadCurrentTexts();
+        } else {
+            document.getElementById('welcome-msg').innerText = `${currentUser} (Admin)`;
+            document.getElementById('panel-title').innerText = "PANEL DE CONTROL";
+            document.getElementById('stat-total-label').innerText = "Mis Total";
+            document.getElementById('list-title').innerText = "📋 MIS CUPONES";
+            document.getElementById('super-text-section').classList.add('hidden');
         }
 
-        // Cargar cupones/premios operativos al iniciar para cualquier admin
         loadCoupons();
+        loadAdminsManagement();
 
-        function switchTab(tab) {
-            let opView = document.getElementById('tab-operativo');
-            let adView = document.getElementById('tab-admins');
-            let btnOp = document.getElementById('btn-tab-operativo');
-            let btnAd = document.getElementById('btn-tab-admins');
-
-            if (tab === 'operativo') {
-                opView.classList.remove('hidden');
-                adView.classList.add('hidden');
-                btnOp.className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-black";
-                btnAd.className = "px-4 py-2 rounded-xl text-xs font-bold bg-zinc-900 text-zinc-400 border border-zinc-800";
-            } else {
-                opView.classList.add('hidden');
-                adView.classList.remove('hidden');
-                btnAd.className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-black";
-                btnOp.className = "px-4 py-2 rounded-xl text-xs font-bold bg-zinc-900 text-zinc-400 border border-zinc-800";
-                loadAdmins();
+        function switchTab(tabName) {
+            ['coupons', 'admins', 'config'].forEach(t => {
+                let content = document.getElementById(`tab-content-${t}`);
+                let btn = document.getElementById(`tab-btn-${t}`);
+                if (content && btn) {
+                    content.classList.add('hidden');
+                    btn.className = "py-2 rounded-lg text-[11px] font-black cinzel transition-all text-zinc-400 hover:text-white";
+                }
+            });
+            let targetContent = document.getElementById(`tab-content-${tabName}`);
+            let targetBtn = document.getElementById(`tab-btn-${tabName}`);
+            if (targetContent && targetBtn) {
+                targetContent.classList.remove('hidden');
+                targetBtn.className = "py-2 rounded-lg text-[11px] font-black cinzel transition-all bg-zinc-800 text-amber-400 shadow";
             }
         }
 
-        let allCouponsData = {};
+        function clearAppCache() {
+            if(!confirm("¿Deseas limpiar el almacenamiento y forzar la actualización de la plataforma?")) return;
+            localStorage.clear();
+            sessionStorage.clear();
+            if ('caches' in window) {
+                caches.keys().then((names) => {
+                    names.forEach((name) => {
+                        caches.delete(name);
+                    });
+                });
+            }
+            alert("¡Caché limpiada con éxito! La página se recargará ahora.");
+            window.location.reload(true);
+        }
+
+        function createCoupon() {
+            let code = document.getElementById('new-code').value.trim().toUpperCase();
+            let expireInput = document.getElementById('new-expires-exact').value;
+
+            if(!code || !expireInput) { alert("Completa al menos el código y la fecha de vencimiento."); return; }
+
+            let prizesArray = [];
+            let weightsArray = [];
+
+            let rows = document.querySelectorAll('.prize-row');
+            rows.forEach(row => {
+                let pName = row.querySelector('.prize-name-input').value.trim();
+                let pWeight = parseFloat(row.querySelector('.prize-weight-input').value);
+                if(pName && !isNaN(pWeight) && pWeight > 0) {
+                    prizesArray.push(pName);
+                    weightsArray.push(pWeight);
+                }
+            });
+
+            if(prizesArray.length === 0) { alert("Agregá al menos un premio con su porcentaje."); return; }
+
+            let expiresAt = new Date(expireInput).getTime();
+
+            db.ref('cupones/' + code).set({
+                usedCount: 0,
+                stockMax: 1, 
+                createdBy: currentUser, 
+                prizes: prizesArray, 
+                weights: weightsArray,
+                gameType: "chests",
+                createdAt: new Date().toLocaleDateString(), 
+                expiresAt: expiresAt
+            }, () => {
+                alert(`¡Cupón [${code}] creado con éxito!`);
+                document.getElementById('new-code').value = ""; 
+                initDefaultPrizeRows();
+                setDefaultExpiration();
+            });
+        }
 
         function loadCoupons() {
-            let container = document.getElementById('coupons-list');
-            // Nota: Ajusta la ruta 'cupones' o 'premios' según cómo guardes los datos en tu base de datos
-            db.ref('cupones').on('value', (snapshot) => {
-                let data = snapshot.val();
-                allCouponsData = data || {};
+            db.ref('cupones').on('value', (snap) => {
+                let raw = snap.val() || {};
+                if (currentRole === 'admin') {
+                    allCouponsData = {};
+                    for (let c in raw) { if (raw[c].createdBy === currentUser) allCouponsData[c] = raw[c]; }
+                } else { allCouponsData = raw; }
                 renderCoupons(allCouponsData);
+                updateStats(allCouponsData);
             });
         }
 
         function renderCoupons(data) {
-            let container = document.getElementById('coupons-list');
-            container.innerHTML = "";
-
-            if (!data || Object.keys(data).length === 0) {
-                container.innerHTML = `<p class="text-xs text-zinc-500 text-center py-4">No hay cupones o registros cargados actualmente.</p>`;
-                return;
+            let list = document.getElementById('coupons-list');
+            list.innerHTML = "";
+            if(Object.keys(data).length === 0) { 
+                list.innerHTML = "<p class='text-zinc-500 text-center py-3'>No hay cupones registrados.</p>"; 
+                return; 
             }
+            let now = new Date().getTime();
+            for(let code in data) {
+                let item = data[code];
+                let expired = item.expiresAt && now > item.expiresAt;
+                let usedCount = item.usedCount || 0;
+                let stockMax = item.stockMax || 1;
+                let isSoldOut = usedCount >= stockMax;
 
-            Object.keys(data).forEach(key => {
-                let item = data[key];
-                let card = document.createElement('div');
-                card.className = "flex flex-col sm:flex-row justify-between items-start sm:items-center bg-black/50 border border-zinc-800 p-3.5 rounded-xl gap-3";
-                card.innerHTML = `
-                    <div>
-                        <span class="text-xs font-extrabold text-amber-400">🎟️ Código: ${key}</span>
-                        <p class="text-[11px] text-zinc-300 mt-0.5">Premio: <span class="text-white font-bold">${item.premio || item.prize || 'Sin especificar'}</span></p>
-                        <p class="text-[10px] text-zinc-500">Usuario: ${item.user || item.usuario || 'Anónimo'} • Estado: <span class="${item.canjeado ? 'text-emerald-400' : 'text-amber-400'} font-bold">${item.canjeado ? 'Canjeado' : 'Pendiente'}</span></p>
-                    </div>
-                    <div class="flex gap-2 w-full sm:w-auto justify-end">
-                        <button onclick="toggleCanje('${key}', ${!item.canjeado})" class="px-3 py-1.5 rounded-lg text-[10px] font-bold ${item.canjeado ? 'bg-zinc-800 text-zinc-300' : 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/40'}">
-                            ${item.canjeado ? 'Marcar Pendiente' : 'Marcar Canjeado ✅'}
-                        </button>
-                    </div>
-                `;
-                container.appendChild(card);
+                let st = isSoldOut ? `<span class="text-red-400">USADO</span>` : (expired ? `<span class="text-amber-400">VENCIDO</span>` : `<span class="text-emerald-400">DISPONIBLE</span>`);
+                let firstPrize = item.prizes ? item.prizes[0] : "Premio";
+                let lastUsedInfo = item.lastUsedAt ? `<div class="text-[9px] text-amber-300 font-bold">Canjeado: ${item.lastUsedAt} (${item.lastPrizeWon || ''})</div>` : "";
+
+                list.innerHTML += `
+                    <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800 flex justify-between items-center gap-2">
+                        <div class="truncate">
+                            <strong class="text-amber-400">${code}</strong>: <span class="text-zinc-300">${firstPrize} y más</span>
+                            <div class="text-[9px] text-zinc-400 font-semibold">📦 Cofres de la Suerte</div>
+                            ${lastUsedInfo}
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            ${st} 
+                            <button onclick="navigator.clipboard.writeText('${code}'); alert('¡Código copiado!');" class="bg-zinc-800 hover:bg-zinc-700 text-amber-300 px-2 py-1 rounded text-[10px]" title="Copiar código">📋</button>
+                            <button onclick="deleteCoupon('${code}')" class="bg-red-950 hover:bg-red-900 text-red-300 border border-red-600/40 px-2 py-1 rounded text-[10px]" title="Eliminar cupón">🗑️</button>
+                        </div>
+                    </div>`;
+            }
+        }
+
+        function updateStats(data) {
+            let total = 0, used = 0, avail = 0, now = new Date().getTime();
+            for(let c in data) {
+                total++;
+                let item = data[c];
+                let isSoldOut = (item.usedCount || 0) >= (item.stockMax || 1);
+                if(isSoldOut || (item.expiresAt && now > item.expiresAt)) used++; else avail++;
+            }
+            document.getElementById('stat-total').innerText = total;
+            document.getElementById('stat-available').innerText = avail;
+            document.getElementById('stat-used').innerText = used;
+        }
+
+        function deleteCoupon(code) {
+            if(!confirm(`¿Eliminar el cupón [${code}]?`)) return;
+            db.ref('cupones/' + code).remove();
+        }
+
+        function clearUsedCoupons() {
+            if(!confirm("¿Eliminar cupones usados o vencidos?")) return;
+            let now = new Date().getTime();
+            db.ref('cupones').once('value', (snap) => {
+                let data = snap.val() || {};
+                let updates = {};
+                for(let code in data) {
+                    let item = data[code];
+                    let isExpired = item.expiresAt && now > item.expiresAt;
+                    let isSoldOut = (item.usedCount || 0) >= (item.stockMax || 1);
+                    if ((currentRole === 'super' || item.createdBy === currentUser) && (isSoldOut || isExpired)) {
+                        updates[code] = null;
+                    }
+                }
+                db.ref('cupones').update(updates, () => { alert("¡Limpieza completa!"); });
             });
+        }
+
+        function clearAllCoupons() {
+            if(!confirm("⚠️ ¿Estás seguro de borrar todos los cupones?")) return;
+            if (currentRole === 'super') {
+                db.ref('cupones').remove();
+            } else {
+                db.ref('cupones').once('value', (snap) => {
+                    let data = snap.val() || {};
+                    let updates = {};
+                    for(let code in data) { if(data[code].createdBy === currentUser) updates[code] = null; }
+                    db.ref('cupones').update(updates);
+                });
+            }
         }
 
         function filterCoupons() {
-            let query = document.getElementById('search-coupon').value.toLowerCase();
+            let term = document.getElementById('search-code').value.toUpperCase();
             let filtered = {};
-            Object.keys(allCouponsData).forEach(key => {
-                let item = allCouponsData[key];
-                let str = (key + " " + (item.premio || item.prize || "") + " " + (item.user || item.usuario || "")).toLowerCase();
-                if (str.includes(query)) {
-                    filtered[key] = item;
-                }
-            });
+            for(let c in allCouponsData) {
+                if(c.includes(term) || JSON.stringify(allCouponsData[c].prizes).toUpperCase().includes(term)) filtered[c] = allCouponsData[c];
+            }
             renderCoupons(filtered);
         }
 
-        function toggleCanje(couponKey, estado) {
-            db.ref('cupones/' + couponKey).update({ canjeado: estado });
-        }
+        function createAdminAccount() {
+            let user = document.getElementById('new-admin-user').value.trim().toLowerCase();
+            let pass = document.getElementById('new-admin-pass').value.trim();
+            if(!user || !pass) { alert("Completa el usuario y la contraseña."); return; }
 
-        function createAdmin() {
-            let uInput = document.getElementById('new-admin-user');
-            let pInput = document.getElementById('new-admin-pass');
-            let msg = document.getElementById('create-msg');
-            
-            let username = uInput.value.trim().toLowerCase();
-            let password = pInput.value.trim();
-
-            if (!username || !password) {
-                msg.innerText = "⚠️ Completa usuario y contraseña.";
-                msg.className = "text-amber-400 text-xs font-bold";
-                msg.classList.remove('hidden');
-                return;
-            }
-
-            db.ref('admins/' + username).once('value', (snap) => {
-                if (snap.exists()) {
-                    msg.innerText = "❌ Ese usuario ya existe.";
-                    msg.className = "text-red-400 text-xs font-bold";
-                    msg.classList.remove('hidden');
-                    return;
-                }
-
-                db.ref('admins/' + username).set({
-                    password: password,
+            db.ref('admins/' + user).once('value', snap => {
+                if(snap.exists()) { alert("❌ Ese nombre de usuario ya existe."); return; }
+                db.ref('admins/' + user).set({
+                    password: pass,
                     approved: true
-                }, (error) => {
-                    if (error) {
-                        msg.innerText = "❌ Error al crear administrador.";
-                        msg.className = "text-red-400 text-xs font-bold";
-                    } else {
-                        msg.innerText = "✅ ¡Administrador creado con éxito!";
-                        msg.className = "text-emerald-400 text-xs font-bold";
-                        uInput.value = "";
-                        pInput.value = "";
-                        loadAdmins();
-                    }
-                    msg.classList.remove('hidden');
+                }, () => {
+                    alert(`¡Administrador [${user}] creado con éxito!`);
+                    document.getElementById('new-admin-user').value = "";
+                    document.getElementById('new-admin-pass').value = "";
                 });
             });
         }
 
-        function loadAdmins() {
-            let container = document.getElementById('admins-list');
-            db.ref('admins').on('value', (snapshot) => {
-                let data = snapshot.val();
-                container.innerHTML = "";
-
-                if (!data) {
-                    container.innerHTML = `<p class="text-xs text-zinc-500">No hay administradores registrados.</p>`;
-                    return;
+        function loadAdminsManagement() {
+            db.ref('admins').on('value', (snap) => {
+                let list = document.getElementById('admins-management-list');
+                list.innerHTML = "";
+                let data = snap.val();
+                if(!data) { list.innerHTML = "<p class='text-zinc-500 text-center py-3'>No hay administradores.</p>"; return; }
+                let count = 0;
+                for(let name in data) {
+                    if(name === "superadmin") continue;
+                    count++;
+                    let info = data[name];
+                    let isApproved = info.approved === true;
+                    let actionBtn = (currentRole === 'super') ? (isApproved ? `<button onclick="toggleAdminApproval('${name}', false)" class="bg-amber-950 text-amber-300 px-2 py-1 rounded">Pausar</button>` : `<button onclick="toggleAdminApproval('${name}', true)" class="bg-emerald-500 text-black px-2 py-1 rounded">Aprobar</button>`) : "";
+                    let deleteBtn = (currentRole === 'super') ? `<button onclick="deleteAdmin('${name}')" class="bg-red-950 text-red-300 px-2 py-1 rounded">🗑️</button>` : "";
+                    
+                    list.innerHTML += `
+                        <div class="bg-black/60 p-3 rounded-xl border border-zinc-800 flex justify-between items-center">
+                            <div><strong>👤 ${name}</strong> <span id="online-${name}" class="text-[9px] text-zinc-400">⚪</span></div>
+                            <div class="flex gap-1">${actionBtn} ${deleteBtn}</div>
+                        </div>`;
+                    db.ref('status/' + name).on('value', s => {
+                        let badge = document.getElementById(`online-${name}`);
+                        if(badge && s.val() && s.val().state === 'online') { badge.className = "text-[9px] text-emerald-400 font-bold"; badge.innerText = "🟢 En línea"; }
+                    });
                 }
-
-                Object.keys(data).forEach(username => {
-                    if (username === "superadmin") return;
-                    let adminInfo = data[username];
-                    let isApproved = adminInfo.approved === true;
-
-                    let card = document.createElement('div');
-                    card.className = "flex justify-between items-center bg-black/50 border border-zinc-800 p-3 rounded-xl";
-                    card.innerHTML = `
-                        <div>
-                            <span class="text-xs font-extrabold text-white">👤 ${username}</span>
-                            <p class="text-[10px] text-zinc-400">Estado: <span class="${isApproved ? 'text-emerald-400' : 'text-amber-400'} font-bold">${isApproved ? 'Activo' : 'Pendiente'}</span></p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="toggleApproval('${username}', ${!isApproved})" class="px-2.5 py-1.5 rounded-lg text-[10px] font-bold ${isApproved ? 'bg-amber-600/20 text-amber-400 border border-amber-500/40' : 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/40'}">
-                                ${isApproved ? 'Pausar' : 'Aprobar'}
-                            </button>
-                            <button onclick="deleteAdmin('${username}')" class="bg-red-600/20 border border-red-500/40 text-red-400 px-2.5 py-1.5 rounded-lg text-[10px] font-bold">
-                                Eliminar
-                            </button>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
+                document.getElementById('admins-count-badge').innerText = count;
             });
         }
 
-        function toggleApproval(username, status) {
-            db.ref('admins/' + username).update({ approved: status });
+        function toggleAdminApproval(name, status) { db.ref('admins/' + name).update({ approved: status }); }
+        function deleteAdmin(name) { if(!confirm(`¿Eliminar al administrador ${name}?`)) return; db.ref('admins/' + name).remove(); db.ref('status/' + name).remove(); }
+        
+        function changeMyPassword() {
+            let curr = document.getElementById('current-pass').value.trim();
+            let neu = document.getElementById('new-pass').value.trim();
+            if(!curr || !neu) { alert("Completa ambos campos de contraseña."); return; }
+            db.ref('admins/' + currentUser).once('value', s => {
+                if(!s.val() || s.val().password !== curr) { alert("La contraseña actual es incorrecta."); return; }
+                db.ref('admins/' + currentUser).update({ password: neu }, () => { alert("¡Contraseña actualizada con éxito!"); document.getElementById('current-pass').value = ""; document.getElementById('new-pass').value = ""; });
+            });
         }
 
-        function deleteAdmin(username) {
-            if (confirm(`¿Estás seguro de eliminar al administrador "${username}"?`)) {
-                db.ref('admins/' + username).remove();
-            }
+        function loadCurrentTexts() {
+            db.ref('configuracion').once('value', s => { if(s.val()) { if(s.val().titulo) document.getElementById('edit-title').value = s.val().titulo; if(s.val().subtitulo) document.getElementById('edit-subtitle').value = s.val().subtitulo; } });
         }
-
-        function logout() {
-            localStorage.removeItem("current_admin");
-            localStorage.removeItem("admin_role");
-            window.location.href = "login.html";
+        function saveSiteTexts() {
+            db.ref('configuracion').set({ titulo: document.getElementById('edit-title').value.trim().toUpperCase() || "BÓVEDA", subtitulo: document.getElementById('edit-subtitle').value.trim().toUpperCase() || "PREMIOS" }, () => { alert("¡Títulos generales guardados!"); });
         }
+        function logout() { localStorage.clear(); window.location.href = "login.html"; }
     </script>
 </body>
 </html>
