@@ -69,7 +69,7 @@
 
         <!-- Cofres -->
         <div id="step-game-chests" class="w-full hidden slot-marquee rounded-3xl p-6 sm:p-8 backdrop-blur-xl">
-            <h2 id="chest-game-title" class="cinzel text-xl sm:text-2xl font-black text-white mb-2">¡ELIJA UN COFRE!</h2>
+            <h2 class="cinzel text-xl sm:text-2xl font-black text-white mb-2">¡ELIJA UN COFRE!</h2>
             <p class="text-zinc-400 text-xs sm:text-sm mb-4 font-medium">Toque uno de los cofres para descubrir su premio:</p>
             <div class="bg-amber-950/40 border border-amber-500/40 rounded-xl p-3 mb-5">
                 <p class="text-[11px] text-amber-200/90 font-medium">⚠️ El código se canjea al tocar. <strong>No recargue</strong> la página.</p>
@@ -110,6 +110,14 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+
+        db.ref('configuracion').on('value', (snap) => {
+            let data = snap.val();
+            if(data) {
+                if(data.titulo) { document.getElementById('header-title').innerText = data.titulo; document.getElementById('page-title').innerText = data.titulo; }
+                if(data.subtitulo) { document.getElementById('header-subtitle').innerText = data.subtitulo; }
+            }
+        });
 
         let audioCtx = null;
         function playSound(type) {
@@ -247,12 +255,18 @@
             gameLocked = true;
             if (navigator.vibrate) navigator.vibrate(50);
 
-            let now = new Date().toLocaleString();
+            // Obtener fecha, hora y minutos exactos locales
+            let nowObj = new Date();
+            let formattedDateTime = nowObj.toLocaleDateString() + ", " + 
+                                    String(nowObj.getHours()).padStart(2, '0') + ":" + 
+                                    String(nowObj.getMinutes()).padStart(2, '0');
+
             let newUsedCount = (currentTokenData.usedCount || 0) + 1;
 
+            // Actualiza en Firebase el uso, el premio y la fecha/hora exacta del canje
             db.ref('cupones/' + currentCodeKey).update({
                 usedCount: newUsedCount,
-                lastUsedAt: now,
+                lastUsedAt: formattedDateTime,
                 lastPrizeWon: resolvedFinalPrize
             });
 
