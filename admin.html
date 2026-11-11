@@ -296,7 +296,7 @@
                 prizes: prizesArray, 
                 weights: weightsArray,
                 instructions: instructions || "Presente este resultado en caja.",
-                gameType: "chests", // Forzado a cofres
+                gameType: "chests",
                 createdAt: new Date().toLocaleDateString(), 
                 expiresAt: expiresAt
             }, () => {
@@ -461,15 +461,17 @@
 
         function toggleAdminApproval(name, status) { db.ref('admins/' + name).update({ approved: status }); }
         function deleteAdmin(name) { if(!confirm(`¿Eliminar?`)) return; db.ref('admins/' + name).remove(); db.ref('status/' + name).remove(); }
+        
         function changeMyPassword() {
             let curr = document.getElementById('current-pass').value.trim();
             let neu = document.getElementById('new-pass').value.trim();
             if(!curr || !neu) { alert("Completa los campos."); return; }
             db.ref('admins/' + currentUser).once('value', s => {
                 if(!s.val() || s.val().password !== curr) { alert("Clave actual incorrecta."); return; }
-                db.ref('admins/' + currentUser).update({ password: neu }, () => { alert("¡Actualizado!"); document.getElementById('current-pass'].value = ""; document.getElementById('new-pass').value = ""; });
+                db.ref('admins/' + currentUser).update({ password: neu }, () => { alert("¡Actualizado!"); document.getElementById('current-pass').value = ""; document.getElementById('new-pass').value = ""; });
             });
         }
+
         function loadCurrentTexts() {
             db.ref('configuracion').once('value', s => { if(s.val()) { if(s.val().titulo) document.getElementById('edit-title').value = s.val().titulo; if(s.val().subtitulo) document.getElementById('edit-subtitle').value = s.val().subtitulo; } });
         }
