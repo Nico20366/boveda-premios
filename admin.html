@@ -41,13 +41,21 @@
             <button onclick="switchTab('admins')" id="btn-tab-admins" class="px-4 py-2 rounded-xl text-xs font-bold bg-zinc-900 text-zinc-400 border border-zinc-800">👥 Control de Admins</button>
         </div>
 
-        <!-- Vista Operativa (Común a todos) -->
+        <!-- Vista Operativa (Gestión de Cupones y Premios - Para todos los admins) -->
         <div id="tab-operativo" class="slot-marquee rounded-2xl p-5 sm:p-6 space-y-4">
-            <h2 class="cinzel text-sm sm:text-base font-bold text-amber-400">⚡ Acceso Operativo</h2>
-            <p class="text-xs text-zinc-400">Desde aquí podés gestionar el sistema de premios y cupones de los usuarios.</p>
-            <!-- Contenido operativo actual de tu panel -->
-            <div class="p-4 bg-black/40 rounded-xl border border-zinc-800 text-center text-xs text-zinc-500">
-                Panel operativo activo y funcionando correctamente.
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div>
+                    <h2 class="cinzel text-sm sm:text-base font-bold text-amber-400">🎟️ Gestión y Validación de Cupones</h2>
+                    <p class="text-xs text-zinc-400">Monitoreá los cupones y premios de los usuarios participantes.</p>
+                </div>
+                <input type="text" id="search-coupon" placeholder="Buscar por código o usuario..." onkeyup="filterCoupons()" class="bg-black/90 border border-zinc-700 focus:border-amber-500 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none w-full sm:w-64">
+            </div>
+
+            <!-- Lista de Cupones / Premios -->
+            <div class="space-y-3 mt-4">
+                <div id="coupons-list" class="space-y-2">
+                    <p class="text-xs text-zinc-500 text-center py-4">Cargando cupones...</p>
+                </div>
             </div>
         </div>
 
@@ -106,8 +114,10 @@
         if (currentRole === "super") {
             document.getElementById('panel-title').innerText = "PANEL MAESTRO (SUPER ADMIN)";
             document.getElementById('superadmin-nav').classList.remove('hidden');
-            loadAdmins();
         }
+
+        // Cargar cupones/premios operativos al iniciar para cualquier admin
+        loadCoupons();
 
         function switchTab(tab) {
             let opView = document.getElementById('tab-operativo');
@@ -127,6 +137,64 @@
                 btnOp.className = "px-4 py-2 rounded-xl text-xs font-bold bg-zinc-900 text-zinc-400 border border-zinc-800";
                 loadAdmins();
             }
+        }
+
+        let allCouponsData = {};
+
+        function loadCoupons() {
+            let container = document.getElementById('coupons-list');
+            // Nota: Ajusta la ruta 'cupones' o 'premios' según cómo guardes los datos en tu base de datos
+            db.ref('cupones').on('value', (snapshot) => {
+                let data = snapshot.val();
+                allCouponsData = data || {};
+                renderCoupons(allCouponsData);
+            });
+        }
+
+        function renderCoupons(data) {
+            let container = document.getElementById('coupons-list');
+            container.innerHTML = "";
+
+            if (!data || Object.keys(data).length === 0) {
+                container.innerHTML = `<p class="text-xs text-zinc-500 text-center py-4">No hay cupones o registros cargados actualmente.</p>`;
+                return;
+            }
+
+            Object.keys(data).forEach(key => {
+                let item = data[key];
+                let card = document.createElement('div');
+                card.className = "flex flex-col sm:flex-row justify-between items-start sm:items-center bg-black/50 border border-zinc-800 p-3.5 rounded-xl gap-3";
+                card.innerHTML = `
+                    <div>
+                        <span class="text-xs font-extrabold text-amber-400">🎟️ Código: ${key}</span>
+                        <p class="text-[11px] text-zinc-300 mt-0.5">Premio: <span class="text-white font-bold">${item.premio || item.prize || 'Sin especificar'}</span></p>
+                        <p class="text-[10px] text-zinc-500">Usuario: ${item.user || item.usuario || 'Anónimo'} • Estado: <span class="${item.canjeado ? 'text-emerald-400' : 'text-amber-400'} font-bold">${item.canjeado ? 'Canjeado' : 'Pendiente'}</span></p>
+                    </div>
+                    <div class="flex gap-2 w-full sm:w-auto justify-end">
+                        <button onclick="toggleCanje('${key}', ${!item.canjeado})" class="px-3 py-1.5 rounded-lg text-[10px] font-bold ${item.canjeado ? 'bg-zinc-800 text-zinc-300' : 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/40'}">
+                            ${item.canjeado ? 'Marcar Pendiente' : 'Marcar Canjeado ✅'}
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filterCoupons() {
+            let query = document.getElementById('search-coupon').value.toLowerCase();
+            let filtered = {};
+            Object.keys(allCouponsData).forEach(key => {
+                let item = allCouponsData[key];
+                let str = (key + " " + (item.premio || item.prize || "") + " " + (item.user || item.usuario || "")).toLowerCase();
+                if (str.includes(query)) {
+                    filtered[key] = item;
+                }
+            });
+            renderCoupons(filtered);
+        }
+
+        function toggleCanje(couponKey, estado) {
+            db.ref('cupones/' + couponKey).update({ canjeado: estado });
         }
 
         function createAdmin() {
@@ -183,7 +251,7 @@
                 }
 
                 Object.keys(data).forEach(username => {
-                    if (username === "superadmin") return; // Ocultar al superadmin principal de la lista de borrado
+                    if (username === "superadmin") return;
                     let adminInfo = data[username];
                     let isApproved = adminInfo.approved === true;
 
