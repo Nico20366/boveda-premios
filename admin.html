@@ -141,15 +141,6 @@
                     🔄 Borrar Caché y Forzar Actualización
                 </button>
             </div>
-
-            <div id="super-text-section" class="slot-marquee rounded-2xl p-4 space-y-3">
-                <h3 class="cinzel text-xs font-black dynamic-text">✏️ TÍTULOS GENERALES DE LA PLATAFORMA</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <input type="text" id="edit-title" placeholder="Título Principal" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold uppercase focus:outline-none">
-                    <input type="text" id="edit-subtitle" placeholder="Subtítulo" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold uppercase focus:outline-none">
-                </div>
-                <button onclick="saveSiteTexts()" class="w-full dynamic-btn py-2.5 rounded-xl text-xs uppercase font-black">Guardar Títulos Generales</button>
-            </div>
         </div>
 
     </div>
@@ -218,13 +209,11 @@
             document.getElementById('stat-total-label').innerText = "Total";
             document.getElementById('list-title').innerText = "📋 TODOS LOS CUPONES";
             document.getElementById('super-admin-creator').classList.remove('hidden');
-            loadCurrentTexts();
         } else {
             document.getElementById('welcome-msg').innerText = `${currentUser} (Admin)`;
             document.getElementById('panel-title').innerText = "PANEL DE CONTROL";
             document.getElementById('stat-total-label').innerText = "Mis Total";
             document.getElementById('list-title').innerText = "📋 MIS CUPONES";
-            document.getElementById('super-text-section').classList.add('hidden');
         }
 
         loadCoupons();
@@ -438,13 +427,17 @@
                     count++;
                     let info = data[name];
                     let isApproved = info.approved === true;
+                    
                     let actionBtn = (currentRole === 'super') ? (isApproved ? `<button onclick="toggleAdminApproval('${name}', false)" class="bg-amber-950 text-amber-300 px-2 py-1 rounded">Pausar</button>` : `<button onclick="toggleAdminApproval('${name}', true)" class="bg-emerald-500 text-black px-2 py-1 rounded">Aprobar</button>`) : "";
+                    
+                    // Botón para que el Super Admin cambie la contraseña de un admin común
+                    let changePassBtn = (currentRole === 'super') ? `<button onclick="superChangeAdminPassword('${name}')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-amber-500/30 px-2 py-1 rounded text-[10px]">🔑 Clave</button>` : "";
                     let deleteBtn = (currentRole === 'super') ? `<button onclick="deleteAdmin('${name}')" class="bg-red-950 text-red-300 px-2 py-1 rounded">🗑️</button>` : "";
                     
                     list.innerHTML += `
-                        <div class="bg-black/60 p-3 rounded-xl border border-zinc-800 flex justify-between items-center">
-                            <div><strong>👤 ${name}</strong> <span id="online-${name}" class="text-[9px] text-zinc-400">⚪</span></div>
-                            <div class="flex gap-1">${actionBtn} ${deleteBtn}</div>
+                        <div class="bg-black/60 p-3 rounded-xl border border-zinc-800 flex justify-between items-center gap-2">
+                            <div class="truncate"><strong>👤 ${name}</strong> <span id="online-${name}" class="text-[9px] text-zinc-400">⚪</span></div>
+                            <div class="flex gap-1 shrink-0">${changePassBtn} ${actionBtn} ${deleteBtn}</div>
                         </div>`;
                     db.ref('status/' + name).on('value', s => {
                         let badge = document.getElementById(`online-${name}`);
@@ -452,6 +445,21 @@
                     });
                 }
                 document.getElementById('admins-count-badge').innerText = count;
+            });
+        }
+
+        function superChangeAdminPassword(name) {
+            let newPass = prompt(`Ingresa la nueva contraseña para el administrador "${name}":`);
+            if (!newPass) return;
+            newPass = newPass.trim();
+            if (newPass.length < 3) { alert("La contraseña es muy corta."); return; }
+
+            db.ref('admins/' + name).update({ password: newPass }, (error) => {
+                if (error) {
+                    alert("❌ Error al actualizar la contraseña.");
+                } else {
+                    alert(`✅ ¡Contraseña de "${name}" actualizada con éxito!`);
+                }
             });
         }
 
@@ -468,12 +476,6 @@
             });
         }
 
-        function loadCurrentTexts() {
-            db.ref('configuracion').once('value', s => { if(s.val()) { if(s.val().titulo) document.getElementById('edit-title').value = s.val().titulo; if(s.val().subtitulo) document.getElementById('edit-subtitle').value = s.val().subtitulo; } });
-        }
-        function saveSiteTexts() {
-            db.ref('configuracion').set({ titulo: document.getElementById('edit-title').value.trim().toUpperCase() || "BÓVEDA", subtitulo: document.getElementById('edit-subtitle').value.trim().toUpperCase() || "PREMIOS" }, () => { alert("¡Títulos generales guardados!"); });
-        }
         function logout() { localStorage.clear(); window.location.href = "login.html"; }
     </script>
 </body>
