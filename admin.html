@@ -59,16 +59,12 @@
             <div class="slot-marquee rounded-2xl p-4 space-y-3">
                 <h3 class="cinzel text-xs font-black dynamic-text">🎁 NUEVO CUPÓN CON PREMIOS Y % INDIVIDUAL</h3>
                 <div class="space-y-2">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <input type="text" id="new-code" placeholder="Código (Ej: RULETAVIP)" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold uppercase focus:outline-none focus:border-amber-500">
-                        <select id="new-game-type" class="bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500">
-                            <option value="roulette">🎡 Ruleta Personalizada</option>
-                            <option value="chests">📦 Cofres Personalizados</option>
-                        </select>
+                    <div>
+                        <input type="text" id="new-code" placeholder="Código (Ej: COFREVIP)" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold uppercase focus:outline-none focus:border-amber-500">
                     </div>
 
                     <div class="bg-black/60 p-3 rounded-xl border border-zinc-800 space-y-2">
-                        <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider block">🎯 Gajos / Premios y su probabilidad (%) individual:</label>
+                        <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider block">🎯 Premios y su probabilidad (%) individual:</label>
                         
                         <div class="grid grid-cols-3 gap-2 items-center">
                             <input type="text" id="prize-1" placeholder="Premio 1" class="col-span-2 bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
@@ -156,15 +152,11 @@
             </div>
 
             <div class="slot-marquee rounded-2xl p-4 space-y-3">
-                <h3 class="cinzel text-xs font-black dynamic-text">⚙️ MIS AJUSTES DE JUEGOS</h3>
+                <h3 class="cinzel text-xs font-black dynamic-text">⚙️ MIS AJUSTES DE JUEGO</h3>
                 <div class="space-y-3 pt-2">
                     <div class="bg-black/60 p-3 rounded-xl border border-zinc-800">
-                        <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider block mb-1">📦 Mensaje Cofres:</label>
-                        <input type="text" id="cfg-chest-msg" placeholder="Mensaje al ganar" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
-                    </div>
-                    <div class="bg-black/60 p-3 rounded-xl border border-zinc-800">
-                        <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider block mb-1">🎡 Título Ruleta:</label>
-                        <input type="text" id="cfg-roulette-title" placeholder="Título de la ruleta" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
+                        <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider block mb-1">📦 Mensaje de Cofres:</label>
+                        <input type="text" id="cfg-chest-msg" placeholder="Ej: ¡Elija su cofre de la suerte!" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
                     </div>
                 </div>
                 <button onclick="saveMyGameConfig()" class="w-full dynamic-btn py-2 rounded-xl text-xs uppercase">Guardar Mis Ajustes</button>
@@ -271,7 +263,6 @@
         function createCoupon() {
             let code = document.getElementById('new-code').value.trim().toUpperCase();
             let instructions = document.getElementById('new-instructions').value.trim();
-            let gameType = document.getElementById('new-game-type').value;
             let stockMax = parseInt(document.getElementById('new-stock').value) || 1;
             let expireInput = document.getElementById('new-expires-exact').value;
 
@@ -305,7 +296,7 @@
                 prizes: prizesArray, 
                 weights: weightsArray,
                 instructions: instructions || "Presente este resultado en caja.",
-                gameType: gameType,
+                gameType: "chests", // Forzado a cofres
                 createdAt: new Date().toLocaleDateString(), 
                 expiresAt: expiresAt
             }, () => {
@@ -347,14 +338,13 @@
                 let isSoldOut = usedCount >= stockMax;
 
                 let st = isSoldOut ? `<span class="text-red-400">AGOTADO</span>` : (expired ? `<span class="text-amber-400">VENCIDO</span>` : `<span class="text-emerald-400">DISP. (${usedCount}/${stockMax})</span>`);
-                let gameIcon = item.gameType === 'roulette' ? '🎡 Ruleta' : '📦 Cofres';
                 let firstPrize = item.prizes ? item.prizes[0] : "Premio";
 
                 list.innerHTML += `
                     <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800 flex justify-between items-center gap-2">
                         <div class="truncate">
                             <strong class="text-amber-400">${code}</strong>: <span class="text-zinc-300">${firstPrize} y más</span>
-                            <div class="text-[9px] text-zinc-400 font-semibold">${gameIcon} | Porcentajes personalizados</div>
+                            <div class="text-[9px] text-zinc-400 font-semibold">📦 Cofres | Porcentajes personalizados</div>
                         </div>
                         <div class="flex items-center gap-1.5 shrink-0">
                             ${st} 
@@ -429,17 +419,14 @@
                 let data = snap.val();
                 if(data) {
                     if(data.chestMsg) document.getElementById('cfg-chest-msg').value = data.chestMsg;
-                    if(data.rouletteTitle) document.getElementById('cfg-roulette-title').value = data.rouletteTitle;
                 }
             });
         }
 
         function saveMyGameConfig() {
             let chestMsg = document.getElementById('cfg-chest-msg').value.trim();
-            let rouletteTitle = document.getElementById('cfg-roulette-title').value.trim();
             db.ref(`admins/${currentUser}/configuracion_juegos`).set({
-                chestMsg: chestMsg || "¡Premio Sorpresa en Cofre!",
-                rouletteTitle: rouletteTitle || "Ruleta de la Suerte"
+                chestMsg: chestMsg || "¡Elija su cofre de la suerte!"
             }, () => { alert("¡Ajustes guardados!"); });
         }
 
@@ -480,7 +467,7 @@
             if(!curr || !neu) { alert("Completa los campos."); return; }
             db.ref('admins/' + currentUser).once('value', s => {
                 if(!s.val() || s.val().password !== curr) { alert("Clave actual incorrecta."); return; }
-                db.ref('admins/' + currentUser).update({ password: neu }, () => { alert("¡Actualizado!"); document.getElementById('current-pass').value = ""; document.getElementById('new-pass').value = ""; });
+                db.ref('admins/' + currentUser).update({ password: neu }, () => { alert("¡Actualizado!"); document.getElementById('current-pass'].value = ""; document.getElementById('new-pass').value = ""; });
             });
         }
         function loadCurrentTexts() {
