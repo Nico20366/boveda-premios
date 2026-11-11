@@ -14,7 +14,6 @@
         :root { --neon-main: #f59e0b; --neon-glow: rgba(245, 158, 11, 0.25); }
         .casino-bg { background-color: #050508; background-image: radial-gradient(circle at 50% 15%, var(--neon-glow) 0%, transparent 60%), radial-gradient(circle at 50% 90%, rgba(0,0,0,0.98) 0%, transparent 70%); }
         
-        /* Marquesina de Casino en el Borde (Efecto de luces intermitentes doradas) */
         .slot-marquee { 
             background: linear-gradient(145deg, #0d0d14 0%, #050508 100%); 
             position: relative; 
@@ -58,10 +57,10 @@
             <span class="text-2xl select-none">🎰</span>
             <div>
                 <h1 id="header-title" class="cinzel text-base sm:text-lg font-black tracking-wider text-amber-400">BÓVEDA DE LA SUERTE</h1>
-                <p id="header-subtitle" class="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">ZONA DE PREMIOS VIP</p>
             </div>
         </div>
-        <div class="flex items-center gap-2">
+        <!-- Login oculto de la vista principal -->
+        <div class="hidden">
             <a href="login.html" class="text-[11px] bg-zinc-900/90 hover:bg-zinc-800 text-amber-400 border border-amber-500/40 px-3 py-1.5 rounded-lg font-bold cinzel shadow">🔐 LOGIN</a>
         </div>
     </header>
@@ -78,12 +77,12 @@
                 class="w-full bg-black/90 border-2 border-zinc-700 focus:border-amber-500 rounded-xl px-4 py-3.5 text-center text-xl font-black text-amber-400 uppercase mb-5 focus:outline-none tracking-widest shadow-inner transition-colors">
             
             <button onclick="verifyToken()" class="w-full dynamic-btn py-3.5 rounded-xl cinzel tracking-widest uppercase text-sm font-black">
-                GIRAR / ABRIR 🎰
+                ABRIR COFRE 🎰
             </button>
             <p id="error-msg" class="text-amber-400 text-xs mt-3 font-bold hidden"></p>
         </div>
 
-        <!-- Cofres (Slot Style) -->
+        <!-- Cofres -->
         <div id="step-game-chests" class="w-full hidden slot-marquee rounded-3xl p-6 sm:p-8 backdrop-blur-xl">
             <h2 class="cinzel text-xl sm:text-2xl font-black text-white mb-2">¡ELIJA UN COFRE!</h2>
             <p class="text-zinc-400 text-xs sm:text-sm mb-4 font-medium">Toque uno de los cofres para descubrir su premio:</p>
@@ -93,7 +92,7 @@
             <div id="chests-container" class="grid grid-cols-3 gap-3 mb-2"></div>
         </div>
 
-        <!-- Resultado (Jackpot Style) -->
+        <!-- Resultado -->
         <div id="step-result" class="w-full hidden slot-marquee rounded-3xl p-6 sm:p-8 backdrop-blur-xl jackpot-glow">
             <div class="text-6xl mb-3 animate-bounce" id="result-emoji">👑</div>
             <h3 class="cinzel text-xs text-amber-400 mb-1 font-bold tracking-widest">¡JACKPOT / PREMIO GANADO!</h3>
@@ -131,7 +130,6 @@
             let data = snap.val();
             if(data) {
                 if(data.titulo) { document.getElementById('header-title').innerText = data.titulo; document.getElementById('page-title').innerText = data.titulo; }
-                if(data.subtitulo) { document.getElementById('header-subtitle').innerText = data.subtitulo; }
             }
         });
 
@@ -145,12 +143,10 @@
             let now = audioCtx.currentTime;
 
             if (type === 'click') {
-                // Sonido seco tipo ficha de casino
                 osc.type = 'square'; osc.frequency.setValueAtTime(800, now);
                 gain.gain.setValueAtTime(0.04, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
                 osc.start(now); osc.stop(now + 0.04);
             } else if (type === 'slot') {
-                // Sonido tipo tambor de slot machine
                 osc.type = 'triangle'; osc.frequency.setValueAtTime(350, now);
                 gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
                 osc.start(now); osc.stop(now + 0.07);
@@ -272,7 +268,6 @@
             gameLocked = true;
             if (navigator.vibrate) navigator.vibrate(60);
 
-            // Registro en Firebase de fecha, hora y minutos exactos
             let nowObj = new Date();
             let formattedDateTime = nowObj.toLocaleDateString() + ", " + 
                                     String(nowObj.getHours()).padStart(2, '0') + ":" + 
@@ -286,7 +281,6 @@
                 lastPrizeWon: resolvedFinalPrize
             });
 
-            // Secuencia aleatoria estilo Slot Machine (luces rotando por los cofres)
             let steps = 9, currentStep = 0;
             let interval = setInterval(() => {
                 playSound('slot');
@@ -302,7 +296,6 @@
                 if(currentStep >= steps) {
                     clearInterval(interval);
                     
-                    // Apagar los demás y abrir el cofre ganador real (num)
                     for(let i=1; i<=totalQty; i++) {
                         let el = document.getElementById(`chest-${i}`);
                         let lbl = document.getElementById(`chest-label-${i}`);
