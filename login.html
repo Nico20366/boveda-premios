@@ -31,7 +31,7 @@
         <div class="space-y-3 text-left">
             <div>
                 <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Usuario:</label>
-                <input type="text" id="login-user" placeholder="Tu usuario" class="w-full bg-black/90 border-2 border-zinc-700 focus:border-amber-500 rounded-xl px-3.5 py-3 text-xs text-white font-bold uppercase focus:outline-none shadow-inner">
+                <input type="text" id="login-user" autocapitalize="none" autocorrect="off" placeholder="Tu usuario" class="w-full bg-black/90 border-2 border-zinc-700 focus:border-amber-500 rounded-xl px-3.5 py-3 text-xs text-white font-bold focus:outline-none shadow-inner">
             </div>
             <div>
                 <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Contraseña:</label>
@@ -65,7 +65,8 @@
         const db = firebase.database();
 
         function loginAdmin() {
-            let user = document.getElementById('login-user').value.trim();
+            // Convertimos siempre a minúsculas para evitar errores con el teclado del celular
+            let user = document.getElementById('login-user').value.trim().toLowerCase();
             let pass = document.getElementById('login-pass').value.trim();
             let err = document.getElementById('login-error');
 
@@ -77,7 +78,7 @@
 
             db.ref('admins/' + user).once('value', (snap) => {
                 let data = snap.val();
-                if(!data || data.password !== pass) {
+                if(!data || String(data.password) !== pass) {
                     err.innerText = "❌ Usuario o contraseña incorrectos.";
                     err.classList.remove('hidden');
                     return;
