@@ -44,10 +44,6 @@
         </button>
 
         <p id="login-error" class="text-amber-400 text-xs font-bold hidden"></p>
-        
-        <div class="pt-2 border-t border-zinc-800">
-            <a href="index.html" class="text-[11px] text-zinc-500 hover:text-amber-400 font-bold transition-colors">← Volver al inicio</a>
-        </div>
     </div>
 
     <script>
@@ -65,7 +61,6 @@
         const db = firebase.database();
 
         function loginAdmin() {
-            // Convertimos siempre a minúsculas para evitar errores con el teclado del celular
             let user = document.getElementById('login-user').value.trim().toLowerCase();
             let pass = document.getElementById('login-pass').value.trim();
             let err = document.getElementById('login-error');
