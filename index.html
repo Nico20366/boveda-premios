@@ -121,10 +121,12 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // Sincronización segura del título de la pestaña
         db.ref('configuracion').on('value', (snap) => {
             let data = snap.val();
-            if(data) {
-                if(data.titulo) { document.getElementById('page-title').innerText = data.titulo; }
+            if(data && data.titulo) {
+                let pageTitleEl = document.getElementById('page-title');
+                if(pageTitleEl) pageTitleEl.innerText = data.titulo;
             }
         });
 
@@ -232,10 +234,14 @@
                 let stockMax = data.stockMax || 1;
                 if (usedCount >= stockMax) { err.innerText = "⚠️ Este cupón ya agotó su stock disponible."; err.classList.remove('hidden'); return; }
 
-                if (data.expiresAt && new Date().getTime() > data.expiresAt) {
-                    err.innerText = "⌛ Este código ha expirado.";
-                    err.classList.remove('hidden');
-                    return;
+                // Validación robusta de fecha de expiración
+                if (data.expiresAt) {
+                    let expiryTime = Number(data.expiresAt);
+                    if (!isNaN(expiryTime) && new Date().getTime() > expiryTime) {
+                        err.innerText = "⌛ Este código ha expirado.";
+                        err.classList.remove('hidden');
+                        return;
+                    }
                 }
 
                 currentTokenData = data;
