@@ -237,6 +237,24 @@
 
         if(!currentUser) { window.location.href = "login.html"; }
 
+        // SISTEMA DE CIERRE AUTOMÁTICO POR INACTIVIDAD (15 MINUTOS)
+        let inactivityTimer;
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            // 15 minutos = 15 * 60 * 1000 milisegundos = 900,000 ms
+            inactivityTimer = setTimeout(() => {
+                alert("⏰ Sesión cerrada por inactividad (15 minutos sin uso).");
+                localStorage.clear();
+                window.location.href = "login.html";
+            }, 900000); 
+        }
+
+        // Escuchar eventos de interacción del usuario
+        ['mousemove', 'mousedown', 'keypress', 'touchstart', 'scroll'].forEach(evt => {
+            window.addEventListener(evt, resetInactivityTimer, true);
+        });
+        resetInactivityTimer(); // Arrancar el contador al cargar
+
         if (currentRole !== 'super') {
             db.ref('admins/' + currentUser).once('value', (snap) => {
                 let adminData = snap.val();
@@ -294,7 +312,6 @@
         }
         setTimeout(updateExpiryDatePreview, 500);
 
-        // INICIALIZAR POR DEFECTO CON 1 SOLO GAJO (PREMIO)
         function initDefaultPrizeRows() {
             let container = document.getElementById('prizes-dynamic-container');
             container.innerHTML = "";
