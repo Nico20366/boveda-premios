@@ -47,7 +47,7 @@
             </div>
         </div>
 
-        <!-- Pestañas de Navegación (Dinámicas: se ajustan si es Super Admin o Admin común) -->
+        <!-- Pestañas de Navegación -->
         <div id="admin-tabs" class="grid grid-cols-3 gap-1 bg-black/60 p-1 rounded-xl border border-zinc-800">
             <button onclick="switchTab('coupons')" id="tab-btn-coupons" class="py-2 rounded-lg text-[11px] font-black cinzel transition-all bg-zinc-800 text-amber-400 shadow">📋 Cupones</button>
             <button onclick="switchTab('admins')" id="tab-btn-admins" class="py-2 rounded-lg text-[11px] font-black cinzel transition-all text-zinc-400 hover:text-white hidden">👥 Admins</button>
@@ -59,12 +59,25 @@
             <div class="slot-marquee rounded-2xl p-4 space-y-3">
                 <h3 class="cinzel text-xs font-black dynamic-text">🎁 CREAR NUEVO CUPÓN</h3>
                 <div class="space-y-3">
-                    <div>
-                        <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Código del cupón:</label>
-                        <input type="text" id="new-code" placeholder="Ej: BAR2026" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold uppercase focus:outline-none focus:border-amber-500">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Código del cupón:</label>
+                            <input type="text" id="new-code" placeholder="Ej: BAR2026" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold uppercase focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Límite de Usos:</label>
+                            <select id="new-stock-max" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-amber-400 font-bold focus:outline-none focus:border-amber-500">
+                                <option value="1">1 Uso (Individual / Un solo jugador)</option>
+                                <option value="5">5 Usos (Promo chica)</option>
+                                <option value="10">10 Usos (Promo mediana)</option>
+                                <option value="25">25 Usos (Promo grupal)</option>
+                                <option value="50">50 Usos (Promo masiva)</option>
+                                <option value="100">100 Usos (Evento grande)</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <!-- Generador Dinámico de Premios (Máx 6) -->
+                    <!-- Generador Dinámico de Premios (Máximo 6) -->
                     <div class="bg-black/60 p-3 rounded-xl border border-zinc-800 space-y-2">
                         <div class="flex justify-between items-center">
                             <div>
@@ -211,13 +224,13 @@
         }
         setTimeout(updateExpiryDatePreview, 500);
 
-        // --- SISTEMA DE GESTIÓN DE PREMIOS DINÁMICOS (MÁX 6) ---
         function initDefaultPrizeRows() {
             let container = document.getElementById('prizes-dynamic-container');
             container.innerHTML = "";
             addPrizeRow("Bono 5%", 50);
             addPrizeRow("Bono 20%", 50);
         }
+        initDefaultPrizeRows();
 
         function addPrizeRow(defaultName = "", defaultWeight = "") {
             let container = document.getElementById('prizes-dynamic-container');
@@ -271,9 +284,7 @@
             }
         }
 
-        initDefaultPrizeRows();
-
-        // Configuración de interfaz según el rol (Super Admin vs Admin común)
+        // Configuración de interfaz según el rol
         let tabsContainer = document.getElementById('admin-tabs');
         if(currentRole === 'super') {
             document.getElementById('welcome-msg').innerText = `${currentUser} (Super Admin)`;
@@ -281,17 +292,14 @@
             document.getElementById('stat-total-label').innerText = "Total";
             document.getElementById('list-title').innerText = "📋 TODOS LOS CUPONES";
             document.getElementById('super-admin-creator').classList.remove('hidden');
-            
             document.getElementById('tab-btn-admins').classList.remove('hidden');
             tabsContainer.className = "grid grid-cols-3 gap-1 bg-black/60 p-1 rounded-xl border border-zinc-800";
-            
             loadAdminsManagement();
         } else {
             document.getElementById('welcome-msg').innerText = `${currentUser} (Admin)`;
             document.getElementById('panel-title').innerText = "PANEL DE CONTROL";
             document.getElementById('stat-total-label').innerText = "Mis Total";
             document.getElementById('list-title').innerText = "📋 MIS CUPONES";
-            
             document.getElementById('tab-btn-admins').remove();
             tabsContainer.className = "grid grid-cols-2 gap-1 bg-black/60 p-1 rounded-xl border border-zinc-800";
         }
@@ -321,9 +329,7 @@
             sessionStorage.clear();
             if ('caches' in window) {
                 caches.keys().then((names) => {
-                    names.forEach((name) => {
-                        caches.delete(name);
-                    });
+                    names.forEach((name) => { caches.delete(name); });
                 });
             }
             alert("¡Caché limpiada con éxito! La página se recargará ahora.");
@@ -332,6 +338,7 @@
 
         function createCoupon() {
             let code = document.getElementById('new-code').value.trim().toUpperCase();
+            let stockMax = parseInt(document.getElementById('new-stock-max').value) || 1;
             let expireInput = document.getElementById('new-expires-exact').value;
 
             if(!code || !expireInput) { alert("Completa al menos el código y la fecha de vencimiento."); return; }
@@ -355,7 +362,7 @@
 
             db.ref('cupones/' + code).set({
                 usedCount: 0,
-                stockMax: 1, 
+                stockMax: stockMax, 
                 createdBy: currentUser, 
                 prizes: prizesArray, 
                 weights: weightsArray,
@@ -363,7 +370,7 @@
                 createdAt: new Date().toLocaleDateString(), 
                 expiresAt: expiresAt
             }, () => {
-                alert(`¡Cupón [${code}] creado con éxito!`);
+                alert(`¡Cupón [${code}] creado con éxito (Límite: ${stockMax} usos)!`);
                 document.getElementById('new-code').value = ""; 
                 initDefaultPrizeRows();
                 setDefaultExpiration();
@@ -397,9 +404,9 @@
                 let stockMax = item.stockMax || 1;
                 let isSoldOut = usedCount >= stockMax;
 
-                let st = isSoldOut ? `<span class="text-red-400">USADO</span>` : (expired ? `<span class="text-amber-400">VENCIDO</span>` : `<span class="text-emerald-400">DISPONIBLE</span>`);
+                let st = isSoldOut ? `<span class="text-red-400">USADO (${usedCount}/${stockMax})</span>` : (expired ? `<span class="text-amber-400">VENCIDO</span>` : `<span class="text-emerald-400">DISP. (${usedCount}/${stockMax})</span>`);
                 let firstPrize = item.prizes ? item.prizes[0] : "Premio";
-                let lastUsedInfo = item.lastUsedAt ? `<div class="text-[9px] text-amber-300 font-bold">Canjeado: ${item.lastUsedAt} (${item.lastPrizeWon || ''})</div>` : "";
+                let lastUsedInfo = item.lastUsedAt ? `<div class="text-[9px] text-amber-300 font-bold">Último uso: ${item.lastUsedAt} (${item.lastPrizeWon || ''})</div>` : "";
 
                 list.innerHTML += `
                     <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800 flex justify-between items-center gap-2">
@@ -559,22 +566,15 @@
         function superEditAdminDate(name) {
             let currentNow = new Date();
             let defaultIso = new Date(currentNow.getTime() - (currentNow.getTimezoneOffset() * 60000)).toISOString().slice(0, 10);
-            
-            let newDateStr = prompt(`Ingresa la nueva fecha exacta de vencimiento para "${name}" (Formato: AAAA-MM-DD, ej: 2026-06-30):`, defaultIso);
+            let newDateStr = prompt(`Ingresa la nueva fecha exacta de vencimiento para "${name}" (Formato: AAAA-MM-DD):`, defaultIso);
             if (!newDateStr) return;
 
             let targetTime = new Date(newDateStr.trim() + "T23:59:59").getTime();
-            if (isNaN(targetTime)) {
-                alert("❌ Formato de fecha inválido. Usa AAAA-MM-DD.");
-                return;
-            }
+            if (isNaN(targetTime)) { alert("❌ Formato de fecha inválido. Usa AAAA-MM-DD."); return; }
 
             db.ref('admins/' + name).update({ expiresAt: targetTime }, (error) => {
-                if (error) {
-                    alert("❌ Error al actualizar la fecha.");
-                } else {
-                    alert(`✅ ¡Fecha de vencimiento de "${name}" actualizada con éxito!`);
-                }
+                if (error) alert("❌ Error al actualizar la fecha.");
+                else alert(`✅ ¡Fecha de vencimiento de "${name}" actualizada con éxito!`);
             });
         }
 
@@ -583,11 +583,8 @@
             let newExpiry = baseTime + (30 * 24 * 60 * 60 * 1000); 
 
             db.ref('admins/' + name).update({ expiresAt: newExpiry }, (error) => {
-                if (error) {
-                    alert("❌ Error al renovar la cuenta.");
-                } else {
-                    alert(`✅ ¡Cuenta de "${name}" renovada por 30 días más con éxito!`);
-                }
+                if (error) alert("❌ Error al renovar la cuenta.");
+                else alert(`✅ ¡Cuenta de "${name}" renovada por 30 días más con éxito!`);
             });
         }
 
@@ -598,11 +595,8 @@
             if (newPass.length < 3) { alert("La contraseña es muy corta."); return; }
 
             db.ref('admins/' + name).update({ password: newPass }, (error) => {
-                if (error) {
-                    alert("❌ Error al actualizar la contraseña.");
-                } else {
-                    alert(`✅ ¡Contraseña de "${name}" actualizada con éxito!`);
-                }
+                if (error) alert("❌ Error al actualizar la contraseña.");
+                else alert(`✅ ¡Contraseña de "${name}" actualizada con éxito!`);
             });
         }
 
