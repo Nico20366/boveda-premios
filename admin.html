@@ -48,10 +48,11 @@
         </div>
 
         <!-- Pestañas de Navegación -->
-        <div id="admin-tabs" class="grid grid-cols-3 gap-1 bg-black/60 p-1 rounded-xl border border-zinc-800">
-            <button onclick="switchTab('coupons')" id="tab-btn-coupons" class="py-2 rounded-lg text-[11px] font-black cinzel transition-all bg-zinc-800 text-amber-400 shadow">📋 Cupones</button>
-            <button onclick="switchTab('admins')" id="tab-btn-admins" class="py-2 rounded-lg text-[11px] font-black cinzel transition-all text-zinc-400 hover:text-white hidden">👥 Admins</button>
-            <button onclick="switchTab('config')" id="tab-btn-config" class="py-2 rounded-lg text-[11px] font-black cinzel transition-all text-zinc-400 hover:text-white">⚙️ Ajustes</button>
+        <div id="admin-tabs" class="grid grid-cols-4 gap-1 bg-black/60 p-1 rounded-xl border border-zinc-800">
+            <button onclick="switchTab('coupons')" id="tab-btn-coupons" class="py-2 rounded-lg text-[10px] sm:text-[11px] font-black cinzel transition-all bg-zinc-800 text-amber-400 shadow">📋 Cupones</button>
+            <button onclick="switchTab('admins')" id="tab-btn-admins" class="py-2 rounded-lg text-[10px] sm:text-[11px] font-black cinzel transition-all text-zinc-400 hover:text-white hidden">👥 Admins</button>
+            <button onclick="switchTab('help')" id="tab-btn-help" class="py-2 rounded-lg text-[10px] sm:text-[11px] font-black cinzel transition-all text-zinc-400 hover:text-white">❓ Ayuda</button>
+            <button onclick="switchTab('config')" id="tab-btn-config" class="py-2 rounded-lg text-[10px] sm:text-[11px] font-black cinzel transition-all text-zinc-400 hover:text-white">⚙️ Ajustes</button>
         </div>
 
         <!-- PESTAÑA 1: GESTIÓN DE CUPONES -->
@@ -105,7 +106,7 @@
                 <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
                     <h3 id="list-title" class="cinzel text-xs font-black dynamic-text">📋 LISTADO DE CUPONES</h3>
                     <div class="flex items-center gap-1.5 w-full sm:w-auto justify-end">
-                        <input type="text" id="search-code" placeholder="🔍 Buscar..." oninput="filterCoupons()" class="bg-black/80 border border-zinc-700 rounded-xl px-2.5 py-1.5 text-xs text-white font-bold focus:outline-none w-28">
+                        <input type="text" id="search-code" placeholder="🔍 Código o ID..." oninput="filterCoupons()" class="bg-black/80 border border-zinc-700 rounded-xl px-2.5 py-1.5 text-xs text-white font-bold focus:outline-none w-32">
                         <button onclick="clearUsedCoupons()" title="Limpiar vencidos o usados" class="bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-600/50 px-2 py-1.5 rounded-xl text-[10px] font-bold">🗑️ Limpiar</button>
                         <button onclick="clearAllCoupons()" title="Borrar todo" class="bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-600/50 px-2 py-1.5 rounded-xl text-[10px] font-bold">💥 Todo</button>
                     </div>
@@ -152,7 +153,60 @@
             </div>
         </div>
 
-        <!-- PESTAÑA 3: AJUSTES Y MANTENIMIENTO -->
+        <!-- PESTAÑA 3: AYUDA Y SOPORTE (Guía + Buzón de Mejoras) -->
+        <div id="tab-content-help" class="space-y-4 hidden">
+            <!-- Guía de Uso -->
+            <div class="slot-marquee rounded-2xl p-4 space-y-3">
+                <h3 class="cinzel text-xs font-black dynamic-text">📖 GUÍA RÁPIDA DE FUNCIONES</h3>
+                <div class="space-y-2.5 text-[11px] text-zinc-300 leading-relaxed">
+                    <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800">
+                        <strong class="text-amber-400 block mb-0.5">1. Código y Límite de Usos:</strong>
+                        Elegí un nombre fácil para el código (ej: <em>PROMO10</em>). Si ponés <strong>1 Uso</strong>, apenas lo canjea el primer jugador se bloquea. Si ponés <strong>10 o más usos</strong>, sirve para tirarlo en tu grupo de WhatsApp/Telegram para que varios participen.
+                    </div>
+                    <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800">
+                        <strong class="text-amber-400 block mb-0.5">2. Premios y Porcentajes (Máx. 6):</strong>
+                        Podés cargar hasta 6 premios distintos (uno por cada cofre). Poneles premios chicos con porcentaje alto (ej: <em>5% extra - 70%</em>) y premios grandes con porcentaje bajo (ej: <em>25% extra - 10%</em>) para controlar tu presupuesto.
+                    </div>
+                    <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800">
+                        <strong class="text-amber-400 block mb-0.5">3. ID Único de Seguridad (#SEC):</strong>
+                        Cada cupón que creás genera un <strong>código de seguridad único</strong> irrepetible. Podés verificar ese ID en tu listado cuando un jugador te mande captura del premio para evitar capturas truchas o repetidas.
+                    </div>
+                    <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800">
+                        <strong class="text-amber-400 block mb-0.5">4. Limpieza Rápida:</strong>
+                        Usá el botón <strong>🗑️ Limpiar</strong> en el listado para borrar de un clic todos los cupones que ya se usaron o vencieron y mantener tu panel ordenado.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buzón de Sugerencias y Soporte -->
+            <div class="slot-marquee rounded-2xl p-4 space-y-3 border border-amber-500/30">
+                <h3 class="cinzel text-xs font-black text-amber-400">💡 SOPORTE Y BUZÓN DE MEJORAS</h3>
+                <p class="text-[11px] text-zinc-400 font-medium">¿Tenés alguna idea para mejorar el sistema o encontraste algún detalle? Escribilo acá y lo revisamos para futuras actualizaciones:</p>
+                
+                <select id="support-type" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-amber-300 font-bold focus:outline-none">
+                    <option value="💡 Idea / Mejora">💡 Sugerencia para mejorar la plataforma</option>
+                    <option value="🛠️ Problema Técnico">🛠️ Reportar un error o falla</option>
+                    <option value="❓ Consulta General">❓ Consulta sobre el funcionamiento</option>
+                </select>
+                
+                <textarea id="support-message" rows="3" placeholder="Escribí tu mensaje, idea o comentario acá..." class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-medium focus:outline-none focus:border-amber-500"></textarea>
+                
+                <button onclick="sendSupportFeedback()" class="w-full dynamic-btn py-2.5 rounded-xl text-xs uppercase font-black">Enviar Comentario 📩</button>
+            </div>
+
+            <!-- Bandeja de Mensajes Recibidos (Solo visible para Super Admin) -->
+            <div id="super-admin-inbox" class="slot-marquee rounded-2xl p-4 space-y-3 hidden">
+                <div class="flex justify-between items-center border-b border-zinc-800 pb-2">
+                    <h3 class="cinzel text-xs font-black text-emerald-400">📥 MENSAJES DE ADMINISTRADORES</h3>
+                    <button onclick="clearSupportInbox()" class="text-[10px] bg-red-950/80 text-red-300 px-2 py-0.5 rounded-lg border border-red-700/40 font-bold">Limpiar Todo</button>
+                </div>
+                <div id="support-inbox-list" class="space-y-2 text-xs max-h-56 overflow-y-auto pt-1">
+                    <p class="text-zinc-500 text-center py-2">No hay mensajes nuevos.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PESTAÑA 4: AJUSTES Y MANTENIMIENTO -->
         <div id="tab-content-config" class="space-y-4 hidden">
             <div class="slot-marquee rounded-2xl p-4 space-y-3">
                 <h3 class="cinzel text-xs font-black text-amber-400">🔑 CAMBIAR MI CONTRASEÑA</h3>
@@ -201,6 +255,16 @@
                 userStatusRef.set({ state: 'online', last_changed: firebase.database.ServerValue.TIMESTAMP });
             }
         });
+
+        // Generador de ID único de seguridad para cada cupón
+        function generateUniqueCouponId() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let randomPart = '';
+            for (let i = 0; i < 6; i++) {
+                randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return 'SEC-' + randomPart;
+        }
 
         function setDefaultExpiration() {
             let now = new Date();
@@ -292,34 +356,36 @@
             document.getElementById('stat-total-label').innerText = "Total";
             document.getElementById('list-title').innerText = "📋 TODOS LOS CUPONES";
             document.getElementById('super-admin-creator').classList.remove('hidden');
+            document.getElementById('super-admin-inbox').classList.remove('hidden');
             document.getElementById('tab-btn-admins').classList.remove('hidden');
-            tabsContainer.className = "grid grid-cols-3 gap-1 bg-black/60 p-1 rounded-xl border border-zinc-800";
+            tabsContainer.className = "grid grid-cols-4 gap-1 bg-black/60 p-1 rounded-xl border border-zinc-800";
             loadAdminsManagement();
+            loadSupportInbox();
         } else {
             document.getElementById('welcome-msg').innerText = `${currentUser} (Admin)`;
             document.getElementById('panel-title').innerText = "PANEL DE CONTROL";
             document.getElementById('stat-total-label').innerText = "Mis Total";
             document.getElementById('list-title').innerText = "📋 MIS CUPONES";
             document.getElementById('tab-btn-admins').remove();
-            tabsContainer.className = "grid grid-cols-2 gap-1 bg-black/60 p-1 rounded-xl border border-zinc-800";
+            tabsContainer.className = "grid grid-cols-3 gap-1 bg-black/60 p-1 rounded-xl border border-zinc-800";
         }
 
         loadCoupons();
 
         function switchTab(tabName) {
-            ['coupons', 'admins', 'config'].forEach(t => {
+            ['coupons', 'admins', 'help', 'config'].forEach(t => {
                 let content = document.getElementById(`tab-content-${t}`);
                 let btn = document.getElementById(`tab-btn-${t}`);
                 if (content && btn) {
                     content.classList.add('hidden');
-                    btn.className = "py-2 rounded-lg text-[11px] font-black cinzel transition-all text-zinc-400 hover:text-white";
+                    btn.className = "py-2 rounded-lg text-[10px] sm:text-[11px] font-black cinzel transition-all text-zinc-400 hover:text-white";
                 }
             });
             let targetContent = document.getElementById(`tab-content-${tabName}`);
             let targetBtn = document.getElementById(`tab-btn-${tabName}`);
             if (targetContent && targetBtn) {
                 targetContent.classList.remove('hidden');
-                targetBtn.className = "py-2 rounded-lg text-[11px] font-black cinzel transition-all bg-zinc-800 text-amber-400 shadow";
+                targetBtn.className = "py-2 rounded-lg text-[10px] sm:text-[11px] font-black cinzel transition-all bg-zinc-800 text-amber-400 shadow";
             }
         }
 
@@ -343,37 +409,47 @@
 
             if(!code || !expireInput) { alert("Completa al menos el código y la fecha de vencimiento."); return; }
 
-            let prizesArray = [];
-            let weightsArray = [];
-
-            let rows = document.querySelectorAll('.prize-row');
-            rows.forEach(row => {
-                let pName = row.querySelector('.prize-name-input').value.trim();
-                let pWeight = parseFloat(row.querySelector('.prize-weight-input').value);
-                if(pName && !isNaN(pWeight) && pWeight > 0) {
-                    prizesArray.push(pName);
-                    weightsArray.push(pWeight);
+            // Verificar que el código no exista ya para evitar que un cajero pise el cupón de otro
+            db.ref('cupones/' + code).once('value', (snap) => {
+                if (snap.exists()) {
+                    alert(`❌ El código [${code}] ya está en uso. Elegí otro nombre distinto (ej: ${code}2 o similar).`);
+                    return;
                 }
-            });
 
-            if(prizesArray.length === 0) { alert("Agregá al menos un premio con su porcentaje."); return; }
+                let prizesArray = [];
+                let weightsArray = [];
 
-            let expiresAt = new Date(expireInput).getTime();
+                let rows = document.querySelectorAll('.prize-row');
+                rows.forEach(row => {
+                    let pName = row.querySelector('.prize-name-input').value.trim();
+                    let pWeight = parseFloat(row.querySelector('.prize-weight-input').value);
+                    if(pName && !isNaN(pWeight) && pWeight > 0) {
+                        prizesArray.push(pName);
+                        weightsArray.push(pWeight);
+                    }
+                });
 
-            db.ref('cupones/' + code).set({
-                usedCount: 0,
-                stockMax: stockMax, 
-                createdBy: currentUser, 
-                prizes: prizesArray, 
-                weights: weightsArray,
-                gameType: "chests",
-                createdAt: new Date().toLocaleDateString(), 
-                expiresAt: expiresAt
-            }, () => {
-                alert(`¡Cupón [${code}] creado con éxito (Límite: ${stockMax} usos)!`);
-                document.getElementById('new-code').value = ""; 
-                initDefaultPrizeRows();
-                setDefaultExpiration();
+                if(prizesArray.length === 0) { alert("Agregá al menos un premio con su porcentaje."); return; }
+
+                let expiresAt = new Date(expireInput).getTime();
+                let securityId = generateUniqueCouponId();
+
+                db.ref('cupones/' + code).set({
+                    securityId: securityId,
+                    usedCount: 0,
+                    stockMax: stockMax, 
+                    createdBy: currentUser, 
+                    prizes: prizesArray, 
+                    weights: weightsArray,
+                    gameType: "chests",
+                    createdAt: new Date().toLocaleDateString(), 
+                    expiresAt: expiresAt
+                }, () => {
+                    alert(`✅ ¡Cupón [${code}] creado con éxito!\n🔑 ID Seguridad: ${securityId}\n🎯 Límite: ${stockMax} usos`);
+                    document.getElementById('new-code').value = ""; 
+                    initDefaultPrizeRows();
+                    setDefaultExpiration();
+                });
             });
         }
 
@@ -403,21 +479,26 @@
                 let usedCount = item.usedCount || 0;
                 let stockMax = item.stockMax || 1;
                 let isSoldOut = usedCount >= stockMax;
+                let secId = item.securityId ? `<span class="bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded text-[9px] font-mono border border-zinc-700">#${item.securityId}</span>` : "";
 
                 let st = isSoldOut ? `<span class="text-red-400">USADO (${usedCount}/${stockMax})</span>` : (expired ? `<span class="text-amber-400">VENCIDO</span>` : `<span class="text-emerald-400">DISP. (${usedCount}/${stockMax})</span>`);
                 let firstPrize = item.prizes ? item.prizes[0] : "Premio";
                 let lastUsedInfo = item.lastUsedAt ? `<div class="text-[9px] text-amber-300 font-bold">Último uso: ${item.lastUsedAt} (${item.lastPrizeWon || ''})</div>` : "";
+                let ownerBadge = currentRole === 'super' ? `<span class="text-[9px] text-zinc-500 block">Por: ${item.createdBy}</span>` : "";
 
                 list.innerHTML += `
                     <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800 flex justify-between items-center gap-2">
                         <div class="truncate">
-                            <strong class="text-amber-400">${code}</strong>: <span class="text-zinc-300">${firstPrize} y más</span>
-                            <div class="text-[9px] text-zinc-400 font-semibold">📦 Cofres de la Suerte</div>
+                            <div class="flex items-center gap-1.5">
+                                <strong class="text-amber-400">${code}</strong> ${secId}
+                            </div>
+                            <span class="text-zinc-300 text-[11px]">${firstPrize} y más</span>
+                            ${ownerBadge}
                             ${lastUsedInfo}
                         </div>
                         <div class="flex items-center gap-1.5 shrink-0">
                             ${st} 
-                            <button onclick="navigator.clipboard.writeText('${code}'); alert('¡Código copiado!');" class="bg-zinc-800 hover:bg-zinc-700 text-amber-300 px-2 py-1 rounded text-[10px]" title="Copiar código">📋</button>
+                            <button onclick="navigator.clipboard.writeText('${code}'); alert('¡Código [${code}] copiado!');" class="bg-zinc-800 hover:bg-zinc-700 text-amber-300 px-2 py-1 rounded text-[10px]" title="Copiar código">📋</button>
                             <button onclick="deleteCoupon('${code}')" class="bg-red-950 hover:bg-red-900 text-red-300 border border-red-600/40 px-2 py-1 rounded text-[10px]" title="Eliminar cupón">🗑️</button>
                         </div>
                     </div>`;
@@ -478,9 +559,73 @@
             let term = document.getElementById('search-code').value.toUpperCase();
             let filtered = {};
             for(let c in allCouponsData) {
-                if(c.includes(term) || JSON.stringify(allCouponsData[c].prizes).toUpperCase().includes(term)) filtered[c] = allCouponsData[c];
+                let secId = (allCouponsData[c].securityId || "").toUpperCase();
+                if(c.includes(term) || secId.includes(term) || JSON.stringify(allCouponsData[c].prizes).toUpperCase().includes(term)) {
+                    filtered[c] = allCouponsData[c];
+                }
             }
             renderCoupons(filtered);
+        }
+
+        // Funciones de Soporte y Buzón de Mejoras
+        function sendSupportFeedback() {
+            let type = document.getElementById('support-type').value;
+            let msg = document.getElementById('support-message').value.trim();
+
+            if (msg.length < 5) {
+                alert("Por favor escribí un mensaje un poquito más detallado.");
+                return;
+            }
+
+            let msgId = 'msg_' + Date.now();
+            db.ref('soporte/' + msgId).set({
+                user: currentUser,
+                type: type,
+                message: msg,
+                date: new Date().toLocaleString()
+            }, (error) => {
+                if (error) {
+                    alert("❌ Hubo un error al enviar el mensaje.");
+                } else {
+                    alert("✅ ¡Gracias! Tu comentario fue enviado al equipo de soporte.");
+                    document.getElementById('support-message').value = "";
+                }
+            });
+        }
+
+        function loadSupportInbox() {
+            if (currentRole !== 'super') return;
+            db.ref('soporte').on('value', (snap) => {
+                let list = document.getElementById('support-inbox-list');
+                list.innerHTML = "";
+                let data = snap.val();
+                if (!data) {
+                    list.innerHTML = "<p class='text-zinc-500 text-center py-2'>No hay mensajes nuevos.</p>";
+                    return;
+                }
+                for (let id in data) {
+                    let m = data[id];
+                    list.innerHTML += `
+                        <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800 space-y-1">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-black text-amber-400">${m.type} • 👤 ${m.user}</span>
+                                <button onclick="deleteSupportMsg('${id}')" class="text-red-400 text-[10px] hover:underline">Borrar</button>
+                            </div>
+                            <p class="text-zinc-200 text-[11px]">${m.message}</p>
+                            <span class="text-[9px] text-zinc-500 block">${m.date}</span>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        function deleteSupportMsg(id) {
+            db.ref('soporte/' + id).remove();
+        }
+
+        function clearSupportInbox() {
+            if (!confirm("¿Borrar todos los mensajes recibidos?")) return;
+            db.ref('soporte').remove();
         }
 
         function createAdminAccount() {
