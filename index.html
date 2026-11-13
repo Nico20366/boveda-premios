@@ -230,6 +230,14 @@
             let err = document.getElementById('error-msg');
             if (!code) { err.innerText = "Escriba su código."; err.classList.remove('hidden'); return; }
 
+            // VALIDACIÓN CON TIEMPO EXPIRABLE (Ej: 3 horas de bloqueo en este celu)
+            let lockoutTime = localStorage.getItem('used_coupon_' + code);
+            if (lockoutTime && new Date().getTime() < parseInt(lockoutTime)) {
+                err.innerText = "⚠️ Este dispositivo ya usó este cupón recientemente. Intente más tarde.";
+                err.classList.remove('hidden');
+                return;
+            }
+
             db.ref('cupones/' + code).once('value', (snapshot) => {
                 let data = snapshot.val();
                 if (!data) { err.innerText = "❌ Código incorrecto o inexistente."; err.classList.remove('hidden'); return; }
@@ -265,7 +273,6 @@
             document.getElementById('result-emoji').innerText = '👑';
             document.getElementById('result-text').innerText = resolvedFinalPrize;
             
-            // Inyectar el ID de seguridad único con marca de agua transparente
             let secId = currentTokenData.securityId ? `#${currentTokenData.securityId}` : "#SEC-PROMO";
             document.getElementById('result-sec-id').innerText = secId;
 
@@ -276,6 +283,10 @@
             if (gameLocked) return;
             gameLocked = true;
             if (navigator.vibrate) navigator.vibrate(80);
+
+            // Guardar bloqueo temporal de 3 horas en este celular para este cupón específico
+            let threeHoursFromNow = new Date().getTime() + (3 * 60 * 60 * 1000);
+            localStorage.setItem('used_coupon_' + currentCodeKey, threeHoursFromNow);
 
             let selectedChest = document.getElementById(`chest-${num}`);
             if(selectedChest) {
