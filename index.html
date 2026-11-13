@@ -89,9 +89,9 @@
         <!-- Resultado -->
         <div id="step-result" class="w-full hidden slot-marquee rounded-3xl p-6 sm:p-8 backdrop-blur-xl jackpot-glow relative">
             
-            <!-- ID de Seguridad Arriba, Transparente y Discreto -->
-            <div class="absolute top-3 right-4">
-                <span id="result-sec-id" class="text-[10px] text-amber-400/50 font-mono tracking-widest font-bold">#SEC-XXXXXX</span>
+            <!-- ID de Seguridad Ultra Transparente / Marca de Agua -->
+            <div class="absolute top-3 right-4 select-none pointer-events-none">
+                <span id="result-sec-id" class="text-[9px] text-amber-400/15 font-mono tracking-widest font-bold">#SEC-XXXXXX</span>
             </div>
 
             <div class="text-6xl mb-3 animate-bounce mt-2" id="result-emoji">👑</div>
@@ -265,7 +265,7 @@
             document.getElementById('result-emoji').innerText = '👑';
             document.getElementById('result-text').innerText = resolvedFinalPrize;
             
-            // ID de seguridad discreto y semi-transparente arriba a la derecha
+            // Inyectar el ID de seguridad único con marca de agua transparente
             let secId = currentTokenData.securityId ? `#${currentTokenData.securityId}` : "#SEC-PROMO";
             document.getElementById('result-sec-id').innerText = secId;
 
