@@ -153,7 +153,7 @@
             </div>
         </div>
 
-        <!-- PESTAÑA 3: AYUDA Y SOPORTE -->
+        <!-- PESTAÑA 3: AYUDA, SOPORTE Y PREGUNTAS FRECUENTES -->
         <div id="tab-content-help" class="space-y-4 hidden">
             <div class="slot-marquee rounded-2xl p-4 space-y-3">
                 <h3 class="cinzel text-xs font-black dynamic-text">📖 GUÍA RÁPIDA DE FUNCIONES</h3>
@@ -168,8 +168,34 @@
                     </div>
                     <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800">
                         <strong class="text-amber-400 block mb-0.5">3. ID Único de Seguridad (#SEC):</strong>
-                        Cada cupón genera un código de seguridad único para verificar capturas y evitar fraudes.
+                        Cada cupón genera un código de seguridad oculto en la captura del cliente para verificar que sea legítimo y evitar fraudes.
                     </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN NUEVA: PREGUNTAS FRECUENTES (FAQ) -->
+            <div class="slot-marquee rounded-2xl p-4 space-y-3">
+                <h3 class="cinzel text-xs font-black text-amber-400">❓ PREGUNTAS FRECUENTES (FAQ)</h3>
+                <div class="space-y-2 text-[11px] text-zinc-300">
+                    <details class="bg-black/60 p-2.5 rounded-xl border border-zinc-800 cursor-pointer">
+                        <summary class="font-bold text-amber-300">¿Qué pasa si un cliente intenta usar el mismo cupón dos veces?</summary>
+                        <p class="mt-1.5 text-zinc-400 leading-relaxed">El sistema tiene un doble filtro: primero, bloquea el dispositivo (celular) para que no pueda volver a abrirlo; segundo, el contador de usos en Firebase se actualiza al instante. Si se agotan los usos, nadie más puede usarlo.</p>
+                    </details>
+                    
+                    <details class="bg-black/60 p-2.5 rounded-xl border border-zinc-800 cursor-pointer">
+                        <summary class="font-bold text-amber-300">¿Cómo detecto si una captura de pantalla es falsa o trucada?</summary>
+                        <p class="mt-1.5 text-zinc-400 leading-relaxed">Cada premio ganado muestra arriba a la derecha un código de seguridad único (ej: <em>#SEC-8F3A29</em>). Verificá que ese código coincida exactamente con el cupón que creaste en tu panel de administración.</p>
+                    </details>
+
+                    <details class="bg-black/60 p-2.5 rounded-xl border border-zinc-800 cursor-pointer">
+                        <summary class="font-bold text-amber-300">¿Por qué dice "Sesión cerrada por inactividad"?</summary>
+                        <p class="mt-1.5 text-zinc-400 leading-relaxed">Por seguridad, si pasan 15 minutos sin que muevas el mouse o toques la pantalla en el panel de control, la sesión se cierra sola para evitar que dejen la computadora abierta en el local.</p>
+                    </details>
+
+                    <details class="bg-black/60 p-2.5 rounded-xl border border-zinc-800 cursor-pointer">
+                        <summary class="font-bold text-amber-300">¿Puedo reciclar o volver a usar un cupón agotado?</summary>
+                        <p class="mt-1.5 text-zinc-400 leading-relaxed">Podés borrar el cupón viejo desde el listado y crear uno nuevo. Te recomendamos cambiarle ligeramente el nombre (ej: de <em>PROMO1</em> a <em>PROMO2</em>) para que los celulares de los clientes no recuerden el uso anterior.</p>
+                    </details>
                 </div>
             </div>
 
@@ -241,7 +267,6 @@
         let inactivityTimer;
         function resetInactivityTimer() {
             clearTimeout(inactivityTimer);
-            // 15 minutos = 15 * 60 * 1000 milisegundos = 900,000 ms
             inactivityTimer = setTimeout(() => {
                 alert("⏰ Sesión cerrada por inactividad (15 minutos sin uso).");
                 localStorage.clear();
@@ -249,11 +274,10 @@
             }, 900000); 
         }
 
-        // Escuchar eventos de interacción del usuario
         ['mousemove', 'mousedown', 'keypress', 'touchstart', 'scroll'].forEach(evt => {
             window.addEventListener(evt, resetInactivityTimer, true);
         });
-        resetInactivityTimer(); // Arrancar el contador al cargar
+        resetInactivityTimer();
 
         if (currentRole !== 'super') {
             db.ref('admins/' + currentUser).once('value', (snap) => {
