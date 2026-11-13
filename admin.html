@@ -248,6 +248,19 @@
 
         if(!currentUser) { window.location.href = "login.html"; }
 
+        // Validación estricta de vencimiento del cajero en tiempo real
+        if (currentRole !== 'super') {
+            db.ref('admins/' + currentUser).once('value', (snap) => {
+                let adminData = snap.val();
+                let now = new Date().getTime();
+                if (!adminData || (adminData.expiresAt && now > adminData.expiresAt)) {
+                    alert("⚠️ Tu cuenta ha expirado. Comunícate con el administrador para renovar tu acceso.");
+                    localStorage.clear();
+                    window.location.href = "login.html";
+                }
+            });
+        }
+
         const userStatusRef = db.ref('status/' + currentUser);
         db.ref('.info/connected').on('value', (snap) => {
             if (snap.val() === true) {
@@ -256,7 +269,6 @@
             }
         });
 
-        // Generador de ID único de seguridad para cada cupón
         function generateUniqueCouponId() {
             const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
             let randomPart = '';
@@ -348,7 +360,6 @@
             }
         }
 
-        // Configuración de interfaz según el rol
         let tabsContainer = document.getElementById('admin-tabs');
         if(currentRole === 'super') {
             document.getElementById('welcome-msg').innerText = `${currentUser} (Super Admin)`;
@@ -409,10 +420,9 @@
 
             if(!code || !expireInput) { alert("Completa al menos el código y la fecha de vencimiento."); return; }
 
-            // Verificar que el código no exista ya para evitar que un cajero pise el cupón de otro
             db.ref('cupones/' + code).once('value', (snap) => {
                 if (snap.exists()) {
-                    alert(`❌ El código [${code}] ya está en uso. Elegí otro nombre distinto (ej: ${code}2 o similar).`);
+                    alert(`❌ El código [${code}] ya está en uso. Elegí otro nombre distinto.`);
                     return;
                 }
 
@@ -567,7 +577,6 @@
             renderCoupons(filtered);
         }
 
-        // Funciones de Soporte y Buzón de Mejoras
         function sendSupportFeedback() {
             let type = document.getElementById('support-type').value;
             let msg = document.getElementById('support-message').value.trim();
@@ -619,14 +628,8 @@
             });
         }
 
-        function deleteSupportMsg(id) {
-            db.ref('soporte/' + id).remove();
-        }
-
-        function clearSupportInbox() {
-            if (!confirm("¿Borrar todos los mensajes recibidos?")) return;
-            db.ref('soporte').remove();
-        }
+        function deleteSupportMsg(id) { db.ref('soporte/' + id).remove(); }
+        function clearSupportInbox() { if (!confirm("¿Borrar todos los mensajes recibidos?")) return; db.ref('soporte').remove(); }
 
         function createAdminAccount() {
             let user = document.getElementById('new-admin-user').value.trim().toLowerCase();
@@ -681,8 +684,8 @@
                     }
 
                     let actionBtn = isApproved ? `<button onclick="toggleAdminApproval('${name}', false)" class="bg-amber-950 text-amber-300 px-2 py-1 rounded text-[10px]">Pausar</button>` : `<button onclick="toggleAdminApproval('${name}', true)" class="bg-emerald-500 text-black px-2 py-1 rounded text-[10px]">Aprobar</button>`;
-                    let editDateBtn = `<button onclick="superEditAdminDate('${name}')" class="bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-600/40 px-2 py-1 rounded text-[10px]" title="Editar/Ajustar fecha de vencimiento">✏️ Fecha</button>`;
-                    let renewBtn = `<button onclick="renewAdminMonth('${name}', ${info.expiresAt || now})" class="bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600/40 px-2 py-1 rounded text-[10px]" title="Extender 30 días más">➕30d</button>`;
+                    let editDateBtn = `<button onclick="superEditAdminDate('${name}')" class="bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-600/40 px-2 py-1 rounded text-[10px]" title="Editar fecha">✏️ Fecha</button>`;
+                    let renewBtn = `<button onclick="renewAdminMonth('${name}', ${info.expiresAt || now})" class="bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600/40 px-2 py-1 rounded text-[10px]" title="Extender 30 días">➕30d</button>`;
                     let changePassBtn = `<button onclick="superChangeAdminPassword('${name}')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-amber-500/30 px-2 py-1 rounded text-[10px]">🔑 Clave</button>`;
                     let deleteBtn = `<button onclick="deleteAdmin('${name}')" class="bg-red-950 text-red-300 px-2 py-1 rounded text-[10px]">🗑️</button>`;
                     
@@ -715,11 +718,11 @@
             if (!newDateStr) return;
 
             let targetTime = new Date(newDateStr.trim() + "T23:59:59").getTime();
-            if (isNaN(targetTime)) { alert("❌ Formato de fecha inválido. Usa AAAA-MM-DD."); return; }
+            if (isNaN(targetTime)) { alert("❌ Formato de fecha inválido."); return; }
 
             db.ref('admins/' + name).update({ expiresAt: targetTime }, (error) => {
                 if (error) alert("❌ Error al actualizar la fecha.");
-                else alert(`✅ ¡Fecha de vencimiento de "${name}" actualizada con éxito!`);
+                else alert(`✅ ¡Fecha de "${name}" actualizada con éxito!`);
             });
         }
 
@@ -728,20 +731,20 @@
             let newExpiry = baseTime + (30 * 24 * 60 * 60 * 1000); 
 
             db.ref('admins/' + name).update({ expiresAt: newExpiry }, (error) => {
-                if (error) alert("❌ Error al renovar la cuenta.");
-                else alert(`✅ ¡Cuenta de "${name}" renovada por 30 días más con éxito!`);
+                if (error) alert("❌ Error al renovar.");
+                else alert(`✅ ¡Cuenta de "${name}" renovada por 30 días más!`);
             });
         }
 
         function superChangeAdminPassword(name) {
-            let newPass = prompt(`Ingresa la nueva contraseña para el administrador "${name}":`, "");
+            let newPass = prompt(`Ingresa la nueva contraseña para "${name}":`, "");
             if (newPass === null) return;
             newPass = newPass.trim();
             if (newPass.length < 3) { alert("La contraseña es muy corta."); return; }
 
             db.ref('admins/' + name).update({ password: newPass }, (error) => {
-                if (error) alert("❌ Error al actualizar la contraseña.");
-                else alert(`✅ ¡Contraseña de "${name}" actualizada con éxito!`);
+                if (error) alert("❌ Error al actualizar.");
+                else alert(`✅ ¡Contraseña actualizada con éxito!`);
             });
         }
 
@@ -751,7 +754,7 @@
         function changeMyPassword() {
             let curr = document.getElementById('current-pass').value.trim();
             let neu = document.getElementById('new-pass').value.trim();
-            if(!curr || !neu) { alert("Completa ambos campos de contraseña."); return; }
+            if(!curr || !neu) { alert("Completa ambos campos."); return; }
             db.ref('admins/' + currentUser).once('value', s => {
                 if(!s.val() || s.val().password !== curr) { alert("La contraseña actual es incorrecta."); return; }
                 db.ref('admins/' + currentUser).update({ password: neu }, () => { alert("¡Contraseña actualizada con éxito!"); document.getElementById('current-pass').value = ""; document.getElementById('new-pass').value = ""; });
