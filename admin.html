@@ -64,11 +64,14 @@
                         <input type="text" id="new-code" placeholder="Ej: BAR2026" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold uppercase focus:outline-none focus:border-amber-500">
                     </div>
 
-                    <!-- Generador Dinámico de Premios -->
+                    <!-- Generador Dinámico de Premios (Máx 6) -->
                     <div class="bg-black/60 p-3 rounded-xl border border-zinc-800 space-y-2">
                         <div class="flex justify-between items-center">
-                            <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider">🎯 Lista de Premios y Probabilidades (%):</label>
-                            <button onclick="addPrizeRow()" type="button" class="bg-zinc-800 hover:bg-zinc-700 text-amber-300 border border-amber-500/30 px-2 py-1 rounded-lg text-[10px] font-bold">+ Agregar Premio</button>
+                            <div>
+                                <label class="text-[10px] text-amber-400 font-black uppercase tracking-wider block">🎯 Lista de Premios (Máx. 6):</label>
+                                <span id="total-weight-indicator" class="text-[9px] font-bold text-zinc-400">Total probabilidad: 0%</span>
+                            </div>
+                            <button onclick="addPrizeRow()" type="button" id="add-prize-btn" class="bg-zinc-800 hover:bg-zinc-700 text-amber-300 border border-amber-500/30 px-2 py-1 rounded-lg text-[10px] font-bold transition-all">+ Agregar Premio</button>
                         </div>
                         
                         <div id="prizes-dynamic-container" class="space-y-2 pt-1">
@@ -208,26 +211,67 @@
         }
         setTimeout(updateExpiryDatePreview, 500);
 
+        // --- SISTEMA DE GESTIÓN DE PREMIOS DINÁMICOS (MÁX 6) ---
         function initDefaultPrizeRows() {
             let container = document.getElementById('prizes-dynamic-container');
             container.innerHTML = "";
-            addPrizeRow("Premio Principal", 100);
+            addPrizeRow("Bono 5%", 50);
+            addPrizeRow("Bono 20%", 50);
         }
-        initDefaultPrizeRows();
 
         function addPrizeRow(defaultName = "", defaultWeight = "") {
             let container = document.getElementById('prizes-dynamic-container');
+            let currentRows = container.querySelectorAll('.prize-row').length;
+
+            if (currentRows >= 6) {
+                alert("⚠️ Podés agregar un máximo de 6 premios (uno por cada cofre de la suerte).");
+                return;
+            }
+
             let rowId = 'prize-row-' + Date.now() + Math.random().toString(36).substr(2, 5);
             let div = document.createElement('div');
             div.className = "grid grid-cols-6 gap-2 items-center prize-row";
             div.id = rowId;
             div.innerHTML = `
-                <input type="text" placeholder="Nombre del premio" value="${defaultName}" class="col-span-4 bg-black/85 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500 prize-name-input">
-                <input type="number" placeholder="%" min="1" max="100" value="${defaultWeight}" class="col-span-1 bg-black/85 border border-zinc-700 rounded-xl px-2 py-2 text-xs text-amber-400 font-black text-center focus:outline-none focus:border-amber-500 prize-weight-input">
-                <button type="button" onclick="document.getElementById('${rowId}').remove()" class="col-span-1 bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-700/50 py-2 rounded-xl text-xs font-bold transition-colors">✕</button>
+                <input type="text" placeholder="Premio (ej: 10% Extra)" value="${defaultName}" class="col-span-4 bg-black/85 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500 prize-name-input">
+                <input type="number" placeholder="%" min="1" max="100" value="${defaultWeight}" oninput="calculateTotalWeights()" class="col-span-1 bg-black/85 border border-zinc-700 rounded-xl px-2 py-2 text-xs text-amber-400 font-black text-center focus:outline-none focus:border-amber-500 prize-weight-input">
+                <button type="button" onclick="removePrizeRow('${rowId}')" class="col-span-1 bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-700/50 py-2 rounded-xl text-xs font-bold transition-colors">✕</button>
             `;
             container.appendChild(div);
+            calculateTotalWeights();
         }
+
+        function removePrizeRow(rowId) {
+            document.getElementById(rowId).remove();
+            calculateTotalWeights();
+        }
+
+        function calculateTotalWeights() {
+            let weightInputs = document.querySelectorAll('.prize-weight-input');
+            let total = 0;
+            weightInputs.forEach(input => {
+                let val = parseFloat(input.value) || 0;
+                total += val;
+            });
+
+            let indicator = document.getElementById('total-weight-indicator');
+            let addBtn = document.getElementById('add-prize-btn');
+            let currentRows = weightInputs.length;
+
+            if (total === 100) {
+                indicator.innerHTML = `Total probabilidad: <span class="text-emerald-400">${total}% (Ideal ✅)</span>`;
+            } else {
+                indicator.innerHTML = `Total probabilidad: <span class="text-amber-400">${total}% (Se reparte proporcionalmente)</span>`;
+            }
+
+            if (currentRows >= 6) {
+                addBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                addBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        initDefaultPrizeRows();
 
         // Configuración de interfaz según el rol (Super Admin vs Admin común)
         let tabsContainer = document.getElementById('admin-tabs');
@@ -238,7 +282,6 @@
             document.getElementById('list-title').innerText = "📋 TODOS LOS CUPONES";
             document.getElementById('super-admin-creator').classList.remove('hidden');
             
-            // Mostrar la pestaña de Admins para el Super Admin (grid de 3 columnas)
             document.getElementById('tab-btn-admins').classList.remove('hidden');
             tabsContainer.className = "grid grid-cols-3 gap-1 bg-black/60 p-1 rounded-xl border border-zinc-800";
             
@@ -249,7 +292,6 @@
             document.getElementById('stat-total-label').innerText = "Mis Total";
             document.getElementById('list-title').innerText = "📋 MIS CUPONES";
             
-            // Ocultar la pestaña de Admins para administradores comunes (grid de 2 columnas)
             document.getElementById('tab-btn-admins').remove();
             tabsContainer.className = "grid grid-cols-2 gap-1 bg-black/60 p-1 rounded-xl border border-zinc-800";
         }
@@ -460,7 +502,7 @@
         }
 
         function loadAdminsManagement() {
-            if (currentRole !== 'super') return; // Seguridad extra: si no es super, no carga nada
+            if (currentRole !== 'super') return;
 
             db.ref('admins').on('value', (snap) => {
                 let list = document.getElementById('admins-management-list');
