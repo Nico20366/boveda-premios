@@ -160,11 +160,11 @@
                 <div class="space-y-2.5 text-[11px] text-zinc-300 leading-relaxed">
                     <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800">
                         <strong class="text-amber-400 block mb-0.5">1. Código y Límite de Usos:</strong>
-                        Elegí un nombre fácil para el código (ej: <em>PROMO10</em>). Si ponés <strong>1 Uso</strong>, apenas lo canjea el primer jugador se bloquea. Si ponés <strong>10 o más usos</strong>, sirve para tirarlo en tu grupo para que varios participen.
+                        Elegí un nombre fácil para el código (ej: <em>PROMO10</em>). Si ponés <strong>1 Uso</strong>, apenas lo canjea el primer jugador se bloquea.
                     </div>
                     <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800">
-                        <strong class="text-amber-400 block mb-0.5">2. Premios y Porcentajes (Máx. 6):</strong>
-                        Podés cargar hasta 6 premios distintos (uno por cada cofre) asegurando que sumen el 100% ideal para controlar los riesgos.
+                        <strong class="text-amber-400 block mb-0.5">2. Premios (Gajos):</strong>
+                        Por defecto se crea con 1 premio fijo, pero podés agregar hasta 6 premios distintos para armar una ruleta variada.
                     </div>
                     <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800">
                         <strong class="text-amber-400 block mb-0.5">3. ID Único de Seguridad (#SEC):</strong>
@@ -237,7 +237,6 @@
 
         if(!currentUser) { window.location.href = "login.html"; }
 
-        // Validación estricta de vencimiento del cajero
         if (currentRole !== 'super') {
             db.ref('admins/' + currentUser).once('value', (snap) => {
                 let adminData = snap.val();
@@ -250,7 +249,6 @@
             });
         }
 
-        // Control de presencia avanzada: guarda estado online y última fecha/hora de desconexión
         const userStatusRef = db.ref('status/' + currentUser);
         db.ref('.info/connected').on('value', (snap) => {
             if (snap.val() === true) {
@@ -296,11 +294,11 @@
         }
         setTimeout(updateExpiryDatePreview, 500);
 
+        // INICIALIZAR POR DEFECTO CON 1 SOLO GAJO (PREMIO)
         function initDefaultPrizeRows() {
             let container = document.getElementById('prizes-dynamic-container');
             container.innerHTML = "";
-            addPrizeRow("Bono 5%", 50);
-            addPrizeRow("Bono 20%", 50);
+            addPrizeRow("Bono 10%", 100);
         }
         initDefaultPrizeRows();
 
@@ -327,6 +325,11 @@
         }
 
         function removePrizeRow(rowId) {
+            let container = document.getElementById('prizes-dynamic-container');
+            if(container.querySelectorAll('.prize-row').length <= 1) {
+                alert("⚠️ El cupón debe tener al menos 1 premio configurado.");
+                return;
+            }
             document.getElementById(rowId).remove();
             calculateTotalWeights();
         }
@@ -498,7 +501,7 @@
                             <div class="flex items-center gap-1.5">
                                 <strong class="text-amber-400">${code}</strong> ${secId}
                             </div>
-                            <span class="text-zinc-300 text-[11px]">${firstPrize} y más</span>
+                            <span class="text-zinc-300 text-[11px]">${firstPrize}</span>
                             ${ownerBadge}
                             ${lastUsedInfo}
                         </div>
@@ -652,7 +655,6 @@
             });
         }
 
-        // Carga la gestión de administradores y actualiza el estado de conexión y última vez online en tiempo real
         function loadAdminsManagement() {
             if (currentRole !== 'super') return;
 
@@ -700,7 +702,6 @@
                             </div>
                         </div>`;
                     
-                    // Escuchar la rama status/ de cada cajero en tiempo real
                     db.ref('status/' + name).on('value', s => {
                         let stData = s.val();
                         let badge = document.getElementById(`status-badge-${name}`);
