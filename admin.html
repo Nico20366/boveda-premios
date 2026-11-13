@@ -153,48 +153,37 @@
             </div>
         </div>
 
-        <!-- PESTAÑA 3: AYUDA Y SOPORTE (Guía + Buzón de Mejoras) -->
+        <!-- PESTAÑA 3: AYUDA Y SOPORTE -->
         <div id="tab-content-help" class="space-y-4 hidden">
-            <!-- Guía de Uso -->
             <div class="slot-marquee rounded-2xl p-4 space-y-3">
                 <h3 class="cinzel text-xs font-black dynamic-text">📖 GUÍA RÁPIDA DE FUNCIONES</h3>
                 <div class="space-y-2.5 text-[11px] text-zinc-300 leading-relaxed">
                     <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800">
                         <strong class="text-amber-400 block mb-0.5">1. Código y Límite de Usos:</strong>
-                        Elegí un nombre fácil para el código (ej: <em>PROMO10</em>). Si ponés <strong>1 Uso</strong>, apenas lo canjea el primer jugador se bloquea. Si ponés <strong>10 o más usos</strong>, sirve para tirarlo en tu grupo de WhatsApp/Telegram para que varios participen.
+                        Elegí un nombre fácil para el código (ej: <em>PROMO10</em>). Si ponés <strong>1 Uso</strong>, apenas lo canjea el primer jugador se bloquea. Si ponés <strong>10 o más usos</strong>, sirve para tirarlo en tu grupo para que varios participen.
                     </div>
                     <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800">
                         <strong class="text-amber-400 block mb-0.5">2. Premios y Porcentajes (Máx. 6):</strong>
-                        Podés cargar hasta 6 premios distintos (uno por cada cofre). Poneles premios chicos con porcentaje alto (ej: <em>5% extra - 70%</em>) y premios grandes con porcentaje bajo (ej: <em>25% extra - 10%</em>) para controlar tu presupuesto.
+                        Podés cargar hasta 6 premios distintos (uno por cada cofre) asegurando que sumen el 100% ideal para controlar los riesgos.
                     </div>
                     <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800">
                         <strong class="text-amber-400 block mb-0.5">3. ID Único de Seguridad (#SEC):</strong>
-                        Cada cupón que creás genera un <strong>código de seguridad único</strong> irrepetible. Podés verificar ese ID en tu listado cuando un jugador te mande captura del premio para evitar capturas truchas o repetidas.
-                    </div>
-                    <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800">
-                        <strong class="text-amber-400 block mb-0.5">4. Limpieza Rápida:</strong>
-                        Usá el botón <strong>🗑️ Limpiar</strong> en el listado para borrar de un clic todos los cupones que ya se usaron o vencieron y mantener tu panel ordenado.
+                        Cada cupón genera un código de seguridad único para verificar capturas y evitar fraudes.
                     </div>
                 </div>
             </div>
 
-            <!-- Buzón de Sugerencias y Soporte -->
             <div class="slot-marquee rounded-2xl p-4 space-y-3 border border-amber-500/30">
                 <h3 class="cinzel text-xs font-black text-amber-400">💡 SOPORTE Y BUZÓN DE MEJORAS</h3>
-                <p class="text-[11px] text-zinc-400 font-medium">¿Tenés alguna idea para mejorar el sistema o encontraste algún detalle? Escribilo acá y lo revisamos para futuras actualizaciones:</p>
-                
                 <select id="support-type" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-amber-300 font-bold focus:outline-none">
                     <option value="💡 Idea / Mejora">💡 Sugerencia para mejorar la plataforma</option>
                     <option value="🛠️ Problema Técnico">🛠️ Reportar un error o falla</option>
                     <option value="❓ Consulta General">❓ Consulta sobre el funcionamiento</option>
                 </select>
-                
-                <textarea id="support-message" rows="3" placeholder="Escribí tu mensaje, idea o comentario acá..." class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-medium focus:outline-none focus:border-amber-500"></textarea>
-                
+                <textarea id="support-message" rows="3" placeholder="Escribí tu mensaje o idea acá..." class="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-medium focus:outline-none focus:border-amber-500"></textarea>
                 <button onclick="sendSupportFeedback()" class="w-full dynamic-btn py-2.5 rounded-xl text-xs uppercase font-black">Enviar Comentario 📩</button>
             </div>
 
-            <!-- Bandeja de Mensajes Recibidos (Solo visible para Super Admin) -->
             <div id="super-admin-inbox" class="slot-marquee rounded-2xl p-4 space-y-3 hidden">
                 <div class="flex justify-between items-center border-b border-zinc-800 pb-2">
                     <h3 class="cinzel text-xs font-black text-emerald-400">📥 MENSAJES DE ADMINISTRADORES</h3>
@@ -219,7 +208,7 @@
 
             <div class="slot-marquee rounded-2xl p-4 space-y-3 border border-amber-500/40">
                 <h3 class="cinzel text-xs font-black dynamic-text">🧹 MANTENIMIENTO Y CACHÉ</h3>
-                <p class="text-[11px] text-zinc-400 font-medium">Si actualizaste la web en GitHub y querés forzar que todos los navegadores limpien la memoria temporal:</p>
+                <p class="text-[11px] text-zinc-400 font-medium">Si actualizaste la web en GitHub y querés forzar que los navegadores limpien la memoria:</p>
                 <button onclick="clearAppCache()" class="w-full bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-600/50 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
                     🔄 Borrar Caché y Forzar Actualización
                 </button>
@@ -248,7 +237,7 @@
 
         if(!currentUser) { window.location.href = "login.html"; }
 
-        // Validación estricta de vencimiento del cajero en tiempo real
+        // Validación estricta de vencimiento del cajero
         if (currentRole !== 'super') {
             db.ref('admins/' + currentUser).once('value', (snap) => {
                 let adminData = snap.val();
@@ -261,11 +250,18 @@
             });
         }
 
+        // Control de presencia avanzada: guarda estado online y última fecha/hora de desconexión
         const userStatusRef = db.ref('status/' + currentUser);
         db.ref('.info/connected').on('value', (snap) => {
             if (snap.val() === true) {
-                userStatusRef.onDisconnect().set({ state: 'offline', last_changed: firebase.database.ServerValue.TIMESTAMP });
-                userStatusRef.set({ state: 'online', last_changed: firebase.database.ServerValue.TIMESTAMP });
+                userStatusRef.onDisconnect().set({ 
+                    state: 'offline', 
+                    last_changed: new Date().toLocaleString() 
+                });
+                userStatusRef.set({ 
+                    state: 'online', 
+                    last_changed: new Date().toLocaleString() 
+                });
             }
         });
 
@@ -656,6 +652,7 @@
             });
         }
 
+        // Carga la gestión de administradores y actualiza el estado de conexión y última vez online en tiempo real
         function loadAdminsManagement() {
             if (currentRole !== 'super') return;
 
@@ -694,7 +691,7 @@
                             <div class="w-full sm:w-auto">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <strong class="text-amber-300 text-sm break-all">👤 ${name}</strong> 
-                                    <span id="online-${name}" class="text-[9px] text-zinc-400">⚪</span>
+                                    <span id="status-badge-${name}" class="text-[9px] text-zinc-400 font-semibold">Cargando estado...</span>
                                 </div>
                                 ${expiryText}
                             </div>
@@ -702,9 +699,20 @@
                                 ${editDateBtn} ${renewBtn} ${changePassBtn} ${actionBtn} ${deleteBtn}
                             </div>
                         </div>`;
+                    
+                    // Escuchar la rama status/ de cada cajero en tiempo real
                     db.ref('status/' + name).on('value', s => {
-                        let badge = document.getElementById(`online-${name}`);
-                        if(badge && s.val() && s.val().state === 'online') { badge.className = "text-[9px] text-emerald-400 font-bold"; badge.innerText = "🟢 En línea"; }
+                        let stData = s.val();
+                        let badge = document.getElementById(`status-badge-${name}`);
+                        if (badge) {
+                            if (stData && stData.state === 'online') {
+                                badge.innerHTML = `<span class="text-emerald-400">🟢 En línea ahora</span>`;
+                            } else if (stData && stData.last_changed) {
+                                badge.innerHTML = `<span class="text-zinc-400">⚪ Última vez: ${stData.last_changed}</span>`;
+                            } else {
+                                badge.innerHTML = `<span class="text-zinc-500">⚪ Sin actividad reciente</span>`;
+                            }
+                        }
                     });
                 }
                 document.getElementById('admins-count-badge').innerText = count;
