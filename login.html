@@ -3,47 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Admin - Bóveda de Premios</title>
+    <title>Acceso Admin - Bóveda de Premios</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #050508; color: #f4f4f5; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #07070a; color: #f4f4f5; }
         .cinzel { font-family: 'Cinzel', serif; }
         :root { --neon-main: #f59e0b; }
-        .casino-bg { background-color: #050508; background-image: radial-gradient(circle at 50% 15%, rgba(245, 158, 11, 0.2) 0%, transparent 60%), radial-gradient(circle at 50% 90%, rgba(0,0,0,0.98) 0%, transparent 70%); }
-        .slot-marquee { border: 3px solid #d97706; box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.95), 0 0 25px rgba(245, 158, 11, 0.2); background: linear-gradient(145deg, #0d0d14 0%, #050508 100%); }
-        .dynamic-text { color: var(--neon-main) !important; text-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
-        .dynamic-btn { background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); color: #000; font-weight: 900; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4); transition: all 0.2s ease; }
-        .dynamic-btn:hover { filter: brightness(1.15); transform: translateY(-2px); }
+        .casino-bg { background-color: #050508; background-image: radial-gradient(circle at 50% 10%, rgba(245, 158, 11, 0.15) 0%, transparent 50%), radial-gradient(circle at 50% 90%, rgba(0,0,0,0.95) 0%, transparent 60%); }
+        .slot-marquee { border: 1px solid rgba(245, 158, 11, 0.3); box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.9), 0 0 20px rgba(245, 158, 11, 0.08); background: linear-gradient(145deg, #0d0d12 0%, #060609 100%); }
+        .dynamic-text { color: var(--neon-main) !important; }
+        .dynamic-btn { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000; font-weight: 800; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3); transition: all 0.2s ease; }
+        .dynamic-btn:hover { filter: brightness(1.1); }
     </style>
 </head>
-<body class="casino-bg p-4">
-
-    <div class="max-w-sm w-full slot-marquee rounded-3xl p-6 sm:p-8 backdrop-blur-xl text-center space-y-5">
-        <div class="text-5xl mb-1">🔐</div>
-        <div>
-            <h1 class="cinzel text-xl sm:text-2xl font-black dynamic-text">PANEL ADMIN</h1>
-            <p class="text-[11px] text-zinc-400 font-bold uppercase tracking-wider mt-1">Acceso restringido</p>
+<body class="min-h-screen casino-bg flex items-center justify-center p-4">
+    <div class="max-w-md w-full slot-marquee rounded-2xl p-6 sm:p-8 space-y-6">
+        
+        <div class="text-center space-y-2">
+            <h1 class="cinzel text-xl sm:text-2xl font-black dynamic-text">ACCESO ADMINISTRADOR</h1>
+            <p class="text-xs text-zinc-400 font-medium">Ingresá tus credenciales para gestionar cupones</p>
         </div>
 
-        <div class="space-y-3 text-left">
+        <div class="space-y-4">
             <div>
                 <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Usuario:</label>
-                <input type="text" id="login-user" autocapitalize="none" autocorrect="off" placeholder="Tu usuario" class="w-full bg-black/90 border-2 border-zinc-700 focus:border-amber-500 rounded-xl px-3.5 py-3 text-xs text-white font-bold focus:outline-none shadow-inner">
+                <input type="text" id="login-user" placeholder="Tu usuario" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-bold focus:outline-none focus:border-amber-500">
             </div>
+
             <div>
                 <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Contraseña:</label>
-                <input type="password" id="login-pass" placeholder="••••••••" class="w-full bg-black/90 border-2 border-zinc-700 focus:border-amber-500 rounded-xl px-3.5 py-3 text-xs text-white font-bold focus:outline-none shadow-inner">
+                <input type="password" id="login-pass" placeholder="••••••••" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-bold focus:outline-none focus:border-amber-500" onkeypress="if(event.key === 'KeyE' || event.key === 'Enter') loginAdmin()">
             </div>
+
+            <button onclick="loginAdmin()" class="w-full dynamic-btn py-3.5 rounded-xl text-xs uppercase tracking-wider font-black mt-2">Ingresar al Panel 🚀</button>
         </div>
 
-        <button onclick="loginAdmin()" class="w-full dynamic-btn py-3 rounded-xl cinzel tracking-wider uppercase text-xs font-black">
-            INGRESAR 🚀
-        </button>
+        <div class="text-center pt-2">
+            <a href="index.html" class="text-xs text-zinc-500 hover:text-amber-400 transition-colors font-medium">← Volver al juego público</a>
+        </div>
 
-        <p id="login-error" class="text-amber-400 text-xs font-bold hidden"></p>
     </div>
 
     <script>
@@ -63,30 +64,44 @@
         function loginAdmin() {
             let user = document.getElementById('login-user').value.trim().toLowerCase();
             let pass = document.getElementById('login-pass').value.trim();
-            let err = document.getElementById('login-error');
 
             if(!user || !pass) {
-                err.innerText = "Completa todos los campos.";
-                err.classList.remove('hidden');
+                alert("Por favor completa usuario y contraseña.");
                 return;
             }
 
             db.ref('admins/' + user).once('value', (snap) => {
+                if(!snap.exists()) {
+                    alert("❌ Usuario o contraseña incorrectos.");
+                    return;
+                }
+
                 let data = snap.val();
-                if(!data || String(data.password) !== pass) {
-                    err.innerText = "❌ Usuario o contraseña incorrectos.";
-                    err.classList.remove('hidden');
+
+                // 1. Validar contraseña
+                if(data.password !== pass) {
+                    alert("❌ Usuario o contraseña incorrectos.");
                     return;
                 }
 
-                if(user !== "superadmin" && data.approved !== true) {
-                    err.innerText = "⏳ Tu cuenta espera aprobación del Super Admin.";
-                    err.classList.remove('hidden');
+                // 2. Validar si el Super Admin pausó la cuenta
+                if(data.approved === false) {
+                    alert("⚠️ Tu cuenta se encuentra pausada temporalmente. Comunícate con el administrador.");
                     return;
                 }
 
+                // 3. Validar si la fecha de vigencia/alquiler ya expiró
+                let now = new Date().getTime();
+                if(data.expiresAt && now > data.expiresAt) {
+                    alert("⚠️ Tu cuenta ha expirado. Comunícate con el administrador para renovar tu acceso.");
+                    return;
+                }
+
+                // Si todo está OK, guardamos la sesión y redirigimos al admin.html
                 localStorage.setItem("current_admin", user);
-                localStorage.setItem("admin_role", user === "superadmin" ? "super" : "admin");
+                let role = (user === "superadmin") ? "super" : "admin";
+                localStorage.setItem("admin_role", role);
+
                 window.location.href = "admin.html";
             });
         }
