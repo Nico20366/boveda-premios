@@ -17,6 +17,9 @@
         .dynamic-text { color: var(--neon-main) !important; }
         .dynamic-btn { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000; font-weight: 800; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3); transition: all 0.2s ease; }
         .dynamic-btn:hover { filter: brightness(1.1); }
+        details summary::-webkit-details-marker { display: none; }
+        details[open] summary .arrow-plus { transform: rotate(45deg); }
+        .arrow-plus { transition: transform 0.2s ease; display: inline-block; }
     </style>
 </head>
 <body class="min-h-screen casino-bg p-3 sm:p-6">
@@ -53,6 +56,7 @@
             <button onclick="switchTab('canjes')" id="tab-btn-canjes" class="py-2 rounded-lg text-[10px] sm:text-[11px] font-black cinzel transition-all text-zinc-400 hover:text-white">🎟️ Canjes</button>
             <button onclick="switchTab('admins')" id="tab-btn-admins" class="py-2 rounded-lg text-[10px] sm:text-[11px] font-black cinzel transition-all text-zinc-400 hover:text-white hidden">👥 Admins</button>
             <button onclick="switchTab('config')" id="tab-btn-config" class="py-2 rounded-lg text-[10px] sm:text-[11px] font-black cinzel transition-all text-zinc-400 hover:text-white">⚙️ Ajustes</button>
+            <button onclick="switchTab('ayuda')" id="tab-btn-ayuda" class="py-2 rounded-lg text-[10px] sm:text-[11px] font-black cinzel transition-all text-zinc-400 hover:text-white">❓ Ayuda</button>
         </div>
 
         <!-- PESTAÑA 1: GESTIÓN DE CUPONES -->
@@ -97,7 +101,7 @@
             </div>
         </div>
 
-        <!-- PESTAÑA 2: CANJES (NUEVA) -->
+        <!-- PESTAÑA 2: CANJES -->
         <div id="tab-content-canjes" class="space-y-4 hidden">
             <div class="slot-marquee rounded-2xl p-4 space-y-3">
                 <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
@@ -107,7 +111,6 @@
                     </div>
                 </div>
 
-                <!-- Filtros -->
                 <div class="grid grid-cols-3 gap-1 bg-black/60 p-1 rounded-xl border border-zinc-800">
                     <button onclick="setCanjeFilter('pendiente')" id="filter-btn-pendiente" class="py-1.5 rounded-lg text-[10px] font-black cinzel transition-all bg-zinc-800 text-emerald-400 shadow">⏳ Pendientes</button>
                     <button onclick="setCanjeFilter('entregado')" id="filter-btn-entregado" class="py-1.5 rounded-lg text-[10px] font-black cinzel transition-all text-zinc-400 hover:text-white">✅ Entregados</button>
@@ -173,6 +176,82 @@
                 <button onclick="clearAppCache()" class="w-full bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-600/50 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors">
                     🔄 Borrar Caché y Forzar Actualización
                 </button>
+            </div>
+        </div>
+
+        <!-- PESTAÑA 5: AYUDA (FAQ ARREGLADO) -->
+        <div id="tab-content-ayuda" class="space-y-4 hidden">
+            <div class="slot-marquee rounded-2xl p-4 space-y-3">
+                <h3 class="cinzel text-xs font-black text-amber-400">❓ PREGUNTAS FRECUENTES</h3>
+                <div class="space-y-2 text-[11px] text-zinc-300">
+
+                    <details class="bg-black/60 rounded-xl border border-zinc-800 overflow-hidden">
+                        <summary class="cursor-pointer p-3 font-bold text-amber-400 hover:bg-zinc-800/50 transition-colors flex items-center justify-between">
+                            <span>¿Qué pasa si un cliente usa el mismo cupón dos veces?</span>
+                            <span class="arrow-plus text-amber-500 text-lg leading-none font-black">+</span>
+                        </summary>
+                        <p class="px-3 pb-3 text-zinc-400 leading-relaxed">Se bloquea el dispositivo (por <code class="bg-zinc-800 px-1 rounded text-amber-300">deviceId</code>) y el contador de usos se actualiza al instante. Si el cliente intenta de nuevo desde el mismo dispositivo, el sistema lo rechaza.</p>
+                    </details>
+
+                    <details class="bg-black/60 rounded-xl border border-zinc-800 overflow-hidden">
+                        <summary class="cursor-pointer p-3 font-bold text-amber-400 hover:bg-zinc-800/50 transition-colors flex items-center justify-between">
+                            <span>¿Cómo detecto una captura falsa?</span>
+                            <span class="arrow-plus text-amber-500 text-lg leading-none font-black">+</span>
+                        </summary>
+                        <p class="px-3 pb-3 text-zinc-400 leading-relaxed">Cada canje genera un código único <code class="bg-zinc-800 px-1 rounded text-emerald-300">CONF-XXXXXX</code> que el cliente ve en pantalla al ganar. Ese código queda registrado en el panel con el <strong class="text-amber-300">premio real</strong>. Si el premio de la captura no coincide con el del panel → <strong class="text-red-400">captura trucha</strong>.</p>
+                    </details>
+
+                    <details class="bg-black/60 rounded-xl border border-zinc-800 overflow-hidden">
+                        <summary class="cursor-pointer p-3 font-bold text-amber-400 hover:bg-zinc-800/50 transition-colors flex items-center justify-between">
+                            <span>¿Por qué dice "sesión cerrada por inactividad"?</span>
+                            <span class="arrow-plus text-amber-500 text-lg leading-none font-black">+</span>
+                        </summary>
+                        <p class="px-3 pb-3 text-zinc-400 leading-relaxed">Si pasan <strong class="text-amber-300">15 minutos</strong> sin uso, la sesión se cierra automáticamente por seguridad. Volvé a loguearte desde el <code class="bg-zinc-800 px-1 rounded text-amber-300">login.html</code>.</p>
+                    </details>
+
+                    <details class="bg-black/60 rounded-xl border border-zinc-800 overflow-hidden">
+                        <summary class="cursor-pointer p-3 font-bold text-amber-400 hover:bg-zinc-800/50 transition-colors flex items-center justify-between">
+                            <span>¿Puedo reutilizar un cupón agotado?</span>
+                            <span class="arrow-plus text-amber-500 text-lg leading-none font-black">+</span>
+                        </summary>
+                        <p class="px-3 pb-3 text-zinc-400 leading-relaxed">No directamente. Borralo y creá uno nuevo con otro nombre. O usá el botón <strong class="text-amber-300">🗑️ Limpiar</strong> para eliminar los agotados/vencidos de una vez.</p>
+                    </details>
+
+                    <details class="bg-black/60 rounded-xl border border-zinc-800 overflow-hidden">
+                        <summary class="cursor-pointer p-3 font-bold text-amber-400 hover:bg-zinc-800/50 transition-colors flex items-center justify-between">
+                            <span>¿Qué es el código CONF-XXXXXX?</span>
+                            <span class="arrow-plus text-amber-500 text-lg leading-none font-black">+</span>
+                        </summary>
+                        <p class="px-3 pb-3 text-zinc-400 leading-relaxed">Es el <strong class="text-emerald-300">código de confirmación</strong> que se genera cuando un cliente canjea un cupón. Sirve para verificar que la captura es real. <strong class="text-amber-300">Buscá ese código en la pestaña "Canjes"</strong> y compará el premio con el de la captura.</p>
+                    </details>
+
+                    <details class="bg-black/60 rounded-xl border border-zinc-800 overflow-hidden">
+                        <summary class="cursor-pointer p-3 font-bold text-amber-400 hover:bg-zinc-800/50 transition-colors flex items-center justify-between">
+                            <span>¿Cómo marco un canje como entregado?</span>
+                            <span class="arrow-plus text-amber-500 text-lg leading-none font-black">+</span>
+                        </summary>
+                        <p class="px-3 pb-3 text-zinc-400 leading-relaxed">En la pestaña <strong class="text-amber-300">🎟️ Canjes</strong>, buscá el código <code class="bg-zinc-800 px-1 rounded text-emerald-300">CONF-XXXXXX</code> que te mandó el cliente. Si el premio coincide con la captura, tocá <strong class="text-emerald-400">✅ Entregar</strong>. Si te equivocaste, tocá <strong class="text-amber-400">↩️ Revertir</strong>.</p>
+                    </details>
+
+                </div>
+            </div>
+
+            <div class="slot-marquee rounded-2xl p-4 space-y-3">
+                <h3 class="cinzel text-xs font-black text-amber-400">🎓 GUÍA RÁPIDA DE USO</h3>
+                <div class="space-y-2.5 text-[11px] text-zinc-300 leading-relaxed">
+                    <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800">
+                        <strong class="text-amber-400 block mb-0.5">1. Crear cupón:</strong> En la pestaña 🎁 Cupones, ingresá un código (ej: PROMO123), elegí los premios y su probabilidad, y la fecha de vencimiento.
+                    </div>
+                    <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800">
+                        <strong class="text-amber-400 block mb-0.5">2. Pasar el código al cliente:</strong> Mandale el código por WhatsApp (ej: "Tu código es PROMO123").
+                    </div>
+                    <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800">
+                        <strong class="text-amber-400 block mb-0.5">3. Verificar la captura:</strong> Cuando el cliente te mande la captura con el código CONF-XXXXXX, buscá ese código en la pestaña 🎟️ Canjes. Compará el premio.
+                    </div>
+                    <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800">
+                        <strong class="text-amber-400 block mb-0.5">4. Entregar el premio:</strong> Si el premio coincide, acreditá manualmente en el sistema del casino y tocá "✅ Entregar" en el panel.
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -277,7 +356,7 @@
         loadCanjes();
 
         function switchTab(tabName) {
-            ['coupons', 'canjes', 'admins', 'config'].forEach(t => {
+            ['coupons', 'canjes', 'admins', 'config', 'ayuda'].forEach(t => {
                 let content = document.getElementById(`tab-content-${t}`);
                 let btn = document.getElementById(`tab-btn-${t}`);
                 if (content && btn) {
@@ -493,7 +572,6 @@
                 return;
             }
 
-            // Filtrar por estado y término
             let filtered = entries.filter(([code, c]) => {
                 let matchFilter = canjeFilter === 'todos' || c.status === canjeFilter;
                 let matchTerm = !term || code.toUpperCase().includes(term) || 
@@ -502,7 +580,6 @@
                 return matchFilter && matchTerm;
             });
 
-            // Ordenar por timestamp descendente (más nuevos primero)
             filtered.sort((a, b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
 
             if (filtered.length === 0) {
