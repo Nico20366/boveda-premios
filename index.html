@@ -53,7 +53,12 @@
     <div id="particles-container" class="absolute inset-0 overflow-hidden pointer-events-none"></div>
 
     <header class="w-full py-4 px-6 border-b border-amber-500/20 flex justify-between items-center bg-[#07070a]/95 backdrop-blur-md z-10 shadow-lg">
-        <div></div>
+        <div class="flex items-center space-x-3">
+            <span class="text-2xl select-none">🎰</span>
+            <div>
+                <h1 id="header-title" class="cinzel text-base sm:text-lg font-black tracking-wider text-amber-400">BÓVEDA DE LA SUERTE</h1>
+            </div>
+        </div>
         <div class="hidden">
             <a href="login.html" class="text-[11px] bg-zinc-900/90 hover:bg-zinc-800 text-amber-400 border border-amber-500/40 px-3 py-1.5 rounded-lg font-bold cinzel shadow">🔐 LOGIN</a>
         </div>
@@ -76,30 +81,30 @@
             <p id="error-msg" class="text-amber-400 text-xs mt-3 font-bold hidden"></p>
         </div>
 
-        <!-- Cofres (6 unidades) -->
-        <div id="step-game-chests" class="w-full hidden slot-marquee rounded-3xl p-5 sm:p-6 backdrop-blur-xl">
-            <h2 class="cinzel text-lg sm:text-xl font-black text-white mb-1">¡ELIJA UN COFRE!</h2>
-            <p class="text-zinc-400 text-xs mb-3 font-medium">Toque uno de los 6 cofres:</p>
-            <div class="bg-amber-950/40 border border-amber-500/40 rounded-xl p-2.5 mb-4 shadow-inner">
-                <p class="text-[10px] text-amber-200/90 font-medium">⚠️ Se canjea al tocar. <strong>No recargue</strong> la página.</p>
+        <!-- Cofres -->
+        <div id="step-game-chests" class="w-full hidden slot-marquee rounded-3xl p-6 sm:p-8 backdrop-blur-xl">
+            <h2 class="cinzel text-xl sm:text-2xl font-black text-white mb-2">¡ELIJA UN COFRE!</h2>
+            <p class="text-zinc-400 text-xs sm:text-sm mb-4 font-medium">Toque uno de los cofres para descubrir su premio:</p>
+            <div class="bg-amber-950/40 border border-amber-500/40 rounded-xl p-3 mb-5 shadow-inner">
+                <p class="text-[11px] text-amber-200/90 font-medium">⚠️ El código se canjea al tocar. <strong>No recargue</strong> la página.</p>
             </div>
-            <div id="chests-container" class="grid grid-cols-3 gap-2.5 mb-2"></div>
+            <div id="chests-container" class="grid grid-cols-3 gap-3 mb-2"></div>
         </div>
 
         <!-- Resultado -->
-        <div id="step-result" class="w-full hidden slot-marquee rounded-3xl p-6 sm:p-8 backdrop-blur-xl jackpot-glow relative">
+        <div id="step-result" class="w-full hidden slot-marquee rounded-3xl p-6 sm:p-8 backdrop-blur-xl jackpot-glow">
+            <div class="text-6xl mb-3 animate-bounce" id="result-emoji">👑</div>
+            <h3 class="cinzel text-xs text-amber-400 mb-1 font-bold tracking-widest">¡JACKPOT / PREMIO GANADO!</h3>
+            <p id="result-text" class="cinzel text-xl sm:text-2xl font-black dynamic-text mb-4 leading-snug"></p>
             
-            <!-- ID de Seguridad Ultra Transparente / Marca de Agua -->
-            <div class="absolute top-3 right-4 select-none pointer-events-none">
-                <span id="result-sec-id" class="text-[9px] text-amber-400/15 font-mono tracking-widest font-bold">#SEC-XXXXXX</span>
+            <!-- Código de confirmación -->
+            <div class="bg-emerald-950/60 border-2 border-emerald-500/50 rounded-xl p-3 mb-4 shadow-inner">
+                <p class="text-[10px] text-emerald-300 font-bold uppercase tracking-wider mb-1">🎟️ Código de confirmación</p>
+                <p id="result-confirm-code" class="cinzel text-lg font-black text-emerald-300 tracking-widest">CONF-XXXXXX</p>
             </div>
 
-            <div class="text-6xl mb-3 animate-bounce mt-2" id="result-emoji">👑</div>
-            <h3 class="cinzel text-xs text-amber-400 mb-1 font-bold tracking-widest">¡JACKPOT / PREMIO GANADO!</h3>
-            <p id="result-text" class="cinzel text-xl sm:text-2xl font-black dynamic-text mb-5 leading-snug"></p>
-
-            <div class="bg-black/80 border border-amber-500/40 rounded-xl p-3 mb-5 shadow-inner">
-                <p id="result-desc" class="text-xs text-zinc-200 font-medium leading-relaxed">📸 Tome una captura de pantalla de este resultado y pasalo por WhatsApp.</p>
+            <div class="bg-black/80 border border-amber-500/40 rounded-xl p-3.5 mb-5 shadow-inner">
+                <p id="result-desc" class="text-xs text-zinc-200 font-medium leading-relaxed">📸 Tomá captura de esta pantalla (con el código visible) y mandala al cajero.</p>
             </div>
 
             <button onclick="resetToHome()" class="w-full dynamic-btn py-3.5 rounded-xl cinzel tracking-wider uppercase text-xs font-black">
@@ -128,9 +133,8 @@
 
         db.ref('configuracion').on('value', (snap) => {
             let data = snap.val();
-            if(data && data.titulo) {
-                let pageTitleEl = document.getElementById('page-title');
-                if(pageTitleEl) pageTitleEl.innerText = data.titulo;
+            if(data) {
+                if(data.titulo) { document.getElementById('header-title').innerText = data.titulo; document.getElementById('page-title').innerText = data.titulo; }
             }
         });
 
@@ -194,6 +198,23 @@
         let currentTokenData = null;
         let gameLocked = false;
         let resolvedFinalPrize = "";
+        let confirmCode = "";
+
+        function getDeviceId() {
+            let id = localStorage.getItem('_did');
+            if (!id) {
+                id = 'd_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+                localStorage.setItem('_did', id);
+            }
+            return id;
+        }
+
+        function generateConfirmCode() {
+            var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            var out = "";
+            for (var i = 0; i < 6; i++) out += chars.charAt(Math.floor(Math.random() * chars.length));
+            return "CONF-" + out;
+        }
 
         function renderChests(qty) {
             let container = document.getElementById('chests-container');
@@ -203,13 +224,13 @@
                 let div = document.createElement('div');
                 div.className = "flex flex-col items-center";
                 div.innerHTML = `
-                    <div onclick="openChest(${i}, ${qty})" id="chest-${i}" class="chest rounded-2xl p-3 sm:p-4 flex items-center justify-center aspect-square w-full text-3xl sm:text-4xl shadow-lg">📦</div>
-                    <span id="chest-label-${i}" class="text-[9px] font-black text-amber-400/80 mt-1.5 tracking-wider">COFRE ${i}</span>
+                    <div onclick="openChest(${i}, ${qty})" id="chest-${i}" class="chest rounded-2xl p-4 sm:p-5 flex items-center justify-center aspect-square w-full text-4xl sm:text-5xl shadow-lg">📦</div>
+                    <span id="chest-label-${i}" class="text-[10px] font-black text-amber-400/80 mt-2 tracking-wider">COFRE ${i}</span>
                 `;
                 container.appendChild(div);
             }
         }
-        renderChests(6);
+        renderChests(3);
 
         function rollWeightedPrize(prizes, weights) {
             let totalWeight = weights.reduce((a, b) => a + b, 0);
@@ -230,14 +251,6 @@
             let err = document.getElementById('error-msg');
             if (!code) { err.innerText = "Escriba su código."; err.classList.remove('hidden'); return; }
 
-            // VALIDACIÓN CON TIEMPO EXPIRABLE (Ej: 3 horas de bloqueo en este celu)
-            let lockoutTime = localStorage.getItem('used_coupon_' + code);
-            if (lockoutTime && new Date().getTime() < parseInt(lockoutTime)) {
-                err.innerText = "⚠️ Este dispositivo ya usó este cupón recientemente. Intente más tarde.";
-                err.classList.remove('hidden');
-                return;
-            }
-
             db.ref('cupones/' + code).once('value', (snapshot) => {
                 let data = snapshot.val();
                 if (!data) { err.innerText = "❌ Código incorrecto o inexistente."; err.classList.remove('hidden'); return; }
@@ -246,127 +259,122 @@
                 let stockMax = data.stockMax || 1;
                 if (usedCount >= stockMax) { err.innerText = "⚠️ Este cupón ya agotó su stock disponible."; err.classList.remove('hidden'); return; }
 
-                if (data.expiresAt) {
-                    let expiryTime = Number(data.expiresAt);
-                    if (!isNaN(expiryTime) && new Date().getTime() > expiryTime) {
-                        err.innerText = "⌛ Este código ha expirado.";
+                if (data.expiresAt && new Date().getTime() > data.expiresAt) {
+                    err.innerText = "⌛ Este código ha expirado.";
+                    err.classList.remove('hidden');
+                    return;
+                }
+
+                let devId = getDeviceId();
+                db.ref('cupones/' + code + '/usedDevices/' + devId).once('value', (devSnap) => {
+                    if (devSnap.exists()) {
+                        err.innerText = "⚠️ Este dispositivo ya usó este cupón. No se puede repetir.";
                         err.classList.remove('hidden');
                         return;
                     }
-                }
 
-                currentTokenData = data;
-                currentCodeKey = code;
-                err.classList.add('hidden');
-                document.getElementById('step-token').classList.add('hidden');
-                gameLocked = false;
+                    confirmCode = generateConfirmCode();
 
-                let prizes = data.prizes || ["PREMIO"];
-                let weights = data.weights || [100];
+                    currentTokenData = data;
+                    currentCodeKey = code;
+                    err.classList.add('hidden');
+                    document.getElementById('step-token').classList.add('hidden');
+                    gameLocked = false;
 
-                resolvedFinalPrize = rollWeightedPrize(prizes, weights);
-                document.getElementById('step-game-chests').classList.remove('hidden');
+                    let prizes = data.prizes || ["PREMIO"];
+                    let weights = data.weights || [100];
+                    resolvedFinalPrize = rollWeightedPrize(prizes, weights);
+                    document.getElementById('step-game-chests').classList.remove('hidden');
+                });
             });
         }
 
         function showResultScreen() {
             document.getElementById('result-emoji').innerText = '👑';
             document.getElementById('result-text').innerText = resolvedFinalPrize;
-            
-            let secId = currentTokenData.securityId ? `#${currentTokenData.securityId}` : "#SEC-PROMO";
-            document.getElementById('result-sec-id').innerText = secId;
-
+            document.getElementById('result-confirm-code').innerText = confirmCode;
             document.getElementById('step-result').classList.remove('hidden');
         }
 
         function openChest(num, totalQty) {
             if (gameLocked) return;
             gameLocked = true;
-            if (navigator.vibrate) navigator.vibrate(80);
-
-            // Guardar bloqueo temporal de 3 horas en este celular para este cupón específico
-            let threeHoursFromNow = new Date().getTime() + (3 * 60 * 60 * 1000);
-            localStorage.setItem('used_coupon_' + currentCodeKey, threeHoursFromNow);
-
-            let selectedChest = document.getElementById(`chest-${num}`);
-            if(selectedChest) {
-                selectedChest.classList.add('active-roulette');
-            }
+            if (navigator.vibrate) navigator.vibrate(60);
 
             let nowObj = new Date();
             let formattedDateTime = nowObj.toLocaleDateString() + ", " + 
                                     String(nowObj.getHours()).padStart(2, '0') + ":" + 
                                     String(nowObj.getMinutes()).padStart(2, '0');
 
-            let newUsedCount = (currentTokenData.usedCount || 0) + 1;
-
-            db.ref('cupones/' + currentCodeKey).update({
-                usedCount: newUsedCount,
-                lastUsedAt: formattedDateTime,
-                lastPrizeWon: resolvedFinalPrize
-            });
-
-            let currentStep = 0;
-            let totalSteps = 22;
-            let delay = 100; 
-
-            function runSuspenseStep() {
-                playSound('slot');
-                let randomChest = Math.floor(Math.random() * totalQty) + 1;
-                for(let i = 1; i <= totalQty; i++) {
-                    let el = document.getElementById(`chest-${i}`);
-                    if(el) el.classList.remove('active-roulette');
+            db.ref('cupones/' + currentCodeKey + '/usedCount').transaction(function(current) {
+                let stockMax = currentTokenData.stockMax || 1;
+                if ((current || 0) >= stockMax) return;
+                return (current || 0) + 1;
+            }, function(error, committed) {
+                if (!committed) {
+                    alert("Este cupón se agotó mientras jugabas. Intenta con otro.");
+                    gameLocked = false;
+                    return;
                 }
-                let activeEl = document.getElementById(`chest-${randomChest}`);
-                if(activeEl) activeEl.classList.add('active-roulette');
 
-                currentStep++;
+                db.ref('cupones/' + currentCodeKey).update({
+                    lastUsedAt: formattedDateTime,
+                    lastPrizeWon: resolvedFinalPrize
+                });
 
-                if (currentStep < totalSteps) {
-                    delay += 30; 
-                    setTimeout(runSuspenseStep, delay);
-                } else {
-                    for(let i = 1; i <= totalQty; i++) {
+                db.ref('cupones/' + currentCodeKey + '/usedDevices/' + getDeviceId()).set(Date.now());
+
+                db.ref('canjes/' + confirmCode).set({
+                    coupon: currentCodeKey,
+                    prize: resolvedFinalPrize,
+                    deviceId: getDeviceId(),
+                    timestamp: Date.now(),
+                    status: "pendiente"
+                });
+
+                let steps = 9, currentStep = 0;
+                let interval = setInterval(() => {
+                    playSound('slot');
+                    let randomChest = Math.floor(Math.random() * totalQty) + 1;
+                    for(let i=1; i<=totalQty; i++) {
                         let el = document.getElementById(`chest-${i}`);
-                        let lbl = document.getElementById(`chest-label-${i}`);
-                        if(el) {
-                            el.classList.remove('active-roulette');
-                            if(i !== num) { 
-                                el.classList.add('dimmed'); 
-                                if(lbl) lbl.classList.add('dimmed'); 
+                        if(el) el.classList.remove('active-roulette');
+                    }
+                    let activeEl = document.getElementById(`chest-${randomChest}`);
+                    if(activeEl) activeEl.classList.add('active-roulette');
+                    
+                    currentStep++;
+                    if(currentStep >= steps) {
+                        clearInterval(interval);
+                        
+                        for(let i=1; i<=totalQty; i++) {
+                            let el = document.getElementById(`chest-${i}`);
+                            let lbl = document.getElementById(`chest-label-${i}`);
+                            if(el) {
+                                el.classList.remove('active-roulette');
+                                if(i !== num) { el.classList.add('dimmed'); if(lbl) lbl.classList.add('dimmed'); }
                             }
                         }
-                    }
 
-                    let finalChest = document.getElementById(`chest-${num}`);
-                    if(finalChest) {
-                        finalChest.classList.add('active-roulette');
-                    }
-
-                    setTimeout(() => {
-                        if(finalChest) {
-                            finalChest.classList.remove('active-roulette');
-                            finalChest.classList.add('opened');
-                            finalChest.innerText = '💎';
+                        const selectedChest = document.getElementById(`chest-${num}`);
+                        if(selectedChest) {
+                            selectedChest.classList.add('opened');
+                            selectedChest.innerText = '💎';
                         }
-                        
                         playVictoryFanfare();
 
                         setTimeout(() => {
                             document.getElementById('step-game-chests').classList.add('hidden');
                             showResultScreen();
-                        }, 1800);
-
-                    }, 1200);
-                }
-            }
-
-            setTimeout(runSuspenseStep, 200);
+                        }, 1000);
+                    }
+                }, 140);
+            });
         }
 
         function resetToHome() {
             playSound('click');
-            for(let i=1; i<=6; i++) {
+            for(let i=1; i<=3; i++) {
                 let chest = document.getElementById(`chest-${i}`);
                 let lbl = document.getElementById(`chest-label-${i}`);
                 if(chest) { chest.classList.remove('opened', 'dimmed', 'active-roulette'); chest.innerText = '📦'; }
@@ -380,6 +388,9 @@
             currentCodeKey = "";
             currentTokenData = null;
             resolvedFinalPrize = "";
+            confirmCode = "";
+            let confEl = document.getElementById('result-confirm-code');
+            if (confEl) confEl.innerText = "CONF-XXXXXX";
         }
     </script>
 </body>
