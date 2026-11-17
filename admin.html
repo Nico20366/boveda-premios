@@ -177,25 +177,21 @@
             <div class="slot-marquee rounded-2xl p-4 space-y-3">
                 <h3 class="cinzel text-xs font-black text-amber-400">❓ PREGUNTAS FRECUENTES (FAQ)</h3>
                 <div class="space-y-2 text-[11px] text-zinc-300">
-                    <details class="bg-black/60 p-2.5 rounded-xl border border-zinc-800 cursor-pointer">
-                        <summary class="font-bold text-amber-300">¿Qué pasa si un cliente intenta usar el mismo cupón dos veces?</summary>
+                    **Summary:**
+¿Qué pasa si un cliente intenta usar el mismo cupón dos veces?
                         <p class="mt-1.5 text-zinc-400 leading-relaxed">El sistema tiene un doble filtro: primero, bloquea el dispositivo (celular) para que no pueda volver a abrirlo; segundo, el contador de usos en Firebase se actualiza al instante. Si se agotan los usos, nadie más puede usarlo.</p>
-                    </details>
                     
-                    <details class="bg-black/60 p-2.5 rounded-xl border border-zinc-800 cursor-pointer">
-                        <summary class="font-bold text-amber-300">¿Cómo detecto si una captura de pantalla es falsa o trucada?</summary>
+                    **Summary:**
+¿Cómo detecto si una captura de pantalla es falsa o trucada?
                         <p class="mt-1.5 text-zinc-400 leading-relaxed">Cada premio ganado muestra arriba a la derecha un código de seguridad único (ej: <em>#SEC-8F3A29</em>). Verificá que ese código coincida exactamente con el cupón que creaste en tu panel de administración.</p>
-                    </details>
 
-                    <details class="bg-black/60 p-2.5 rounded-xl border border-zinc-800 cursor-pointer">
-                        <summary class="font-bold text-amber-300">¿Por qué dice "Sesión cerrada por inactividad"?</summary>
+                    **Summary:**
+¿Por qué dice "Sesión cerrada por inactividad"?
                         <p class="mt-1.5 text-zinc-400 leading-relaxed">Por seguridad, si pasan 15 minutos sin que muevas el mouse o toques la pantalla en el panel de control, la sesión se cierra sola para evitar que dejen la computadora abierta en el local.</p>
-                    </details>
 
-                    <details class="bg-black/60 p-2.5 rounded-xl border border-zinc-800 cursor-pointer">
-                        <summary class="font-bold text-amber-300">¿Puedo reciclar o volver a usar un cupón agotado?</summary>
+                    **Summary:**
+¿Puedo reciclar o volver a usar un cupón agotado?
                         <p class="mt-1.5 text-zinc-400 leading-relaxed">Podés borrar el cupón viejo desde el listado y crear uno nuevo. Te recomendamos cambiarle ligeramente el nombre (ej: de <em>PROMO1</em> a <em>PROMO2</em>) para que los celulares de los clientes no recuerden el uso anterior.</p>
-                    </details>
                 </div>
             </div>
 
@@ -256,6 +252,15 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+
+        // ====================== SEGURIDAD: HASH DE CONTRASEÑAS ======================
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
 
         let currentUser = localStorage.getItem("current_admin");
         let currentRole = localStorage.getItem("admin_role");
@@ -531,9 +536,9 @@
                 let isSoldOut = usedCount >= stockMax;
                 let secId = item.securityId ? `<span class="bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded text-[9px] font-mono border border-zinc-700">#${item.securityId}</span>` : "";
 
-                let st = isSoldOut ? `<span class="text-red-400">USADO (${usedCount}/${stockMax})</span>` : (expired ? `<span class="text-amber-400">VENCIDO</span>` : `<span class="text-emerald-400">DISP. (${usedCount}/${stockMax})</span>`);
+                let st = isSoldOut ? `<span class="text-red-400">USADO (\( {usedCount}/ \){stockMax})</span>` : (expired ? `<span class="text-amber-400">VENCIDO</span>` : `<span class="text-emerald-400">DISP. (\( {usedCount}/ \){stockMax})</span>`);
                 let firstPrize = item.prizes ? item.prizes[0] : "Premio";
-                let lastUsedInfo = item.lastUsedAt ? `<div class="text-[9px] text-amber-300 font-bold">Último uso: ${item.lastUsedAt} (${item.lastPrizeWon || ''})</div>` : "";
+                let lastUsedInfo = item.lastUsedAt ? `<div class="text-[9px] text-amber-300 font-bold">Último uso: \( {item.lastUsedAt} ( \){item.lastPrizeWon || ''})</div>` : "";
                 let ownerBadge = currentRole === 'super' ? `<span class="text-[9px] text-zinc-500 block">Por: ${item.createdBy}</span>` : "";
 
                 list.innerHTML += `
@@ -548,7 +553,7 @@
                         </div>
                         <div class="flex items-center gap-1.5 shrink-0">
                             ${st} 
-                            <button onclick="navigator.clipboard.writeText('${code}'); alert('¡Código [${code}] copiado!');" class="bg-zinc-800 hover:bg-zinc-700 text-amber-300 px-2 py-1 rounded text-[10px]" title="Copiar código">📋</button>
+                            <button onclick="navigator.clipboard.writeText('\( {code}'); alert('¡Código [ \){code}] copiado!');" class="bg-zinc-800 hover:bg-zinc-700 text-amber-300 px-2 py-1 rounded text-[10px]" title="Copiar código">📋</button>
                             <button onclick="deleteCoupon('${code}')" class="bg-red-950 hover:bg-red-900 text-red-300 border border-red-600/40 px-2 py-1 rounded text-[10px]" title="Eliminar cupón">🗑️</button>
                         </div>
                     </div>`;
@@ -671,19 +676,27 @@
         function deleteSupportMsg(id) { db.ref('soporte/' + id).remove(); }
         function clearSupportInbox() { if (!confirm("¿Borrar todos los mensajes recibidos?")) return; db.ref('soporte').remove(); }
 
-        function createAdminAccount() {
+        // ====================== CREAR ADMIN CON HASH ======================
+        async function createAdminAccount() {
             let user = document.getElementById('new-admin-user').value.trim().toLowerCase();
             let pass = document.getElementById('new-admin-pass').value.trim();
             let expireInput = document.getElementById('new-admin-expires').value;
 
-            if(!user || !pass || !expireInput) { alert("Completa todos los campos."); return; }
+            if(!user || !pass || !expireInput) { 
+                alert("Completa todos los campos."); 
+                return; 
+            }
 
             let expiresAt = new Date(expireInput).getTime();
+            const hashedPass = await hashPassword(pass);
 
             db.ref('admins/' + user).once('value', snap => {
-                if(snap.exists()) { alert("❌ Ese nombre de usuario ya existe."); return; }
+                if(snap.exists()) { 
+                    alert("❌ Ese nombre de usuario ya existe."); 
+                    return; 
+                }
                 db.ref('admins/' + user).set({
-                    password: pass,
+                    password: hashedPass,
                     approved: true,
                     expiresAt: expiresAt,
                     createdAt: new Date().toLocaleDateString()
@@ -723,7 +736,7 @@
                         }
                     }
 
-                    let actionBtn = isApproved ? `<button onclick="toggleAdminApproval('${name}', false)" class="bg-amber-950 text-amber-300 px-2 py-1 rounded text-[10px]">Pausar</button>` : `<button onclick="toggleAdminApproval('${name}', true)" class="bg-emerald-500 text-black px-2 py-1 rounded text-[10px]">Aprobar</button>`;
+                    let actionBtn = isApproved ? `<button onclick="toggleAdminApproval('\( {name}', false)" class="bg-amber-950 text-amber-300 px-2 py-1 rounded text-[10px]">Pausar</button>` : `<button onclick="toggleAdminApproval(' \){name}', true)" class="bg-emerald-500 text-black px-2 py-1 rounded text-[10px]">Aprobar</button>`;
                     let editDateBtn = `<button onclick="superEditAdminDate('${name}')" class="bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-600/40 px-2 py-1 rounded text-[10px]" title="Editar fecha">✏️ Fecha</button>`;
                     let renewBtn = `<button onclick="renewAdminMonth('${name}', ${info.expiresAt || now})" class="bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600/40 px-2 py-1 rounded text-[10px]" title="Extender 30 días">➕30d</button>`;
                     let changePassBtn = `<button onclick="superChangeAdminPassword('${name}')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-amber-500/30 px-2 py-1 rounded text-[10px]">🔑 Clave</button>`;
@@ -786,13 +799,19 @@
             });
         }
 
-        function superChangeAdminPassword(name) {
+        // ====================== CAMBIAR CONTRASEÑA DE OTRO ADMIN (CON HASH) ======================
+        async function superChangeAdminPassword(name) {
             let newPass = prompt(`Ingresa la nueva contraseña para "${name}":`, "");
             if (newPass === null) return;
             newPass = newPass.trim();
-            if (newPass.length < 3) { alert("La contraseña es muy corta."); return; }
+            if (newPass.length < 3) { 
+                alert("La contraseña es muy corta."); 
+                return; 
+            }
 
-            db.ref('admins/' + name).update({ password: newPass }, (error) => {
+            const hashedPass = await hashPassword(newPass);
+
+            db.ref('admins/' + name).update({ password: hashedPass }, (error) => {
                 if (error) alert("❌ Error al actualizar.");
                 else alert(`✅ ¡Contraseña actualizada con éxito!`);
             });
@@ -801,13 +820,28 @@
         function toggleAdminApproval(name, status) { db.ref('admins/' + name).update({ approved: status }); }
         function deleteAdmin(name) { if(!confirm(`¿Eliminar al administrador ${name}?`)) return; db.ref('admins/' + name).remove(); db.ref('status/' + name).remove(); }
         
-        function changeMyPassword() {
+        // ====================== CAMBIAR MI PROPIA CONTRASEÑA (CON HASH) ======================
+        async function changeMyPassword() {
             let curr = document.getElementById('current-pass').value.trim();
             let neu = document.getElementById('new-pass').value.trim();
-            if(!curr || !neu) { alert("Completa ambos campos."); return; }
+            if(!curr || !neu) { 
+                alert("Completa ambos campos."); 
+                return; 
+            }
+
+            const hashedCurrent = await hashPassword(curr);
+            const hashedNew = await hashPassword(neu);
+
             db.ref('admins/' + currentUser).once('value', s => {
-                if(!s.val() || s.val().password !== curr) { alert("La contraseña actual es incorrecta."); return; }
-                db.ref('admins/' + currentUser).update({ password: neu }, () => { alert("¡Contraseña actualizada con éxito!"); document.getElementById('current-pass').value = ""; document.getElementById('new-pass').value = ""; });
+                if(!s.val() || (s.val().password !== hashedCurrent && s.val().password !== curr)) { 
+                    alert("La contraseña actual es incorrecta."); 
+                    return; 
+                }
+                db.ref('admins/' + currentUser).update({ password: hashedNew }, () => { 
+                    alert("¡Contraseña actualizada con éxito!"); 
+                    document.getElementById('current-pass').value = ""; 
+                    document.getElementById('new-pass').value = ""; 
+                });
             });
         }
 
