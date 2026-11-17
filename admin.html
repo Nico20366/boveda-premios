@@ -78,7 +78,6 @@
                         </div>
                     </div>
 
-                    <!-- Generador Dinámico de Premios (Máximo 6) -->
                     <div class="bg-black/60 p-3 rounded-xl border border-zinc-800 space-y-2">
                         <div class="flex justify-between items-center">
                             <div>
@@ -88,9 +87,7 @@
                             <button onclick="addPrizeRow()" type="button" id="add-prize-btn" class="bg-zinc-800 hover:bg-zinc-700 text-amber-300 border border-amber-500/30 px-2 py-1 rounded-lg text-[10px] font-bold transition-all">+ Agregar Premio</button>
                         </div>
                         
-                        <div id="prizes-dynamic-container" class="space-y-2 pt-1">
-                            <!-- Los renglones se generan automáticamente aquí -->
-                        </div>
+                        <div id="prizes-dynamic-container" class="space-y-2 pt-1"></div>
                     </div>
 
                     <div>
@@ -101,7 +98,6 @@
                 <button onclick="createCoupon()" class="w-full dynamic-btn py-3 rounded-xl text-xs uppercase tracking-wider font-black mt-2">Crear Cupón 💾</button>
             </div>
 
-            <!-- Listado y Filtro de Cupones -->
             <div class="slot-marquee rounded-2xl p-4 space-y-3">
                 <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
                     <h3 id="list-title" class="cinzel text-xs font-black dynamic-text">📋 LISTADO DE CUPONES</h3>
@@ -117,7 +113,7 @@
             </div>
         </div>
 
-        <!-- PESTAÑA 2: ADMINISTRADORES (Exclusiva Super Admin) -->
+        <!-- PESTAÑA 2: ADMINISTRADORES -->
         <div id="tab-content-admins" class="space-y-4 hidden">
             <div id="super-admin-creator" class="slot-marquee rounded-2xl p-4 space-y-3 hidden">
                 <h3 class="cinzel text-xs font-black dynamic-text">➕ CREAR NUEVO ADMINISTRADOR</h3>
@@ -153,7 +149,7 @@
             </div>
         </div>
 
-        <!-- PESTAÑA 3: AYUDA, SOPORTE Y PREGUNTAS FRECUENTES -->
+        <!-- PESTAÑA 3: AYUDA -->
         <div id="tab-content-help" class="space-y-4 hidden">
             <div class="slot-marquee rounded-2xl p-4 space-y-3">
                 <h3 class="cinzel text-xs font-black dynamic-text">📖 GUÍA RÁPIDA DE FUNCIONES</h3>
@@ -173,7 +169,6 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN NUEVA: PREGUNTAS FRECUENTES (FAQ) -->
             <div class="slot-marquee rounded-2xl p-4 space-y-3">
                 <h3 class="cinzel text-xs font-black text-amber-400">❓ PREGUNTAS FRECUENTES (FAQ)</h3>
                 <div class="space-y-2 text-[11px] text-zinc-300">
@@ -217,7 +212,7 @@
             </div>
         </div>
 
-        <!-- PESTAÑA 4: AJUSTES Y MANTENIMIENTO -->
+        <!-- PESTAÑA 4: AJUSTES -->
         <div id="tab-content-config" class="space-y-4 hidden">
             <div class="slot-marquee rounded-2xl p-4 space-y-3">
                 <h3 class="cinzel text-xs font-black text-amber-400">🔑 CAMBIAR MI CONTRASEÑA</h3>
@@ -253,7 +248,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // ====================== SEGURIDAD: HASH DE CONTRASEÑAS ======================
+        // ====================== HASH DE CONTRASEÑAS ======================
         async function hashPassword(password) {
             const encoder = new TextEncoder();
             const data = encoder.encode(password);
@@ -268,7 +263,7 @@
 
         if(!currentUser) { window.location.href = "login.html"; }
 
-        // SISTEMA DE CIERRE AUTOMÁTICO POR INACTIVIDAD (15 MINUTOS)
+        // Cierre por inactividad
         let inactivityTimer;
         function resetInactivityTimer() {
             clearTimeout(inactivityTimer);
@@ -278,7 +273,6 @@
                 window.location.href = "login.html";
             }, 900000); 
         }
-
         ['mousemove', 'mousedown', 'keypress', 'touchstart', 'scroll'].forEach(evt => {
             window.addEventListener(evt, resetInactivityTimer, true);
         });
@@ -299,14 +293,8 @@
         const userStatusRef = db.ref('status/' + currentUser);
         db.ref('.info/connected').on('value', (snap) => {
             if (snap.val() === true) {
-                userStatusRef.onDisconnect().set({ 
-                    state: 'offline', 
-                    last_changed: new Date().toLocaleString() 
-                });
-                userStatusRef.set({ 
-                    state: 'online', 
-                    last_changed: new Date().toLocaleString() 
-                });
+                userStatusRef.onDisconnect().set({ state: 'offline', last_changed: new Date().toLocaleString() });
+                userStatusRef.set({ state: 'online', last_changed: new Date().toLocaleString() });
             }
         });
 
@@ -351,12 +339,10 @@
         function addPrizeRow(defaultName = "", defaultWeight = "") {
             let container = document.getElementById('prizes-dynamic-container');
             let currentRows = container.querySelectorAll('.prize-row').length;
-
             if (currentRows >= 6) {
-                alert("⚠️ Podés agregar un máximo de 6 premios (uno por cada cofre de la suerte).");
+                alert("⚠️ Podés agregar un máximo de 6 premios.");
                 return;
             }
-
             let rowId = 'prize-row-' + Date.now() + Math.random().toString(36).substr(2, 5);
             let div = document.createElement('div');
             div.className = "grid grid-cols-6 gap-2 items-center prize-row";
@@ -373,7 +359,7 @@
         function removePrizeRow(rowId) {
             let container = document.getElementById('prizes-dynamic-container');
             if(container.querySelectorAll('.prize-row').length <= 1) {
-                alert("⚠️ El cupón debe tener al menos 1 premio configurado.");
+                alert("⚠️ El cupón debe tener al menos 1 premio.");
                 return;
             }
             document.getElementById(rowId).remove();
@@ -384,21 +370,16 @@
             let weightInputs = document.querySelectorAll('.prize-weight-input');
             let total = 0;
             weightInputs.forEach(input => {
-                let val = parseFloat(input.value) || 0;
-                total += val;
+                total += parseFloat(input.value) || 0;
             });
-
             let indicator = document.getElementById('total-weight-indicator');
             let addBtn = document.getElementById('add-prize-btn');
-            let currentRows = weightInputs.length;
-
             if (total === 100) {
                 indicator.innerHTML = `Total probabilidad: <span class="text-emerald-400">${total}% (Ideal ✅)</span>`;
             } else {
                 indicator.innerHTML = `Total probabilidad: <span class="text-amber-400">${total}% (Se reparte proporcionalmente)</span>`;
             }
-
-            if (currentRows >= 6) {
+            if (weightInputs.length >= 6) {
                 addBtn.classList.add('opacity-50', 'cursor-not-allowed');
             } else {
                 addBtn.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -446,15 +427,13 @@
         }
 
         function clearAppCache() {
-            if(!confirm("¿Deseas limpiar el almacenamiento y forzar la actualización de la plataforma?")) return;
+            if(!confirm("¿Deseas limpiar el almacenamiento y forzar la actualización?")) return;
             localStorage.clear();
             sessionStorage.clear();
             if ('caches' in window) {
-                caches.keys().then((names) => {
-                    names.forEach((name) => { caches.delete(name); });
-                });
+                caches.keys().then(names => names.forEach(name => caches.delete(name)));
             }
-            alert("¡Caché limpiada con éxito! La página se recargará ahora.");
+            alert("¡Caché limpiada!");
             window.location.reload(true);
         }
 
@@ -463,19 +442,17 @@
             let stockMax = parseInt(document.getElementById('new-stock-max').value) || 1;
             let expireInput = document.getElementById('new-expires-exact').value;
 
-            if(!code || !expireInput) { alert("Completa al menos el código y la fecha de vencimiento."); return; }
+            if(!code || !expireInput) { alert("Completa el código y la fecha de vencimiento."); return; }
 
             db.ref('cupones/' + code).once('value', (snap) => {
                 if (snap.exists()) {
-                    alert(`❌ El código [${code}] ya está en uso. Elegí otro nombre distinto.`);
+                    alert(`❌ El código [${code}] ya está en uso.`);
                     return;
                 }
 
                 let prizesArray = [];
                 let weightsArray = [];
-
-                let rows = document.querySelectorAll('.prize-row');
-                rows.forEach(row => {
+                document.querySelectorAll('.prize-row').forEach(row => {
                     let pName = row.querySelector('.prize-name-input').value.trim();
                     let pWeight = parseFloat(row.querySelector('.prize-weight-input').value);
                     if(pName && !isNaN(pWeight) && pWeight > 0) {
@@ -484,7 +461,7 @@
                     }
                 });
 
-                if(prizesArray.length === 0) { alert("Agregá al menos un premio con su porcentaje."); return; }
+                if(prizesArray.length === 0) { alert("Agregá al menos un premio."); return; }
 
                 let expiresAt = new Date(expireInput).getTime();
                 let securityId = generateUniqueCouponId();
@@ -500,7 +477,7 @@
                     createdAt: new Date().toLocaleDateString(), 
                     expiresAt: expiresAt
                 }, () => {
-                    alert(`✅ ¡Cupón [${code}] creado con éxito!\n🔑 ID Seguridad: ${securityId}\n🎯 Límite: ${stockMax} usos`);
+                    alert(`✅ ¡Cupón [${code}] creado!\n🔑 ID Seguridad: ${securityId}\n🎯 Límite: ${stockMax} usos`);
                     document.getElementById('new-code').value = ""; 
                     initDefaultPrizeRows();
                     setDefaultExpiration();
@@ -513,33 +490,57 @@
                 let raw = snap.val() || {};
                 if (currentRole === 'admin') {
                     allCouponsData = {};
-                    for (let c in raw) { if (raw[c].createdBy === currentUser) allCouponsData[c] = raw[c]; }
-                } else { allCouponsData = raw; }
+                    for (let c in raw) { 
+                        if (raw[c].createdBy === currentUser) allCouponsData[c] = raw[c]; 
+                    }
+                } else { 
+                    allCouponsData = raw; 
+                }
                 renderCoupons(allCouponsData);
                 updateStats(allCouponsData);
             });
         }
 
+        // ====================== FUNCIÓN CORREGIDA ======================
         function renderCoupons(data) {
             let list = document.getElementById('coupons-list');
             list.innerHTML = "";
-            if(Object.keys(data).length === 0) { 
+            
+            if (Object.keys(data).length === 0) { 
                 list.innerHTML = "<p class='text-zinc-500 text-center py-3'>No hay cupones registrados.</p>"; 
                 return; 
             }
+
             let now = new Date().getTime();
-            for(let code in data) {
+
+            for (let code in data) {
                 let item = data[code];
                 let expired = item.expiresAt && now > item.expiresAt;
                 let usedCount = item.usedCount || 0;
                 let stockMax = item.stockMax || 1;
                 let isSoldOut = usedCount >= stockMax;
-                let secId = item.securityId ? `<span class="bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded text-[9px] font-mono border border-zinc-700">#${item.securityId}</span>` : "";
+                
+                let secId = item.securityId 
+                    ? `<span class="bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded text-[9px] font-mono border border-zinc-700">#${item.securityId}</span>` 
+                    : "";
 
-                let st = isSoldOut ? `<span class="text-red-400">USADO (\( {usedCount}/ \){stockMax})</span>` : (expired ? `<span class="text-amber-400">VENCIDO</span>` : `<span class="text-emerald-400">DISP. (\( {usedCount}/ \){stockMax})</span>`);
+                // Estado corregido
+                let st = "";
+                if (isSoldOut) {
+                    st = `<span class="text-red-400">USADO (\( {usedCount}/ \){stockMax})</span>`;
+                } else if (expired) {
+                    st = `<span class="text-amber-400">VENCIDO</span>`;
+                } else {
+                    st = `<span class="text-emerald-400">DISP. (\( {usedCount}/ \){stockMax})</span>`;
+                }
+
                 let firstPrize = item.prizes ? item.prizes[0] : "Premio";
-                let lastUsedInfo = item.lastUsedAt ? `<div class="text-[9px] text-amber-300 font-bold">Último uso: \( {item.lastUsedAt} ( \){item.lastPrizeWon || ''})</div>` : "";
-                let ownerBadge = currentRole === 'super' ? `<span class="text-[9px] text-zinc-500 block">Por: ${item.createdBy}</span>` : "";
+                let lastUsedInfo = item.lastUsedAt 
+                    ? `<div class="text-[9px] text-amber-300 font-bold">Último uso: \( {item.lastUsedAt} ( \){item.lastPrizeWon || ''})</div>` 
+                    : "";
+                let ownerBadge = currentRole === 'super' 
+                    ? `<span class="text-[9px] text-zinc-500 block">Por: ${item.createdBy}</span>` 
+                    : "";
 
                 list.innerHTML += `
                     <div class="bg-black/60 p-2.5 rounded-xl border border-zinc-800 flex justify-between items-center gap-2">
@@ -566,7 +567,8 @@
                 total++;
                 let item = data[c];
                 let isSoldOut = (item.usedCount || 0) >= (item.stockMax || 1);
-                if(isSoldOut || (item.expiresAt && now > item.expiresAt)) used++; else avail++;
+                if(isSoldOut || (item.expiresAt && now > item.expiresAt)) used++; 
+                else avail++;
             }
             document.getElementById('stat-total').innerText = total;
             document.getElementById('stat-available').innerText = avail;
@@ -592,19 +594,21 @@
                         updates[code] = null;
                     }
                 }
-                db.ref('cupones').update(updates, () => { alert("¡Limpieza completa!"); });
+                db.ref('cupones').update(updates, () => alert("¡Limpieza completa!"));
             });
         }
 
         function clearAllCoupons() {
-            if(!confirm("⚠️ ¿Estás seguro de borrar todos los cupones?")) return;
+            if(!confirm("⚠️ ¿Borrar todos los cupones?")) return;
             if (currentRole === 'super') {
                 db.ref('cupones').remove();
             } else {
                 db.ref('cupones').once('value', (snap) => {
                     let data = snap.val() || {};
                     let updates = {};
-                    for(let code in data) { if(data[code].createdBy === currentUser) updates[code] = null; }
+                    for(let code in data) { 
+                        if(data[code].createdBy === currentUser) updates[code] = null; 
+                    }
                     db.ref('cupones').update(updates);
                 });
             }
@@ -625,12 +629,10 @@
         function sendSupportFeedback() {
             let type = document.getElementById('support-type').value;
             let msg = document.getElementById('support-message').value.trim();
-
             if (msg.length < 5) {
-                alert("Por favor escribí un mensaje un poquito más detallado.");
+                alert("Escribí un mensaje más detallado.");
                 return;
             }
-
             let msgId = 'msg_' + Date.now();
             db.ref('soporte/' + msgId).set({
                 user: currentUser,
@@ -638,10 +640,9 @@
                 message: msg,
                 date: new Date().toLocaleString()
             }, (error) => {
-                if (error) {
-                    alert("❌ Hubo un error al enviar el mensaje.");
-                } else {
-                    alert("✅ ¡Gracias! Tu comentario fue enviado al equipo de soporte.");
+                if (error) alert("❌ Error al enviar.");
+                else {
+                    alert("✅ ¡Comentario enviado!");
                     document.getElementById('support-message').value = "";
                 }
             });
@@ -667,16 +668,14 @@
                             </div>
                             <p class="text-zinc-200 text-[11px]">${m.message}</p>
                             <span class="text-[9px] text-zinc-500 block">${m.date}</span>
-                        </div>
-                    `;
+                        </div>`;
                 }
             });
         }
 
         function deleteSupportMsg(id) { db.ref('soporte/' + id).remove(); }
-        function clearSupportInbox() { if (!confirm("¿Borrar todos los mensajes recibidos?")) return; db.ref('soporte').remove(); }
+        function clearSupportInbox() { if (!confirm("¿Borrar todos los mensajes?")) return; db.ref('soporte').remove(); }
 
-        // ====================== CREAR ADMIN CON HASH ======================
         async function createAdminAccount() {
             let user = document.getElementById('new-admin-user').value.trim().toLowerCase();
             let pass = document.getElementById('new-admin-pass').value.trim();
@@ -692,7 +691,7 @@
 
             db.ref('admins/' + user).once('value', snap => {
                 if(snap.exists()) { 
-                    alert("❌ Ese nombre de usuario ya existe."); 
+                    alert("❌ Ese usuario ya existe."); 
                     return; 
                 }
                 db.ref('admins/' + user).set({
@@ -701,7 +700,7 @@
                     expiresAt: expiresAt,
                     createdAt: new Date().toLocaleDateString()
                 }, () => {
-                    alert(`¡Administrador [${user}] creado con éxito!`);
+                    alert(`¡Administrador [${user}] creado!`);
                     document.getElementById('new-admin-user').value = "";
                     document.getElementById('new-admin-pass').value = "";
                     updateExpiryDatePreview();
@@ -711,12 +710,14 @@
 
         function loadAdminsManagement() {
             if (currentRole !== 'super') return;
-
             db.ref('admins').on('value', (snap) => {
                 let list = document.getElementById('admins-management-list');
                 list.innerHTML = "";
                 let data = snap.val();
-                if(!data) { list.innerHTML = "<p class='text-zinc-500 text-center py-3'>No hay administradores.</p>"; return; }
+                if(!data) { 
+                    list.innerHTML = "<p class='text-zinc-500 text-center py-3'>No hay administradores.</p>"; 
+                    return; 
+                }
                 let count = 0;
                 let now = new Date().getTime();
 
@@ -729,30 +730,30 @@
                     let expiryText = "";
                     if (info.expiresAt) {
                         let daysLeft = Math.ceil((info.expiresAt - now) / (1000 * 60 * 60 * 24));
-                        if (daysLeft < 0) {
-                            expiryText = `<span class="text-red-400 text-[9px] block">Vencido</span>`;
-                        } else {
-                            expiryText = `<span class="text-amber-400 text-[9px] block">Vence en ${daysLeft} días</span>`;
-                        }
+                        expiryText = daysLeft < 0 
+                            ? `<span class="text-red-400 text-[9px] block">Vencido</span>`
+                            : `<span class="text-amber-400 text-[9px] block">Vence en ${daysLeft} días</span>`;
                     }
 
-                    let actionBtn = isApproved ? `<button onclick="toggleAdminApproval('\( {name}', false)" class="bg-amber-950 text-amber-300 px-2 py-1 rounded text-[10px]">Pausar</button>` : `<button onclick="toggleAdminApproval(' \){name}', true)" class="bg-emerald-500 text-black px-2 py-1 rounded text-[10px]">Aprobar</button>`;
-                    let editDateBtn = `<button onclick="superEditAdminDate('${name}')" class="bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-600/40 px-2 py-1 rounded text-[10px]" title="Editar fecha">✏️ Fecha</button>`;
-                    let renewBtn = `<button onclick="renewAdminMonth('${name}', ${info.expiresAt || now})" class="bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600/40 px-2 py-1 rounded text-[10px]" title="Extender 30 días">➕30d</button>`;
-                    let changePassBtn = `<button onclick="superChangeAdminPassword('${name}')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-amber-500/30 px-2 py-1 rounded text-[10px]">🔑 Clave</button>`;
-                    let deleteBtn = `<button onclick="deleteAdmin('${name}')" class="bg-red-950 text-red-300 px-2 py-1 rounded text-[10px]">🗑️</button>`;
+                    let actionBtn = isApproved 
+                        ? `<button onclick="toggleAdminApproval('${name}', false)" class="bg-amber-950 text-amber-300 px-2 py-1 rounded text-[10px]">Pausar</button>` 
+                        : `<button onclick="toggleAdminApproval('${name}', true)" class="bg-emerald-500 text-black px-2 py-1 rounded text-[10px]">Aprobar</button>`;
                     
                     list.innerHTML += `
                         <div class="bg-black/60 p-3 rounded-xl border border-zinc-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                             <div class="w-full sm:w-auto">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <strong class="text-amber-300 text-sm break-all">👤 ${name}</strong> 
-                                    <span id="status-badge-${name}" class="text-[9px] text-zinc-400 font-semibold">Cargando estado...</span>
+                                    <span id="status-badge-${name}" class="text-[9px] text-zinc-400 font-semibold">Cargando...</span>
                                 </div>
                                 ${expiryText}
                             </div>
                             <div class="flex flex-wrap gap-1 w-full sm:w-auto justify-end items-center">
-                                ${editDateBtn} ${renewBtn} ${changePassBtn} ${actionBtn} ${deleteBtn}
+                                <button onclick="superEditAdminDate('${name}')" class="bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-600/40 px-2 py-1 rounded text-[10px]">✏️ Fecha</button>
+                                <button onclick="renewAdminMonth('${name}', ${info.expiresAt || now})" class="bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600/40 px-2 py-1 rounded text-[10px]">➕30d</button>
+                                <button onclick="superChangeAdminPassword('${name}')" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-amber-500/30 px-2 py-1 rounded text-[10px]">🔑 Clave</button>
+                                ${actionBtn}
+                                <button onclick="deleteAdmin('${name}')" class="bg-red-950 text-red-300 px-2 py-1 rounded text-[10px]">🗑️</button>
                             </div>
                         </div>`;
                     
@@ -761,11 +762,11 @@
                         let badge = document.getElementById(`status-badge-${name}`);
                         if (badge) {
                             if (stData && stData.state === 'online') {
-                                badge.innerHTML = `<span class="text-emerald-400">🟢 En línea ahora</span>`;
+                                badge.innerHTML = `<span class="text-emerald-400">🟢 En línea</span>`;
                             } else if (stData && stData.last_changed) {
-                                badge.innerHTML = `<span class="text-zinc-400">⚪ Última vez: ${stData.last_changed}</span>`;
+                                badge.innerHTML = `<span class="text-zinc-400">⚪ ${stData.last_changed}</span>`;
                             } else {
-                                badge.innerHTML = `<span class="text-zinc-500">⚪ Sin actividad reciente</span>`;
+                                badge.innerHTML = `<span class="text-zinc-500">⚪ Sin actividad</span>`;
                             }
                         }
                     });
@@ -775,77 +776,73 @@
         }
 
         function superEditAdminDate(name) {
-            let currentNow = new Date();
-            let defaultIso = new Date(currentNow.getTime() - (currentNow.getTimezoneOffset() * 60000)).toISOString().slice(0, 10);
-            let newDateStr = prompt(`Ingresa la nueva fecha exacta de vencimiento para "${name}" (Formato: AAAA-MM-DD):`, defaultIso);
+            let defaultIso = new Date().toISOString().slice(0, 10);
+            let newDateStr = prompt(`Nueva fecha de vencimiento para "${name}" (AAAA-MM-DD):`, defaultIso);
             if (!newDateStr) return;
-
             let targetTime = new Date(newDateStr.trim() + "T23:59:59").getTime();
-            if (isNaN(targetTime)) { alert("❌ Formato de fecha inválido."); return; }
-
+            if (isNaN(targetTime)) { alert("❌ Fecha inválida."); return; }
             db.ref('admins/' + name).update({ expiresAt: targetTime }, (error) => {
-                if (error) alert("❌ Error al actualizar la fecha.");
-                else alert(`✅ ¡Fecha de "${name}" actualizada con éxito!`);
+                if (error) alert("❌ Error.");
+                else alert(`✅ Fecha actualizada.`);
             });
         }
 
         function renewAdminMonth(name, currentExpiry) {
-            let baseTime = currentExpiry > new Date().getTime() ? currentExpiry : new Date().getTime();
+            let baseTime = currentExpiry > Date.now() ? currentExpiry : Date.now();
             let newExpiry = baseTime + (30 * 24 * 60 * 60 * 1000); 
-
             db.ref('admins/' + name).update({ expiresAt: newExpiry }, (error) => {
-                if (error) alert("❌ Error al renovar.");
-                else alert(`✅ ¡Cuenta de "${name}" renovada por 30 días más!`);
+                if (error) alert("❌ Error.");
+                else alert(`✅ Renovado 30 días.`);
             });
         }
 
-        // ====================== CAMBIAR CONTRASEÑA DE OTRO ADMIN (CON HASH) ======================
         async function superChangeAdminPassword(name) {
-            let newPass = prompt(`Ingresa la nueva contraseña para "${name}":`, "");
+            let newPass = prompt(`Nueva contraseña para "${name}":`);
             if (newPass === null) return;
             newPass = newPass.trim();
-            if (newPass.length < 3) { 
-                alert("La contraseña es muy corta."); 
-                return; 
-            }
-
+            if (newPass.length < 3) { alert("Muy corta."); return; }
             const hashedPass = await hashPassword(newPass);
-
             db.ref('admins/' + name).update({ password: hashedPass }, (error) => {
-                if (error) alert("❌ Error al actualizar.");
-                else alert(`✅ ¡Contraseña actualizada con éxito!`);
+                if (error) alert("❌ Error.");
+                else alert(`✅ Contraseña actualizada.`);
             });
         }
 
-        function toggleAdminApproval(name, status) { db.ref('admins/' + name).update({ approved: status }); }
-        function deleteAdmin(name) { if(!confirm(`¿Eliminar al administrador ${name}?`)) return; db.ref('admins/' + name).remove(); db.ref('status/' + name).remove(); }
+        function toggleAdminApproval(name, status) { 
+            db.ref('admins/' + name).update({ approved: status }); 
+        }
         
-        // ====================== CAMBIAR MI PROPIA CONTRASEÑA (CON HASH) ======================
+        function deleteAdmin(name) { 
+            if(!confirm(`¿Eliminar a ${name}?`)) return; 
+            db.ref('admins/' + name).remove(); 
+            db.ref('status/' + name).remove(); 
+        }
+        
         async function changeMyPassword() {
             let curr = document.getElementById('current-pass').value.trim();
             let neu = document.getElementById('new-pass').value.trim();
-            if(!curr || !neu) { 
-                alert("Completa ambos campos."); 
-                return; 
-            }
+            if(!curr || !neu) { alert("Completa ambos campos."); return; }
 
             const hashedCurrent = await hashPassword(curr);
             const hashedNew = await hashPassword(neu);
 
             db.ref('admins/' + currentUser).once('value', s => {
                 if(!s.val() || (s.val().password !== hashedCurrent && s.val().password !== curr)) { 
-                    alert("La contraseña actual es incorrecta."); 
+                    alert("Contraseña actual incorrecta."); 
                     return; 
                 }
                 db.ref('admins/' + currentUser).update({ password: hashedNew }, () => { 
-                    alert("¡Contraseña actualizada con éxito!"); 
+                    alert("¡Contraseña actualizada!"); 
                     document.getElementById('current-pass').value = ""; 
                     document.getElementById('new-pass').value = ""; 
                 });
             });
         }
 
-        function logout() { localStorage.clear(); window.location.href = "login.html"; }
+        function logout() { 
+            localStorage.clear(); 
+            window.location.href = "login.html"; 
+        }
     </script>
 </body>
 </html>
