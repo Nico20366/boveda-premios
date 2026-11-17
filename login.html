@@ -21,32 +21,25 @@
 </head>
 <body class="min-h-screen casino-bg flex items-center justify-center p-4">
     <div class="max-w-md w-full slot-marquee rounded-2xl p-6 sm:p-8 space-y-6">
-        
         <div class="text-center space-y-2">
             <h1 class="cinzel text-xl sm:text-2xl font-black dynamic-text">ACCESO ADMINISTRADOR</h1>
             <p class="text-xs text-zinc-400 font-medium">Ingresá tus credenciales para gestionar cupones</p>
         </div>
-
         <div class="space-y-4">
             <div>
                 <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Usuario:</label>
                 <input type="text" id="login-user" placeholder="Tu usuario" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-bold focus:outline-none focus:border-amber-500">
             </div>
-
             <div>
                 <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Contraseña:</label>
                 <input type="password" id="login-pass" placeholder="••••••••" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-bold focus:outline-none focus:border-amber-500" onkeypress="if(event.key === 'Enter') loginAdmin()">
             </div>
-
             <button onclick="loginAdmin()" class="w-full dynamic-btn py-3.5 rounded-xl text-xs uppercase tracking-wider font-black mt-2">Ingresar al Panel 🚀</button>
         </div>
-
         <div class="text-center pt-2">
             <a href="index.html" class="text-xs text-zinc-500 hover:text-amber-400 transition-colors font-medium">← Volver al juego público</a>
         </div>
-
     </div>
-
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBqLgy8LhtKaOZgf1tLH5tG6Pm8qYj3ouQ",
@@ -61,55 +54,43 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Función para hashear contraseñas
         async function hashPassword(password) {
             const encoder = new TextEncoder();
             const data = encoder.encode(password);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashBuffer = await crypto.subtle.digest("SHA-256", data);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashArray.map(function (b) { return b.toString(16).padStart(2, "0"); }).join("");
         }
 
         async function loginAdmin() {
-            let user = document.getElementById('login-user').value.trim().toLowerCase();
-            let pass = document.getElementById('login-pass').value.trim();
-
+            var user = document.getElementById("login-user").value.trim().toLowerCase();
+            var pass = document.getElementById("login-pass").value.trim();
             if (!user || !pass) {
                 alert("Por favor completa usuario y contraseña.");
                 return;
             }
-
-            const hashedPass = await hashPassword(pass);
-
-            db.ref('admins/' + user).once('value', (snap) => {
+            var hashedPass = await hashPassword(pass);
+            db.ref("admins/" + user).once("value", function (snap) {
                 if (!snap.exists()) {
-                    alert("❌ Usuario o contraseña incorrectos.");
+                    alert("Usuario o contraseña incorrectos.");
                     return;
                 }
-
-                let data = snap.val();
-
-                // Acepta tanto hash nuevo como contraseña vieja (texto plano) para transición
+                var data = snap.val();
                 if (data.password !== hashedPass && data.password !== pass) {
-                    alert("❌ Usuario o contraseña incorrectos.");
+                    alert("Usuario o contraseña incorrectos.");
                     return;
                 }
-
                 if (data.approved === false) {
-                    alert("⚠️ Tu cuenta se encuentra pausada temporalmente. Comunícate con el administrador.");
+                    alert("Tu cuenta se encuentra pausada temporalmente. Comunícate con el administrador.");
                     return;
                 }
-
-                let now = new Date().getTime();
+                var now = new Date().getTime();
                 if (data.expiresAt && now > data.expiresAt) {
-                    alert("⚠️ Tu cuenta ha expirado. Comunícate con el administrador para renovar tu acceso.");
+                    alert("Tu cuenta ha expirado. Comunícate con el administrador para renovar tu acceso.");
                     return;
                 }
-
                 localStorage.setItem("current_admin", user);
-                let role = (user === "superadmin") ? "super" : "admin";
-                localStorage.setItem("admin_role", role);
-
+                localStorage.setItem("admin_role", user === "superadmin" ? "super" : "admin");
                 window.location.href = "admin.html";
             });
         }
