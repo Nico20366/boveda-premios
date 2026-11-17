@@ -35,7 +35,7 @@
 
             <div>
                 <label class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Contraseña:</label>
-                <input type="password" id="login-pass" placeholder="••••••••" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-bold focus:outline-none focus:border-amber-500" onkeypress="if(event.key === 'KeyE' || event.key === 'Enter') loginAdmin()">
+                <input type="password" id="login-pass" placeholder="••••••••" class="w-full bg-black/80 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white font-bold focus:outline-none focus:border-amber-500" onkeypress="if(event.key === 'Enter') loginAdmin()">
             </div>
 
             <button onclick="loginAdmin()" class="w-full dynamic-btn py-3.5 rounded-xl text-xs uppercase tracking-wider font-black mt-2">Ingresar al Panel 🚀</button>
@@ -61,43 +61,51 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        function loginAdmin() {
+        // Función para hashear contraseñas
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function loginAdmin() {
             let user = document.getElementById('login-user').value.trim().toLowerCase();
             let pass = document.getElementById('login-pass').value.trim();
 
-            if(!user || !pass) {
+            if (!user || !pass) {
                 alert("Por favor completa usuario y contraseña.");
                 return;
             }
 
+            const hashedPass = await hashPassword(pass);
+
             db.ref('admins/' + user).once('value', (snap) => {
-                if(!snap.exists()) {
+                if (!snap.exists()) {
                     alert("❌ Usuario o contraseña incorrectos.");
                     return;
                 }
 
                 let data = snap.val();
 
-                // 1. Validar contraseña
-                if(data.password !== pass) {
+                // Acepta tanto hash nuevo como contraseña vieja (texto plano) para transición
+                if (data.password !== hashedPass && data.password !== pass) {
                     alert("❌ Usuario o contraseña incorrectos.");
                     return;
                 }
 
-                // 2. Validar si el Super Admin pausó la cuenta
-                if(data.approved === false) {
+                if (data.approved === false) {
                     alert("⚠️ Tu cuenta se encuentra pausada temporalmente. Comunícate con el administrador.");
                     return;
                 }
 
-                // 3. Validar si la fecha de vigencia/alquiler ya expiró
                 let now = new Date().getTime();
-                if(data.expiresAt && now > data.expiresAt) {
+                if (data.expiresAt && now > data.expiresAt) {
                     alert("⚠️ Tu cuenta ha expirado. Comunícate con el administrador para renovar tu acceso.");
                     return;
                 }
 
-                // Si todo está OK, guardamos la sesión y redirigimos al admin.html
                 localStorage.setItem("current_admin", user);
                 let role = (user === "superadmin") ? "super" : "admin";
                 localStorage.setItem("admin_role", role);
